@@ -1,0 +1,75 @@
+# =============================================================================
+# MineRL Docker Compose
+#
+# Mac (CPU):     docker compose --profile cpu up
+# Windows (GPU): docker compose --profile gpu up
+#
+# Jupyter:  http://localhost:8888  (no password)
+# VNC:      localhost:5900         (view Minecraft rendering)
+# =============================================================================
+
+version: "3.9"
+
+x-minerl-base: &minerl-base
+  build:
+    context: .
+    dockerfile: Dockerfile
+    args:
+      BASE_IMAGE: ubuntu:20.04
+  volumes:
+    - ./workspace:/workspace      # your notebooks and scripts
+    - minerl_cache:/root/.gradle  # cache Gradle downloads between runs
+  ports:
+    - "8888:8888"   # Jupyter Lab
+    - "5900:5900"   # VNC (view virtual display)
+    - "6080:6080"   # noVNC 
+  environment:
+    - DISPLAY=:99
+    - PYTHONUNBUFFERED=1
+  stdin_open: true
+  tty: true
+
+services:
+
+  # ── Mac / CPU-only ──────────────────────────────────────────────────────────
+  minerl-cpu:
+    <<: *minerl-base
+    profiles: [cpu]
+    platform: linux/amd64      # Rosetta emulation on Apple Silicon
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BASE_IMAGE: ubuntu:20.04
+    environment:
+      - DISPLAY=:99
+      - PYTHONUNBUFFERED=1
+      - MINERL_HEADLESS=1
+    command: /usr/local/bin/start.sh
+
+  # ── Windows / NVIDIA GPU ────────────────────────────────────────────────────
+  minerl-gpu:
+    <<: *minerl-base
+    profiles: [gpu]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BASE_IMAGE: nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - DISPLAY=:99
+      - PYTHONUNBUFFERED=1
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - MINERL_HEADLESS=1
+    command: /usr/local/bin/start.sh
+
+volumes:
+  minerl_cache:

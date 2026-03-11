@@ -1,0 +1,4 @@
+2026-03-11 03:14:35 af6d73318b8a process_watcher[799] INFO Process watcher started between parent 724 and child 740 
+2026-03-11 03:14:45 af6d73318b8a process_watcher[799] INFO Parent is not running, hence we need terminate the child.
+2026-03-11 03:14:45 af6d73318b8a process_watcher[799] INFO Zombie process found in process tree.
+2026-03-11 03:14:45 af6d73318b8a process_watcher[799] INFO Process psutil.Process(pid=740, name='bash', status='zombie') does not exist or is zombie.
