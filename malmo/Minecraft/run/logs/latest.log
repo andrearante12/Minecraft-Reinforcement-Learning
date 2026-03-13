@@ -1,0 +1,1567 @@
+[15:38:36] [Client thread/INFO]: Setting user: Player290
+[15:38:44] [Client thread/WARN]: Skipping bad option: lastServer:
+[15:38:44] [Client thread/INFO]: LWJGL Version: 2.9.4
+[15:38:45] [Client thread/INFO]: [STDOUT]: MALMO: Attempting to transform MinecraftServer
+[15:38:45] [Client thread/INFO]: [STDOUT]: MALMO: Found GlStateManager, attempting to transform it
+[15:38:45] [Client thread/INFO]: [STDOUT]: MALMO: Found GlStateManager.bindTexture() method, attempting to transform it
+[15:38:45] [Client thread/INFO]: [STDOUT]: MALMO: Hooked into call to GlStateManager.bindTexture()
+[15:38:46] [Client thread/INFO]: [STDOUT]: ---- Minecraft Crash Report ----
+// Daisy, daisy...
+
+Time: 3/13/26 3:38 PM
+Description: Loading screen debug info
+
+This is just a prompt for computer specs to be printed. THIS IS NOT A ERROR
+
+
+A detailed walkthrough of the error, its code path and all known details is as follows:
+---------------------------------------------------------------------------------------
+
+-- System Details --
+Details:
+	Minecraft Version: 1.11.2
+	Operating System: Windows 10 (amd64) version 10.0
+	Java Version: 1.8.0_202, Oracle Corporation
+	Java VM Version: Java HotSpot(TM) 64-Bit Server VM (mixed mode), Oracle Corporation
+	Memory: 844339096 bytes (805 MB) / 997195776 bytes (951 MB) up to 1908932608 bytes (1820 MB)
+	JVM Flags: 1 total; -Xmx2G
+	IntCache: cache: 0, tcache: 0, allocated: 0, tallocated: 0
+	FML: 
+	Loaded coremods (and transformers): 
+OverclockingPlugin (MalmoMod-0.37.0.jar)
+  com.microsoft.Malmo.OverclockingClassTransformer
+	GL info: ' Vendor: 'NVIDIA Corporation' Version: '4.6.0 NVIDIA 566.07' Renderer: 'NVIDIA GeForce RTX 4070 Laptop GPU/PCIe/SSE2'
+[15:38:48] [Client thread/INFO]: Reloading ResourceManager: Default, FMLFileResourcePack:Forge Mod Loader, FMLFileResourcePack:Minecraft Forge, FMLFileResourcePack:Microsoft Malmo Mod
+[15:38:48] [Client thread/WARN]: ResourcePack: ignored non-lowercase namespace: MalmoMod in C:\Users\andre\Desktop\Minecraft-Reinforcement-Learning\Malmo\Minecraft\build\libs\MalmoMod-0.37.0.jar
+[15:38:48] [Client thread/WARN]: ResourcePack: ignored non-lowercase namespace: MalmoMod in C:\Users\andre\Desktop\Minecraft-Reinforcement-Learning\Malmo\Minecraft\build\libs\MalmoMod-0.37.0.jar
+[15:38:48] [Client thread/WARN]: ResourcePack: ignored non-lowercase namespace: MalmoMod in C:\Users\andre\Desktop\Minecraft-Reinforcement-Learning\Malmo\Minecraft\build\libs\MalmoMod-0.37.0.jar
+[15:38:48] [Client thread/INFO]: [STDOUT]: Testing schemas against internal version number: 0.37
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:ambient.cave
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.destroy
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.land
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.use
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.brewing_stand.brew
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.chest.close
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.chest.locked
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.chest.open
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.chorus_flower.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.chorus_flower.grow
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.cloth.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.cloth.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.cloth.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.cloth.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.cloth.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.comparator.click
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.dispenser.dispense
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.dispenser.fail
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.dispenser.launch
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.enchantment_table.use
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.end_gateway.spawn
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.enderchest.close
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.enderchest.open
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.fence_gate.close
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.fence_gate.open
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.fire.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.fire.extinguish
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.furnace.fire_crackle
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.glass.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.glass.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.glass.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.glass.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.glass.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.grass.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.grass.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.grass.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.grass.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.grass.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.gravel.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.gravel.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.gravel.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.gravel.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.gravel.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.iron_door.close
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.iron_door.open
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.iron_trapdoor.close
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.iron_trapdoor.open
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.ladder.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.ladder.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.ladder.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.ladder.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.ladder.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.lava.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.lava.extinguish
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.lava.pop
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.lever.click
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.metal.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.metal.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.metal.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.metal.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.metal.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.metal_pressureplate.click_off
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.metal_pressureplate.click_on
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.note.basedrum
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.note.bass
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.note.harp
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.note.hat
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.note.pling
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.note.snare
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.piston.contract
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.piston.extend
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.portal.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.portal.travel
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.portal.trigger
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.redstone_torch.burnout
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.sand.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.sand.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.sand.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.sand.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.sand.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.shulker_box.close
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.shulker_box.open
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.slime.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.slime.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.slime.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.slime.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.slime.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.snow.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.snow.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.snow.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.snow.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.snow.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.stone.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.stone.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.stone.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.stone.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.stone.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.stone_button.click_off
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.stone_button.click_on
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.stone_pressureplate.click_off
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.stone_pressureplate.click_on
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.tripwire.attach
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.tripwire.click_off
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.tripwire.click_on
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.tripwire.detach
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.water.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.waterlily.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wood.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wood.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wood.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wood.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wood.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wood_button.click_off
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wood_button.click_on
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wood_pressureplate.click_off
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wood_pressureplate.click_on
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wooden_door.close
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wooden_door.open
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wooden_trapdoor.close
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:block.wooden_trapdoor.open
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:enchant.thorns.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.armorstand.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.armorstand.fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.armorstand.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.armorstand.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.arrow.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.arrow.hit_player
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.arrow.shoot
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.bat.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.bat.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.bat.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.bat.loop
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.bat.takeoff
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.blaze.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.blaze.burn
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.blaze.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.blaze.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.blaze.shoot
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.bobber.splash
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.bobber.throw
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.cat.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.cat.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.cat.hiss
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.cat.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.cat.purr
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.cat.purreow
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.chicken.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.chicken.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.chicken.egg
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.chicken.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.chicken.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.cow.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.cow.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.cow.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.cow.milk
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.cow.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.creeper.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.creeper.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.creeper.primed
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.donkey.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.donkey.angry
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.donkey.chest
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.donkey.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.donkey.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.egg.throw
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.ambient_land
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.curse
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.death_land
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.flop
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.hurt_land
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon.flap
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon.growl
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon.shoot
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon_fireball.explode
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.endereye.launch
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermen.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermen.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermen.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermen.scream
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermen.stare
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermen.teleport
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermite.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermite.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermite.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermite.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderpearl.throw
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_fangs.attack
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.cast_spell
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.prepare_attack
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.prepare_summon
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.prepare_wololo
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.experience_bottle.throw
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.experience_orb.pickup
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.blast
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.blast_far
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.large_blast
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.large_blast_far
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.launch
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.shoot
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.twinkle
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.twinkle_far
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.big_fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.burn
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.drink
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.eat
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.explode
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.extinguish_fire
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.small_fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.splash
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.swim
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.ghast.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.ghast.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.ghast.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.ghast.scream
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.ghast.shoot
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.ghast.warn
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.ambient_land
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.attack
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.death_land
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.flop
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.hurt_land
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.angry
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.armor
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.breathe
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.eat
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.gallop
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.jump
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.land
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.saddle
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.step_wood
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.hostile.big_fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.hostile.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.hostile.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.hostile.small_fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.hostile.splash
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.hostile.swim
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.husk.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.husk.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.husk.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.husk.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.irongolem.attack
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.irongolem.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.irongolem.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.irongolem.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.item.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.item.pickup
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.itemframe.add_item
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.itemframe.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.itemframe.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.itemframe.remove_item
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.itemframe.rotate_item
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.leashknot.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.leashknot.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.lightning.impact
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.lightning.thunder
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.lingeringpotion.throw
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.angry
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.chest
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.eat
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.spit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.swag
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.magmacube.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.magmacube.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.magmacube.jump
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.magmacube.squish
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.minecart.inside
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.minecart.riding
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.mooshroom.shear
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.mule.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.mule.chest
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.mule.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.mule.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.painting.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.painting.place
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.pig.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.pig.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.pig.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.pig.saddle
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.pig.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.attack.crit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.attack.knockback
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.attack.nodamage
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.attack.strong
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.attack.sweep
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.attack.weak
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.big_fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.breath
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.burp
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.levelup
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.small_fall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.splash
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.swim
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.polar_bear.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.polar_bear.baby_ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.polar_bear.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.polar_bear.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.polar_bear.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.polar_bear.warning
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.rabbit.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.rabbit.attack
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.rabbit.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.rabbit.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.rabbit.jump
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.sheep.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.sheep.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.sheep.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.sheep.shear
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.sheep.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.close
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.hurt_closed
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.open
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.shoot
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.teleport
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker_bullet.hit
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker_bullet.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.silverfish.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.silverfish.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.silverfish.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.silverfish.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton.shoot
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton_horse.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton_horse.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton_horse.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.slime.attack
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.slime.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.slime.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.slime.jump
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.slime.squish
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_magmacube.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_magmacube.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_magmacube.squish
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_slime.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_slime.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_slime.jump
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_slime.squish
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.snowball.throw
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.snowman.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.snowman.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.snowman.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.snowman.shoot
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.spider.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.spider.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.spider.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.spider.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.splash_potion.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.splash_potion.throw
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.squid.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.squid.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.squid.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.stray.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.stray.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.stray.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.stray.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.tnt.primed
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.vex.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.vex.charge
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.vex.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.vex.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.villager.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.villager.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.villager.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.villager.no
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.villager.trading
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.villager.yes
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.vindication_illager.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.vindication_illager.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.vindication_illager.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.witch.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.witch.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.witch.drink
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.witch.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.witch.throw
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither.break_block
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither.shoot
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither.spawn
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither_skeleton.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither_skeleton.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither_skeleton.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither_skeleton.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.growl
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.howl
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.pant
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.shake
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.whine
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.attack_door_wood
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.attack_iron_door
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.break_door_wood
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.infect
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_horse.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_horse.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_horse.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_pig.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_pig.angry
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_pig.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_pig.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_villager.ambient
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_villager.converted
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_villager.cure
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_villager.death
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_villager.hurt
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_villager.step
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_chain
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_diamond
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_elytra
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_generic
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_gold
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_iron
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_leather
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.bottle.empty
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.bottle.fill
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.bottle.fill_dragonbreath
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.bucket.empty
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.bucket.empty_lava
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.bucket.fill
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.bucket.fill_lava
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.chorus_fruit.teleport
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.elytra.flying
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.firecharge.use
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.flintandsteel.use
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.hoe.till
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.shield.block
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.shield.break
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.shovel.flatten
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:item.totem.use
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:music.creative
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:music.credits
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:music.dragon
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:music.end
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:music.game
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:music.menu
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:music.nether
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:record.11
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:record.13
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:record.blocks
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:record.cat
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:record.chirp
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:record.far
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:record.mall
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:record.mellohi
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:record.stal
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:record.strad
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:record.wait
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:record.ward
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:ui.button.click
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:weather.rain
+[15:38:48] [Client thread/WARN]: Missing sound for event: minecraft:weather.rain.above
+[15:38:48] [Sound Library Loader/INFO]: Starting up SoundSystem...
+[15:38:49] [Thread-8/INFO]: Initializing LWJGL OpenAL
+[15:38:49] [Thread-8/INFO]: (The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org)
+[15:38:51] [Thread-8/INFO]: OpenAL initialized.
+[15:38:51] [Sound Library Loader/INFO]: Sound engine started
+[15:38:52] [Client thread/INFO]: Created: 16x16 textures-atlas
+[15:38:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_MOD_READY
+[15:38:52] [Client thread/INFO]: Reloading ResourceManager: Default, FMLFileResourcePack:Forge Mod Loader, FMLFileResourcePack:Minecraft Forge, FMLFileResourcePack:Microsoft Malmo Mod
+[15:38:52] [Client thread/WARN]: ResourcePack: ignored non-lowercase namespace: MalmoMod in C:\Users\andre\Desktop\Minecraft-Reinforcement-Learning\Malmo\Minecraft\build\libs\MalmoMod-0.37.0.jar
+[15:38:52] [Client thread/WARN]: ResourcePack: ignored non-lowercase namespace: MalmoMod in C:\Users\andre\Desktop\Minecraft-Reinforcement-Learning\Malmo\Minecraft\build\libs\MalmoMod-0.37.0.jar
+[15:38:52] [Client thread/WARN]: ResourcePack: ignored non-lowercase namespace: MalmoMod in C:\Users\andre\Desktop\Minecraft-Reinforcement-Learning\Malmo\Minecraft\build\libs\MalmoMod-0.37.0.jar
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:ambient.cave
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.destroy
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.land
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.anvil.use
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.brewing_stand.brew
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.chest.close
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.chest.locked
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.chest.open
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.chorus_flower.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.chorus_flower.grow
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.cloth.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.cloth.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.cloth.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.cloth.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.cloth.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.comparator.click
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.dispenser.dispense
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.dispenser.fail
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.dispenser.launch
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.enchantment_table.use
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.end_gateway.spawn
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.enderchest.close
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.enderchest.open
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.fence_gate.close
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.fence_gate.open
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.fire.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.fire.extinguish
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.furnace.fire_crackle
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.glass.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.glass.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.glass.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.glass.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.glass.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.grass.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.grass.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.grass.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.grass.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.grass.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.gravel.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.gravel.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.gravel.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.gravel.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.gravel.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.iron_door.close
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.iron_door.open
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.iron_trapdoor.close
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.iron_trapdoor.open
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.ladder.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.ladder.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.ladder.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.ladder.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.ladder.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.lava.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.lava.extinguish
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.lava.pop
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.lever.click
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.metal.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.metal.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.metal.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.metal.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.metal.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.metal_pressureplate.click_off
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.metal_pressureplate.click_on
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.note.basedrum
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.note.bass
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.note.harp
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.note.hat
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.note.pling
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.note.snare
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.piston.contract
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.piston.extend
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.portal.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.portal.travel
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.portal.trigger
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.redstone_torch.burnout
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.sand.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.sand.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.sand.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.sand.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.sand.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.shulker_box.close
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.shulker_box.open
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.slime.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.slime.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.slime.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.slime.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.slime.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.snow.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.snow.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.snow.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.snow.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.snow.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.stone.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.stone.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.stone.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.stone.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.stone.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.stone_button.click_off
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.stone_button.click_on
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.stone_pressureplate.click_off
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.stone_pressureplate.click_on
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.tripwire.attach
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.tripwire.click_off
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.tripwire.click_on
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.tripwire.detach
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.water.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.waterlily.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wood.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wood.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wood.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wood.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wood.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wood_button.click_off
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wood_button.click_on
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wood_pressureplate.click_off
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wood_pressureplate.click_on
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wooden_door.close
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wooden_door.open
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wooden_trapdoor.close
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:block.wooden_trapdoor.open
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:enchant.thorns.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.armorstand.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.armorstand.fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.armorstand.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.armorstand.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.arrow.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.arrow.hit_player
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.arrow.shoot
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.bat.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.bat.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.bat.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.bat.loop
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.bat.takeoff
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.blaze.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.blaze.burn
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.blaze.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.blaze.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.blaze.shoot
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.bobber.splash
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.bobber.throw
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.cat.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.cat.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.cat.hiss
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.cat.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.cat.purr
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.cat.purreow
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.chicken.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.chicken.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.chicken.egg
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.chicken.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.chicken.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.cow.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.cow.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.cow.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.cow.milk
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.cow.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.creeper.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.creeper.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.creeper.primed
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.donkey.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.donkey.angry
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.donkey.chest
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.donkey.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.donkey.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.egg.throw
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.ambient_land
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.curse
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.death_land
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.flop
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.elder_guardian.hurt_land
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon.flap
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon.growl
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon.shoot
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderdragon_fireball.explode
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.endereye.launch
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermen.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermen.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermen.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermen.scream
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermen.stare
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermen.teleport
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermite.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermite.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermite.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.endermite.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.enderpearl.throw
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_fangs.attack
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.cast_spell
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.prepare_attack
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.prepare_summon
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.evocation_illager.prepare_wololo
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.experience_bottle.throw
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.experience_orb.pickup
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.blast
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.blast_far
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.large_blast
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.large_blast_far
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.launch
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.shoot
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.twinkle
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.firework.twinkle_far
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.big_fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.burn
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.drink
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.eat
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.explode
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.extinguish_fire
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.small_fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.splash
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.generic.swim
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.ghast.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.ghast.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.ghast.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.ghast.scream
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.ghast.shoot
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.ghast.warn
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.ambient_land
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.attack
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.death_land
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.flop
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.guardian.hurt_land
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.angry
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.armor
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.breathe
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.eat
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.gallop
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.jump
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.land
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.saddle
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.horse.step_wood
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.hostile.big_fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.hostile.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.hostile.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.hostile.small_fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.hostile.splash
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.hostile.swim
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.husk.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.husk.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.husk.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.husk.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.irongolem.attack
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.irongolem.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.irongolem.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.irongolem.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.item.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.item.pickup
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.itemframe.add_item
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.itemframe.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.itemframe.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.itemframe.remove_item
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.itemframe.rotate_item
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.leashknot.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.leashknot.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.lightning.impact
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.lightning.thunder
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.lingeringpotion.throw
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.angry
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.chest
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.eat
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.spit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.llama.swag
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.magmacube.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.magmacube.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.magmacube.jump
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.magmacube.squish
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.minecart.inside
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.minecart.riding
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.mooshroom.shear
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.mule.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.mule.chest
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.mule.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.mule.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.painting.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.painting.place
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.pig.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.pig.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.pig.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.pig.saddle
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.pig.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.attack.crit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.attack.knockback
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.attack.nodamage
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.attack.strong
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.attack.sweep
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.attack.weak
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.big_fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.breath
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.burp
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.levelup
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.small_fall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.splash
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.player.swim
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.polar_bear.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.polar_bear.baby_ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.polar_bear.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.polar_bear.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.polar_bear.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.polar_bear.warning
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.rabbit.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.rabbit.attack
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.rabbit.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.rabbit.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.rabbit.jump
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.sheep.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.sheep.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.sheep.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.sheep.shear
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.sheep.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.close
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.hurt_closed
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.open
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.shoot
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker.teleport
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker_bullet.hit
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.shulker_bullet.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.silverfish.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.silverfish.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.silverfish.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.silverfish.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton.shoot
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton_horse.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton_horse.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.skeleton_horse.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.slime.attack
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.slime.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.slime.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.slime.jump
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.slime.squish
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_magmacube.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_magmacube.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_magmacube.squish
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_slime.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_slime.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_slime.jump
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.small_slime.squish
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.snowball.throw
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.snowman.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.snowman.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.snowman.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.snowman.shoot
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.spider.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.spider.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.spider.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.spider.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.splash_potion.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.splash_potion.throw
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.squid.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.squid.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.squid.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.stray.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.stray.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.stray.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.stray.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.tnt.primed
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.vex.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.vex.charge
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.vex.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.vex.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.villager.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.villager.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.villager.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.villager.no
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.villager.trading
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.villager.yes
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.vindication_illager.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.vindication_illager.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.vindication_illager.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.witch.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.witch.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.witch.drink
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.witch.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.witch.throw
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither.break_block
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither.shoot
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither.spawn
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither_skeleton.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither_skeleton.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither_skeleton.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wither_skeleton.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.growl
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.howl
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.pant
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.shake
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.wolf.whine
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.attack_door_wood
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.attack_iron_door
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.break_door_wood
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.infect
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_horse.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_horse.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_horse.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_pig.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_pig.angry
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_pig.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_pig.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_villager.ambient
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_villager.converted
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_villager.cure
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_villager.death
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_villager.hurt
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:entity.zombie_villager.step
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_chain
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_diamond
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_elytra
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_generic
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_gold
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_iron
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.armor.equip_leather
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.bottle.empty
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.bottle.fill
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.bottle.fill_dragonbreath
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.bucket.empty
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.bucket.empty_lava
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.bucket.fill
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.bucket.fill_lava
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.chorus_fruit.teleport
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.elytra.flying
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.firecharge.use
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.flintandsteel.use
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.hoe.till
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.shield.block
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.shield.break
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.shovel.flatten
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:item.totem.use
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:music.creative
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:music.credits
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:music.dragon
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:music.end
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:music.game
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:music.menu
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:music.nether
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:record.11
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:record.13
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:record.blocks
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:record.cat
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:record.chirp
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:record.far
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:record.mall
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:record.mellohi
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:record.stal
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:record.strad
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:record.wait
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:record.ward
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:ui.button.click
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:weather.rain
+[15:38:52] [Client thread/WARN]: Missing sound for event: minecraft:weather.rain.above
+[15:38:52] [Client thread/INFO]: SoundSystem shutting down...
+[15:38:52] [Client thread/WARN]: Author: Paul Lamb, www.paulscode.com
+[15:38:52] [Sound Library Loader/INFO]: Starting up SoundSystem...
+[15:38:52] [Thread-10/INFO]: Initializing LWJGL OpenAL
+[15:38:52] [Thread-10/INFO]: (The LWJGL binding of OpenAL.  For more information, see http://www.lwjgl.org)
+[15:38:52] [Thread-10/INFO]: OpenAL initialized.
+[15:38:53] [Sound Library Loader/INFO]: Sound engine started
+[15:38:54] [Client thread/INFO]: Created: 512x512 textures-atlas
+[15:38:54] [Client thread/WARN]: Skipping bad option: lastServer:
+[15:38:55] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_MOD_READY
+[15:38:55] [Thread-12/INFO]: [STDOUT]: INFO: ->mcp(0) Listening for messages on port 10000
+[15:38:55] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[15:38:55] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[15:38:55] [Realms Notification Availability checker #1/INFO]: Could not authorize you against Realms server: java.lang.RuntimeException: Failed to parse into SignedJWT: FML
+[15:39:41] [Thread-14/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:tabular_q_learning-0
+[15:39:41] [Thread-14/INFO]: [STDOUT]: ==== RES:  - -1773430781293
+[15:39:41] [Thread-14/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:39:41] [Thread-16/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Cliff walking mission based on Sutton and Barto.</Summary></About><ModSettings>      <MsPerTick>1</MsPerTick></ModSettings><ServerSection>            <ServerInitialConditions>                                          <Time>                                            <StartTime>6000</StartTime><AllowPassageOfTime>false</AllowPassageOfTime></Time><Weather>clear</Weather><AllowSpawning>false</AllowSpawning></ServerInitialConditions><ServerHandlers>                            <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;3;,biome_1"/><DrawingDecorator>                                                                                                                                                                                <!-- coordinates for cuboid are inclusive --><DrawCuboid 
+[15:39:41] [Thread-16/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:39:41] [Client thread/INFO]: [STDOUT]: Mission received: Cliff walking mission based on Sutton and Barto.
+[15:39:41] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[15:39:41] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[15:39:41] [Thread-17/INFO]: [STDOUT]: INFO: ->com(0) Listening for messages on port 10846
+[15:39:41] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[15:39:41] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[15:39:41] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_NEW_WORLD
+[15:39:41] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_NEW_WORLD
+[15:39:42] [Server thread/INFO]: Starting integrated minecraft server version 1.11.2
+[15:39:42] [Server thread/INFO]: Generating keypair
+[15:39:42] [Server thread/WARN]: Unable to find spawn biome
+[15:39:45] [Server thread/INFO]: Preparing start region for level 0
+[15:39:46] [Server thread/INFO]: Preparing spawn area: 47%
+[15:39:47] [Server thread/INFO]: Preparing spawn area: 98%
+[15:39:47] [Server thread/INFO]: Changing view distance to 6, from 10
+[15:39:47] [Client thread/INFO]: Deleting level TEMP_10000_ff6f1223-412f-47d2-89cb-ea58e5126acc
+[15:39:47] [Client thread/INFO]: Attempt 1...
+[15:39:47] [Netty Local Client IO #0/INFO]: [STDOUT]: Transformed Name: net.minecraft.client.entity.EntityOtherPlayerMP
+[15:39:47] [Netty Local Client IO #0/INFO]: [STDOUT]: MALMO: Attempting to transform MinecraftServer
+[15:39:47] [Netty Local Client IO #0/INFO]: [STDOUT]: MALMO: Found EntityOtherPlayerMP, attempting to transform it
+[15:39:47] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_MOD_READY
+[15:39:47] [Server thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[15:39:47] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[15:39:47] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_MOD_READY
+[15:39:47] [Server thread/INFO]: Cristina[local:E:f5b0565b] logged in with entity id 0 at (274.5, 227.0, -538.5)
+[15:39:47] [Server thread/INFO]: Cristina joined the game
+[15:39:47] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[15:39:47] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[15:39:47] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through ServerStateMachine constructor.
+[15:39:47] [Server thread/INFO]: [STDOUT]: Mission received: Cliff walking mission based on Sutton and Barto.
+[15:39:47] [Server thread/INFO]: Received mission: §9Cliff walking mission based on Sutton and Barto.
+[15:39:47] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[15:39:47] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[15:39:47] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[15:39:47] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:39:47] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:39:47] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[15:39:47] [Server thread/INFO]: [STDOUT]: >>>> Cristina
+[15:39:48] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:48] [Client thread/INFO]: [CHAT] Received mission: §9Cliff walking mission based on Sutton and Barto.
+[15:39:48] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[15:39:48] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[15:39:48] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[15:39:48] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[15:39:48] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[15:39:48] [Client thread/INFO]: [STDOUT]: Resized the window
+[15:39:49] [Client thread/INFO]: [CHAT] §l1000...
+[15:39:49] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[15:39:49] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[15:39:49] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[15:39:49] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[15:39:49] [Server thread/INFO]: Cristina tried to swim in lava
+[15:39:49] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[15:39:49] [Client thread/INFO]: [CHAT] Cristina tried to swim in lava
+[15:39:49] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[15:39:49] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10582.
+[15:39:49] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[15:39:49] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[15:39:49] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[15:39:49] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[15:39:49] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[15:39:49] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[15:39:49] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[15:39:49] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[15:39:49] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[15:39:49] [Thread-22/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:tabular_q_learning-1
+[15:39:49] [Thread-22/INFO]: [STDOUT]: ==== RES:  - 11320
+[15:39:49] [Thread-22/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:39:49] [Thread-24/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Cliff walking mission based on Sutton and Barto.</Summary></About><ModSettings>      <MsPerTick>1</MsPerTick></ModSettings><ServerSection>            <ServerInitialConditions>                                          <Time>                                            <StartTime>6000</StartTime><AllowPassageOfTime>false</AllowPassageOfTime></Time><Weather>clear</Weather><AllowSpawning>false</AllowSpawning></ServerInitialConditions><ServerHandlers>                            <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;3;,biome_1"/><DrawingDecorator>                                                                                                                                                                                <!-- coordinates for cuboid are inclusive --><DrawCuboid 
+[15:39:50] [Thread-24/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:39:50] [Client thread/INFO]: [STDOUT]: Mission received: Cliff walking mission based on Sutton and Barto.
+[15:39:50] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[15:39:50] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[15:39:50] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[15:39:50] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[15:39:50] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[15:39:50] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[15:39:50] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:50] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:50] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[15:39:50] [Server thread/INFO]: [STDOUT]: Mission received: Cliff walking mission based on Sutton and Barto.
+[15:39:50] [Server thread/INFO]: Received mission: §9Cliff walking mission based on Sutton and Barto.
+[15:39:50] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[15:39:50] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[15:39:50] [Client thread/INFO]: [CHAT] Received mission: §9Cliff walking mission based on Sutton and Barto.
+[15:39:50] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[15:39:50] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[15:39:50] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:39:50] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:50] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:39:50] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[15:39:50] [Server thread/INFO]: [STDOUT]: >>>> Cristina
+[15:39:50] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:50] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[15:39:50] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[15:39:50] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[15:39:50] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[15:39:50] [Client thread/INFO]: [CHAT] §l1000...
+[15:39:50] [Client thread/INFO]: [CHAT] §l999...
+[15:39:51] [Client thread/INFO]: [CHAT] §l998...
+[15:39:51] [Client thread/INFO]: [CHAT] §l997...
+[15:39:51] [Client thread/INFO]: [CHAT] §l996...
+[15:39:51] [Client thread/INFO]: [CHAT] §l995...
+[15:39:51] [Client thread/INFO]: [CHAT] §l994...
+[15:39:51] [Client thread/INFO]: [CHAT] §l993...
+[15:39:51] [Client thread/INFO]: [CHAT] §l992...
+[15:39:51] [Client thread/INFO]: [CHAT] §l991...
+[15:39:51] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[15:39:51] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[15:39:51] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[15:39:51] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[15:39:51] [Client thread/INFO]: [CHAT] §l990...
+[15:39:51] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[15:39:51] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[15:39:51] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10961.
+[15:39:51] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[15:39:51] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[15:39:51] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[15:39:51] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[15:39:51] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[15:39:51] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[15:39:51] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[15:39:51] [Server thread/INFO]: Cristina tried to swim in lava
+[15:39:51] [Client thread/INFO]: [CHAT] Cristina tried to swim in lava
+[15:39:51] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[15:39:51] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[15:39:52] [Thread-28/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:tabular_q_learning-2
+[15:39:52] [Thread-28/INFO]: [STDOUT]: ==== RES:  - 17938
+[15:39:52] [Thread-28/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:39:52] [Thread-30/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Cliff walking mission based on Sutton and Barto.</Summary></About><ModSettings>      <MsPerTick>1</MsPerTick></ModSettings><ServerSection>            <ServerInitialConditions>                                          <Time>                                            <StartTime>6000</StartTime><AllowPassageOfTime>false</AllowPassageOfTime></Time><Weather>clear</Weather><AllowSpawning>false</AllowSpawning></ServerInitialConditions><ServerHandlers>                            <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;3;,biome_1"/><DrawingDecorator>                                                                                                                                                                                <!-- coordinates for cuboid are inclusive --><DrawCuboid 
+[15:39:52] [Thread-30/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:39:52] [Client thread/INFO]: [STDOUT]: Mission received: Cliff walking mission based on Sutton and Barto.
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[15:39:52] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:52] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[15:39:52] [Server thread/INFO]: [STDOUT]: Mission received: Cliff walking mission based on Sutton and Barto.
+[15:39:52] [Server thread/INFO]: Received mission: §9Cliff walking mission based on Sutton and Barto.
+[15:39:52] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[15:39:52] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[15:39:52] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[15:39:52] [Client thread/INFO]: [CHAT] Received mission: §9Cliff walking mission based on Sutton and Barto.
+[15:39:52] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[15:39:52] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:39:52] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:39:52] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[15:39:52] [Server thread/INFO]: [STDOUT]: >>>> Cristina
+[15:39:52] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[15:39:52] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[15:39:52] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[15:39:52] [Client thread/INFO]: [CHAT] §l1000...
+[15:39:52] [Client thread/INFO]: [CHAT] §l999...
+[15:39:52] [Client thread/INFO]: [CHAT] §l998...
+[15:39:52] [Client thread/INFO]: [CHAT] §l997...
+[15:39:52] [Client thread/INFO]: [CHAT] §l996...
+[15:39:52] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[15:39:52] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[15:39:52] [Client thread/INFO]: [CHAT] §l995...
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[15:39:52] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10250.
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[15:39:52] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[15:39:52] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[15:39:52] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[15:39:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[15:39:52] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[15:39:53] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[15:39:53] [Server thread/INFO]: Cristina tried to swim in lava
+[15:39:53] [Client thread/INFO]: [CHAT] Cristina tried to swim in lava
+[15:39:53] [Thread-34/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:tabular_q_learning-3
+[15:39:53] [Thread-34/INFO]: [STDOUT]: ==== RES:  - 18705
+[15:39:53] [Thread-34/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:39:53] [Thread-36/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Cliff walking mission based on Sutton and Barto.</Summary></About><ModSettings>      <MsPerTick>1</MsPerTick></ModSettings><ServerSection>            <ServerInitialConditions>                                          <Time>                                            <StartTime>6000</StartTime><AllowPassageOfTime>false</AllowPassageOfTime></Time><Weather>clear</Weather><AllowSpawning>false</AllowSpawning></ServerInitialConditions><ServerHandlers>                            <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;3;,biome_1"/><DrawingDecorator>                                                                                                                                                                                <!-- coordinates for cuboid are inclusive --><DrawCuboid 
+[15:39:53] [Thread-36/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:39:53] [Client thread/INFO]: [STDOUT]: Mission received: Cliff walking mission based on Sutton and Barto.
+[15:39:53] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[15:39:53] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[15:39:53] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[15:39:53] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[15:39:53] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[15:39:53] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[15:39:53] [Server thread/INFO]: [STDOUT]: Mission received: Cliff walking mission based on Sutton and Barto.
+[15:39:53] [Server thread/INFO]: Received mission: §9Cliff walking mission based on Sutton and Barto.
+[15:39:53] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[15:39:53] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[15:39:53] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[15:39:53] [Client thread/INFO]: [CHAT] Received mission: §9Cliff walking mission based on Sutton and Barto.
+[15:39:53] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[15:39:53] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[15:39:53] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:39:53] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:53] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:39:53] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[15:39:53] [Server thread/INFO]: [STDOUT]: >>>> Cristina
+[15:39:53] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:53] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[15:39:53] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[15:39:53] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[15:39:53] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[15:39:53] [Client thread/INFO]: [CHAT] §l1000...
+[15:39:53] [Client thread/INFO]: [CHAT] §l999...
+[15:39:53] [Client thread/INFO]: [CHAT] §l998...
+[15:39:53] [Client thread/INFO]: [CHAT] §l997...
+[15:39:54] [Client thread/INFO]: [CHAT] §l996...
+[15:39:54] [Client thread/INFO]: [CHAT] §l995...
+[15:39:54] [Client thread/INFO]: [CHAT] §l994...
+[15:39:54] [Client thread/INFO]: [CHAT] §l993...
+[15:39:54] [Client thread/INFO]: [CHAT] §l992...
+[15:39:54] [Client thread/INFO]: [CHAT] §l991...
+[15:39:54] [Client thread/INFO]: [CHAT] §l990...
+[15:39:54] [Client thread/INFO]: [CHAT] §l989...
+[15:39:54] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[15:39:54] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[15:39:54] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10094.
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[15:39:54] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[15:39:54] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[15:39:54] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[15:39:54] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[15:39:54] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[15:39:54] [Server thread/INFO]: Cristina tried to swim in lava
+[15:39:54] [Client thread/INFO]: [CHAT] Cristina tried to swim in lava
+[15:39:54] [Thread-40/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:tabular_q_learning-4
+[15:39:54] [Thread-40/INFO]: [STDOUT]: ==== RES:  - 18650
+[15:39:54] [Thread-40/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:39:54] [Thread-42/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Cliff walking mission based on Sutton and Barto.</Summary></About><ModSettings>      <MsPerTick>1</MsPerTick></ModSettings><ServerSection>            <ServerInitialConditions>                                          <Time>                                            <StartTime>6000</StartTime><AllowPassageOfTime>false</AllowPassageOfTime></Time><Weather>clear</Weather><AllowSpawning>false</AllowSpawning></ServerInitialConditions><ServerHandlers>                            <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;3;,biome_1"/><DrawingDecorator>                                                                                                                                                                                <!-- coordinates for cuboid are inclusive --><DrawCuboid 
+[15:39:54] [Thread-42/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:39:54] [Client thread/INFO]: [STDOUT]: Mission received: Cliff walking mission based on Sutton and Barto.
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[15:39:54] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[15:39:54] [Server thread/INFO]: [STDOUT]: Mission received: Cliff walking mission based on Sutton and Barto.
+[15:39:54] [Server thread/INFO]: Received mission: §9Cliff walking mission based on Sutton and Barto.
+[15:39:54] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[15:39:54] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[15:39:54] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[15:39:54] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:39:54] [Client thread/INFO]: [CHAT] Received mission: §9Cliff walking mission based on Sutton and Barto.
+[15:39:54] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[15:39:54] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[15:39:54] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:54] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:39:54] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[15:39:54] [Server thread/INFO]: [STDOUT]: >>>> Cristina
+[15:39:55] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:55] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[15:39:55] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[15:39:55] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[15:39:55] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[15:39:55] [Client thread/INFO]: [CHAT] §l1000...
+[15:39:55] [Client thread/INFO]: [CHAT] §l999...
+[15:39:55] [Client thread/INFO]: [CHAT] §l998...
+[15:39:55] [Client thread/INFO]: [CHAT] §l997...
+[15:39:55] [Client thread/INFO]: [CHAT] §l996...
+[15:39:55] [Client thread/INFO]: [CHAT] §l995...
+[15:39:55] [Client thread/INFO]: [CHAT] §l994...
+[15:39:55] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[15:39:55] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[15:39:55] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[15:39:55] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[15:39:55] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[15:39:55] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[15:39:55] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10268.
+[15:39:55] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[15:39:55] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[15:39:55] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[15:39:55] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[15:39:55] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[15:39:55] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[15:39:55] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[15:39:55] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[15:39:55] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[15:39:55] [Server thread/INFO]: Cristina tried to swim in lava
+[15:39:55] [Client thread/INFO]: [CHAT] Cristina tried to swim in lava
+[15:39:56] [Thread-46/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:tabular_q_learning-5
+[15:39:56] [Thread-46/INFO]: [STDOUT]: ==== RES:  - 18653
+[15:39:56] [Thread-46/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:39:56] [Thread-48/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Cliff walking mission based on Sutton and Barto.</Summary></About><ModSettings>      <MsPerTick>1</MsPerTick></ModSettings><ServerSection>            <ServerInitialConditions>                                          <Time>                                            <StartTime>6000</StartTime><AllowPassageOfTime>false</AllowPassageOfTime></Time><Weather>clear</Weather><AllowSpawning>false</AllowSpawning></ServerInitialConditions><ServerHandlers>                            <FlatWorldGenerator generatorString="3;7,220*1,5*3,2;3;,biome_1"/><DrawingDecorator>                                                                                                                                                                                <!-- coordinates for cuboid are inclusive --><DrawCuboid 
+[15:39:56] [Thread-48/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:39:56] [Client thread/INFO]: [STDOUT]: Mission received: Cliff walking mission based on Sutton and Barto.
+[15:39:56] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[15:39:56] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[15:39:56] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[15:39:56] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[15:39:56] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[15:39:56] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[15:39:56] [Server thread/INFO]: [STDOUT]: Mission received: Cliff walking mission based on Sutton and Barto.
+[15:39:56] [Server thread/INFO]: Received mission: §9Cliff walking mission based on Sutton and Barto.
+[15:39:56] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[15:39:56] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[15:39:56] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[15:39:56] [Client thread/INFO]: [CHAT] Received mission: §9Cliff walking mission based on Sutton and Barto.
+[15:39:56] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[15:39:56] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:39:56] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[15:39:56] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:56] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:39:56] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[15:39:56] [Server thread/INFO]: [STDOUT]: >>>> Cristina
+[15:39:56] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Cristina
+[15:39:56] [Client thread/INFO]: [STDOUT]: SEVERE: <-mcp(kubernetes.docker.internal:10528) Failed to send TCP bytes -- retrying : java.util.concurrent.ExecutionException: java.io.IOException: An existing connection was forcibly closed by the remote host
+[15:39:58] [Client thread/INFO]: [STDOUT]: SEVERE: <-mcp(kubernetes.docker.internal:10528) Failed to reconnect: java.util.concurrent.ExecutionException: java.io.IOException: The remote computer refused the network connection.
+
+[15:39:58] [Client thread/INFO]: [STDOUT]: CLIENT request state: ERROR_LOST_AGENT
+[15:39:58] [Client thread/INFO]: [STDOUT]: CLIENT enter state: ERROR_LOST_AGENT
+[15:39:58] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[15:39:58] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[15:39:58] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[15:39:58] [Server thread/INFO]: [STDOUT]: SERVER request state: ERROR
+[15:39:59] [Server thread/INFO]: [STDOUT]: SERVER enter state: ERROR
+[15:39:59] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[15:39:59] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[15:39:59] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[15:39:59] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[15:43:21] [Thread-50/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[15:43:21] [Thread-50/INFO]: [STDOUT]: ==== RES:  - -185059
+[15:43:21] [Thread-50/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:43:21] [Thread-52/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>The Two-Block Gap Challenge with Grid Sensing</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="true"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0
+[15:43:21] [Thread-52/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:43:21] [Client thread/INFO]: [STDOUT]: Mission received: The Two-Block Gap Challenge with Grid Sensing
+[15:43:21] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[15:43:21] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[15:43:21] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[15:43:21] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[15:43:21] [Client thread/INFO]: [STDOUT]: CLIENT request state: PAUSING_OLD_SERVER
+[15:43:21] [Client thread/INFO]: [STDOUT]: CLIENT enter state: PAUSING_OLD_SERVER
+[15:43:21] [Server thread/INFO]: Saving and pausing game...
+[15:43:21] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_451472e2-ee57-4ffc-895b-23880f85d809'/Overworld
+[15:43:21] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_451472e2-ee57-4ffc-895b-23880f85d809'/Nether
+[15:43:21] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_451472e2-ee57-4ffc-895b-23880f85d809'/The End
+[15:43:21] [Client thread/INFO]: [STDOUT]: CLIENT request state: CLOSING_OLD_SERVER
+[15:43:21] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CLOSING_OLD_SERVER
+[15:43:21] [Server thread/INFO]: Stopping server
+[15:43:21] [Server thread/INFO]: Saving players
+[15:43:21] [Server thread/INFO]: Cristina lost connection: TextComponent{text='Disconnected', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}
+[15:43:21] [Server thread/INFO]: Cristina left the game
+[15:43:21] [Server thread/INFO]: Stopping singleplayer server as player logged out
+[15:43:21] [Server thread/INFO]: Saving worlds
+[15:43:21] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_451472e2-ee57-4ffc-895b-23880f85d809'/Overworld
+[15:43:21] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_451472e2-ee57-4ffc-895b-23880f85d809'/Nether
+[15:43:21] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_451472e2-ee57-4ffc-895b-23880f85d809'/The End
+[15:43:31] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_NEW_WORLD
+[15:43:31] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_NEW_WORLD
+[15:43:31] [Server thread/INFO]: Starting integrated minecraft server version 1.11.2
+[15:43:31] [Server thread/INFO]: Generating keypair
+[15:43:32] [Server thread/INFO]: Preparing start region for level 0
+[15:43:32] [Server thread/INFO]: Changing view distance to 6, from 10
+[15:43:32] [Client thread/INFO]: Deleting level TEMP_10000_451472e2-ee57-4ffc-895b-23880f85d809
+[15:43:32] [Client thread/INFO]: Attempt 1...
+[15:43:32] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_MOD_READY
+[15:43:32] [Server thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[15:43:32] [Server thread/INFO]: Parkour Agent[local:E:29ca033c] logged in with entity id 32 at (170.5, 4.0, -464.5)
+[15:43:32] [Server thread/INFO]: Parkour Agent joined the game
+[15:43:32] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_MOD_READY
+[15:43:32] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[15:43:32] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[15:43:32] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through ServerStateMachine constructor.
+[15:43:32] [Server thread/INFO]: [STDOUT]: Mission received: The Two-Block Gap Challenge with Grid Sensing
+[15:43:32] [Server thread/INFO]: Received mission: §9The Two-Block Gap Challenge with Grid Sensing
+[15:43:32] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[15:43:32] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[15:43:32] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[15:43:32] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:43:33] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:43:33] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[15:43:33] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[15:43:33] [Server thread/INFO]: Saving and pausing game...
+[15:43:33] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[15:43:33] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[15:43:33] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_e80c1c65-5007-483f-9824-db7b28ca3d48'/Overworld
+[15:43:33] [Client thread/INFO]: [CHAT] Received mission: §9The Two-Block Gap Challenge with Grid Sensing
+[15:43:33] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[15:43:33] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[15:43:33] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[15:43:33] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_e80c1c65-5007-483f-9824-db7b28ca3d48'/Nether
+[15:43:33] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_e80c1c65-5007-483f-9824-db7b28ca3d48'/The End
+[15:43:33] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[15:43:33] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[15:43:33] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[15:43:33] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[15:43:33] [Client thread/INFO]: [CHAT] §l30...
+[15:43:34] [Client thread/INFO]: [CHAT] §l29...
+[15:43:35] [Client thread/INFO]: [CHAT] §l28...
+[15:43:36] [Client thread/INFO]: [CHAT] §l27...
+[15:43:37] [Client thread/INFO]: [CHAT] §l26...
+[15:43:37] [Server thread/INFO]: Parkour Agent fell from a high place
+[15:43:37] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[15:43:38] [Client thread/INFO]: [CHAT] §l25...
+[15:43:38] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[15:43:38] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[15:43:38] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[15:43:38] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[15:43:38] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[15:43:38] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[15:43:38] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10909.
+[15:43:38] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[15:43:38] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[15:43:38] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[15:43:38] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[15:43:38] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[15:43:38] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[15:43:39] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[15:43:39] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[15:43:39] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[15:49:51] [Thread-58/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[15:49:51] [Thread-58/INFO]: [STDOUT]: ==== RES:  - -370405
+[15:49:51] [Thread-58/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:49:51] [Thread-60/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>The Two-Block Gap Challenge with Grid Sensing</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="true"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0
+[15:49:51] [Thread-60/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[15:49:51] [Client thread/INFO]: [STDOUT]: Mission received: The Two-Block Gap Challenge with Grid Sensing
+[15:49:51] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[15:49:51] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[15:49:51] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[15:49:51] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[15:49:51] [Client thread/INFO]: [STDOUT]: CLIENT request state: PAUSING_OLD_SERVER
+[15:49:51] [Client thread/INFO]: [STDOUT]: CLIENT enter state: PAUSING_OLD_SERVER
+[15:49:51] [Server thread/INFO]: Saving and pausing game...
+[15:49:51] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_e80c1c65-5007-483f-9824-db7b28ca3d48'/Overworld
+[15:49:51] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_e80c1c65-5007-483f-9824-db7b28ca3d48'/Nether
+[15:49:51] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_e80c1c65-5007-483f-9824-db7b28ca3d48'/The End
+[15:49:51] [Client thread/INFO]: [STDOUT]: CLIENT request state: CLOSING_OLD_SERVER
+[15:49:51] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CLOSING_OLD_SERVER
+[15:49:51] [Server thread/INFO]: Stopping server
+[15:49:51] [Server thread/INFO]: Saving players
+[15:49:51] [Server thread/INFO]: Parkour Agent lost connection: TextComponent{text='Disconnected', siblings=[], style=Style{hasParent=false, color=null, bold=null, italic=null, underlined=null, obfuscated=null, clickEvent=null, hoverEvent=null, insertion=null}}
+[15:49:51] [Server thread/INFO]: Parkour Agent left the game
+[15:49:51] [Server thread/INFO]: Stopping singleplayer server as player logged out
+[15:49:51] [Server thread/INFO]: Saving worlds
+[15:49:51] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_e80c1c65-5007-483f-9824-db7b28ca3d48'/Overworld
+[15:49:51] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_e80c1c65-5007-483f-9824-db7b28ca3d48'/Nether
+[15:49:51] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_e80c1c65-5007-483f-9824-db7b28ca3d48'/The End
+[15:50:02] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_NEW_WORLD
+[15:50:02] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_NEW_WORLD
+[15:50:02] [Server thread/INFO]: Starting integrated minecraft server version 1.11.2
+[15:50:02] [Server thread/INFO]: Generating keypair
+[15:50:02] [Server thread/INFO]: Preparing start region for level 0
+[15:50:02] [Server thread/INFO]: Changing view distance to 6, from 10
+[15:50:02] [Client thread/INFO]: Deleting level TEMP_10000_e80c1c65-5007-483f-9824-db7b28ca3d48
+[15:50:02] [Client thread/INFO]: Attempt 1...
+[15:50:02] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_MOD_READY
+[15:50:02] [Server thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[15:50:02] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_MOD_READY
+[15:50:02] [Server thread/INFO]: Parkour Agent[local:E:8fc2aad0] logged in with entity id 36 at (1273.5, 4.0, 371.5)
+[15:50:02] [Server thread/INFO]: Parkour Agent joined the game
+[15:50:02] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[15:50:02] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[15:50:02] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through ServerStateMachine constructor.
+[15:50:02] [Server thread/INFO]: [STDOUT]: Mission received: The Two-Block Gap Challenge with Grid Sensing
+[15:50:02] [Server thread/INFO]: Received mission: §9The Two-Block Gap Challenge with Grid Sensing
+[15:50:02] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[15:50:02] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[15:50:03] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[15:50:03] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:50:03] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[15:50:03] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[15:50:03] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[15:50:03] [Server thread/INFO]: Saving and pausing game...
+[15:50:03] [Client thread/INFO]: [CHAT] Received mission: §9The Two-Block Gap Challenge with Grid Sensing
+[15:50:03] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[15:50:03] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[15:50:03] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[15:50:03] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_4f8b4f89-ac72-4804-8f61-fc750db86ca4'/Overworld
+[15:50:03] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[15:50:03] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_4f8b4f89-ac72-4804-8f61-fc750db86ca4'/Nether
+[15:50:03] [Server thread/INFO]: Saving chunks for level 'TEMP_10000_4f8b4f89-ac72-4804-8f61-fc750db86ca4'/The End
+[15:50:03] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[15:50:03] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[15:50:03] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[15:50:03] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[15:50:03] [Client thread/INFO]: [CHAT] §l30...
+[15:50:04] [Client thread/INFO]: [CHAT] §l29...
+[15:50:05] [Client thread/INFO]: [CHAT] §l28...
+[15:50:06] [Client thread/INFO]: [CHAT] §l27...
+[15:50:07] [Server thread/INFO]: Parkour Agent fell from a high place
+[15:50:07] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[15:50:07] [Client thread/INFO]: [CHAT] §l26...
+[15:50:08] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[15:50:08] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[15:50:08] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[15:50:08] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[15:50:08] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[15:50:08] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[15:50:08] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10828.
+[15:50:08] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[15:50:08] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[15:50:08] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[15:50:08] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[15:50:08] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[15:50:08] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[15:50:08] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[15:50:08] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[15:50:08] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
