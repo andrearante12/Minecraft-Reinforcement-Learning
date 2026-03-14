@@ -1,0 +1,22 @@
+# Minecraft / Gradle build artifacts
+malmo/Minecraft/.gradle/
+malmo/Minecraft/build/
+malmo/Minecraft/run/
+malmo/Minecraft/*.lock
+
+# Python
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+
+# Training outputs
+malmo/parkour/checkpoints/
+malmo/parkour/logs/
+
+# Conda
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db

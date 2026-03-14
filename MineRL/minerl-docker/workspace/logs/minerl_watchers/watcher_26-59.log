@@ -1,4 +1,0 @@
-2026-03-11 02:21:09 42714cf3c7f2 process_watcher[122] INFO Process watcher started between parent 26 and child 59 
-2026-03-11 02:26:03 42714cf3c7f2 process_watcher[122] INFO Parent is not running, hence we need terminate the child.
-2026-03-11 02:26:03 42714cf3c7f2 process_watcher[122] INFO Zombie process found in process tree.
-2026-03-11 02:26:03 42714cf3c7f2 process_watcher[122] INFO Process psutil.Process(pid=59, name='bash', status='zombie') does not exist or is zombie.

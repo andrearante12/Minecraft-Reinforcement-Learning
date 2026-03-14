@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <About>
-    <Summary>The Two-Block Gap Challenge with Grid Sensing</Summary>
+    <Summary>Two-Block Gap</Summary>
   </About>
   
   <ServerSection>
@@ -36,8 +36,8 @@
       
       <ObservationFromGrid>
         <Grid name="floor3x3">
-          <min x="-1" y="-1" z="-1"/>
-          <max x="1" y="-1" z="1"/>
+          <min x="-2" y="-1" z="-2"/>
+          <max x="2"  y="2"  z="3"/>
         </Grid>
       </ObservationFromGrid>
       
