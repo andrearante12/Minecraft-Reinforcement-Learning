@@ -69,11 +69,3 @@ To remove an action, delete its entry from the list. `N_ACTIONS` is computed aut
 If you change `N_ACTIONS`, the policy head output size changes — any saved checkpoints trained with the old action count will be incompatible and cannot be loaded.
 
 ---
-
-## Notes on Specific Actions
-
-**`sprint_jump` (index 6)** is the most important action for gap-crossing tasks. It combines forward momentum with a jump, covering the maximum horizontal distance. The agent needs to discover that this action must be timed correctly relative to the gap edge.
-
-**`no_op` (index 11)** is critical for jump timing. Without it the agent has no way to wait for the right moment — it would always be moving or turning. In practice a well-trained agent uses `no_op` sparingly to position itself before committing to a jump.
-
-**Camera actions (`look_down`, `look_up`, `turn_left`, `turn_right`)** are included for future tasks like neo jumps where pitch during the jump arc affects landing distance. For simple flat gap tasks these actions are largely unused by a trained agent but including them allows the policy to discover their utility on more complex maps.

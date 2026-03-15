@@ -28,20 +28,20 @@ cd .\Malmo\Minecraft\
 
 ```powershell
 conda activate malmo
-python Malmo/parkour/envs/env_server.py --env simple_jump
+python Malmo/rl/envs/env_server.py --env simple_jump
 ```
 
 To run a different environment, change the `--env` flag:
 
 ```powershell
-python Malmo/parkour/envs/env_server.py --env three_block_gap
+python Malmo/rl/envs/env_server.py --env three_block_gap
 ```
 
 **3. Start training** (Terminal 2):
 
 ```powershell
 conda activate train_env
-python Malmo/parkour/training/train.py --env simple_jump --algo ppo
+python Malmo/rl/training/train.py --env simple_jump --algo ppo
 ```
 
 ---
@@ -51,13 +51,13 @@ python Malmo/parkour/training/train.py --env simple_jump --algo ppo
 Resume training from a checkpoint:
 
 ```powershell
-python Malmo/parkour/training/train.py --env simple_jump --algo ppo --checkpoint parkour/checkpoints/ppo_simple_jump_ep500.pt
+python Malmo/rl/training/train.py --env simple_jump --algo ppo --checkpoint parkour/checkpoints/ppo_simple_jump_ep500.pt
 ```
 
 Evaluate a trained checkpoint:
 
 ```powershell
 conda activate train_env
-python Malmo/parkour/evaluation/evaluate.py --checkpoint parkour/checkpoints/ppo_simple_jump_ep1000.pt
-python Malmo/parkour/evaluation/evaluate.py --checkpoint parkour/checkpoints/ppo_simple_jump_ep1000.pt --episodes 50
+python Malmo/rl/evaluation/evaluate.py --checkpoint parkour/checkpoints/ppo_simple_jump_ep1000.pt
+python Malmo/rl/evaluation/evaluate.py --checkpoint parkour/checkpoints/ppo_simple_jump_ep1000.pt --episodes 50
 ```

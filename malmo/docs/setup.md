@@ -50,7 +50,7 @@ Set these once — they persist across all future terminal sessions. Open PowerS
 
 # Makes the parkour package importable from any directory
 [System.Environment]::SetEnvironmentVariable("PYTHONPATH",
-    "C:\Users\<user>\Desktop\Minecraft-Reinforcement-Learning\Malmo\parkour", "User")
+    "C:\Users\<user>\Desktop\Minecraft-Reinforcement-Learning\Malmo\\rl", "User")
 ```
 
 Replace `<user>` with your Windows username and ensure the full file path is accurate. Open a fresh PowerShell after setting these and verify:
@@ -64,7 +64,7 @@ echo $env:PYTHONPATH
 
 ## Malmo Installation (Windows)
 
-This doc contains the additional fixes required to get Malmo working on Windows. For the full original install instructions view `.\Malmo\install_windows.md`.
+This doc contains the additional fixes required to get Malmo working on Windows. For the full original install instructions view [Official Install (Windows)](../../offical_install/install_windows.md).
 
 ### Prerequisites
 

@@ -74,7 +74,7 @@ ALGO_REGISTRY = {
 **4. Run training with the new algorithm:**
 
 ```powershell
-python Malmo/parkour/training/train_simple_jump.py --algo my_algo
+python Malmo/rl/training/train_simple_jump.py --algo my_algo
 ```
 
 The training loop, environment, logging, and checkpointing all work automatically — the `update()` return dict keys are logged dynamically so no changes to `logger.py` are needed either.
