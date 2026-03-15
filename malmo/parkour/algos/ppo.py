@@ -1,9 +1,16 @@
+"""
+algos/ppo.py
+------------
+Proximal Policy Optimization — implements BaseAgent.
+"""
+
 import os
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.distributions import Categorical
+
+from algos.base_agent import BaseAgent
 
 
 class RolloutBuffer:
@@ -57,7 +64,7 @@ def compute_returns(rewards, dones, last_value, gamma):
     return returns
 
 
-class PPO:
+class PPO(BaseAgent):
     def __init__(self, model, cfg):
         self.model     = model
         self.cfg       = cfg
@@ -136,17 +143,3 @@ class PPO:
             if greedy:
                 return self.model(obs_t)[0].argmax(dim=-1).item()
             return self.model.get_distribution(obs_t).sample().item()
-
-    def save(self, path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        torch.save({
-            "model_state":     self.model.state_dict(),
-            "optimizer_state": self.optimizer.state_dict(),
-        }, path)
-        print("Checkpoint saved:", path)
-
-    def load(self, path):
-        ckpt = torch.load(path, map_location=self.device)
-        self.model.load_state_dict(ckpt["model_state"])
-        self.optimizer.load_state_dict(ckpt["optimizer_state"])
-        print("Checkpoint loaded:", path)

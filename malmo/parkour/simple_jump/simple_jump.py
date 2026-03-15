@@ -1,33 +1,7 @@
 """
-simple_jump.py
---------------
-Parkour Simple Jump — random agent with episode loop.
 
-Each episode restarts the Malmo mission to respawn the agent at the start.
-forceReset is disabled so Minecraft does not rebuild the world each time,
-making resets much faster. The agent dies on a fall (Survival mode ends
-the mission), so a full mission restart is required — teleport alone is
-not sufficient after death.
+DEPRECATED - Only used an initial env test script
 
-Episode termination:
-  - Agent Y drops below FALL_Y_THRESHOLD  →  fell (fast Y-level detection)
-  - Agent Z reaches Z_SUCCESS             →  crossed the gap
-  - MAX_STEPS reached                     →  timeout
-
-Actions:
-    0 - move forward
-    1 - move forward + jump
-    2 - strafe left
-    3 - strafe right
-    4 - move backward
-
-Usage:
-    python simple_jump.py
-
-Requirements:
-    - Minecraft + Malmo client must be running on port 10000
-    - MALMO_XSD_PATH must be set (see README)
-    - parkour_simple_jump.xml must be in the missions/ folder
 """
 
 import sys
