@@ -19,7 +19,7 @@ sys.path.insert(0, PARKOUR_ROOT)
 from training.config  import CFG
 from models.mlp       import ActorCritic
 from algos.ppo        import PPO
-from envs.parkour_env import ParkourEnv
+from Malmo.parkour.envs.simple_jump.parkour_env import ParkourEnv
 
 
 def parse_args():

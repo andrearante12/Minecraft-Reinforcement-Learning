@@ -1,16 +1,16 @@
 """
-training/train_simple_jump.py
-------------------------------
-Training entrypoint for the simple jump task.
+training/train.py
+-----------------
+Generic training entrypoint. Select environment and algorithm via flags.
 
-Requires env_server.py to be running in the malmo env first:
-    Terminal 1: conda activate malmo && python parkour/envs/env_server.py
-    Terminal 2: conda activate train_env && python parkour/training/train_simple_jump.py
+Requires env_server.py to be running first:
+    Terminal 1: conda activate malmo && python parkour/envs/env_server.py --env simple_jump
+    Terminal 2: conda activate train_env && python parkour/training/train.py --env simple_jump
 
 Usage:
-    python parkour/training/train_simple_jump.py
-    python parkour/training/train_simple_jump.py --algo dqn
-    python parkour/training/train_simple_jump.py --checkpoint checkpoints/ep500.pt
+    python parkour/training/train.py --env simple_jump --algo ppo
+    python parkour/training/train.py --env three_block_gap --algo dqn
+    python parkour/training/train.py --env simple_jump --algo ppo --checkpoint checkpoints/ppo_simple_jump_ep500.pt
 """
 
 import sys
@@ -21,11 +21,11 @@ import torch
 PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PARKOUR_ROOT)
 
-from training.config  import CFG
 from models.mlp       import ActorCritic
-from envs.env_client  import ParkourEnvClient
+from envs.env_client  import EnvClient
 from utils.logger     import Logger
 
+# ── Algorithm registry ────────────────────────────────────────────────────────
 from algos.ppo import PPO
 from algos.dqn import DQN
 
@@ -34,9 +34,22 @@ ALGO_REGISTRY = {
     "dqn": DQN,
 }
 
+# ── Environment registry ──────────────────────────────────────────────────────
+# Only configs are needed here — the client is generic
+from training.configs.simple_jump_cfg      import SimpleJumpCFG
+from training.configs.three_block_gap_cfg  import ThreeBlockGapCFG
+
+ENV_REGISTRY = {
+    "simple_jump":     SimpleJumpCFG,
+    "three_block_gap": ThreeBlockGapCFG,
+}
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--env",        type=str, default="simple_jump",
+                        choices=list(ENV_REGISTRY.keys()),
+                        help="Environment to train in (default: simple_jump)")
     parser.add_argument("--algo",       type=str, default="ppo",
                         choices=list(ALGO_REGISTRY.keys()),
                         help="RL algorithm to use (default: ppo)")
@@ -45,10 +58,11 @@ def parse_args():
     return parser.parse_args()
 
 
-def print_header(algo_name, cfg):
+def print_header(env_name, algo_name, cfg):
     print("=" * 60)
-    print("Parkour RL Training — Simple Jump")
+    print("Malmo RL Training")
     print("=" * 60)
+    print("Environment:    ", env_name)
     print("Algorithm:      ", algo_name.upper())
     print("Device:         ", "cuda" if torch.cuda.is_available() else "cpu")
     print("Total episodes: ", cfg.TOTAL_EPISODES)
@@ -75,25 +89,24 @@ def print_header(algo_name, cfg):
 
 
 def print_update(losses):
-    """Print whatever keys the algorithm's update() returned."""
     metrics = " | ".join("{0}:{1:.4f}".format(k, v) for k, v in losses.items())
     print("  [update] {0}".format(metrics))
 
 
 def train():
     args = parse_args()
+    cfg  = ENV_REGISTRY[args.env]
 
-    os.makedirs(CFG.CHECKPOINT_DIR, exist_ok=True)
-    os.makedirs(CFG.LOG_DIR, exist_ok=True)
+    os.makedirs(cfg.CHECKPOINT_DIR, exist_ok=True)
+    os.makedirs(cfg.LOG_DIR, exist_ok=True)
 
-    env    = ParkourEnvClient()
-    model  = ActorCritic(CFG.INPUT_SIZE, CFG.HIDDEN_SIZE, CFG.N_ACTIONS)
-    agent  = ALGO_REGISTRY[args.algo](model, CFG)
-    logger = Logger(CFG.LOG_DIR, "simple_jump_{0}".format(args.algo))
+    env    = EnvClient(cfg.INPUT_SIZE)
+    model  = ActorCritic(cfg.INPUT_SIZE, cfg.HIDDEN_SIZE, cfg.N_ACTIONS)
+    agent  = ALGO_REGISTRY[args.algo](model, cfg)
+    logger = Logger(cfg.LOG_DIR, "{0}_{1}".format(args.env, args.algo))
 
-    print_header(args.algo, CFG)
+    print_header(args.env, args.algo, cfg)
 
-    # Resume from checkpoint
     start_episode = 1
     if args.checkpoint:
         agent.load(args.checkpoint)
@@ -104,7 +117,6 @@ def train():
         print("Resuming from episode {0}".format(start_episode))
         print()
 
-    # ── Training loop ─────────────────────────────────────────────────────────
     obs          = env.reset()
     episode      = start_episode
     ep_reward    = 0.0
@@ -116,9 +128,8 @@ def train():
     print()
 
     try:
-        while episode <= CFG.TOTAL_EPISODES:
+        while episode <= cfg.TOTAL_EPISODES:
 
-            # ── Collect one step ───────────────────────────────────────────
             next_obs, reward, done, info = agent.collect_step(env, obs)
             ep_reward += reward
             ep_steps  += 1
@@ -127,11 +138,9 @@ def train():
             if done:
                 ep_outcome = info["outcome"]
 
-            # ── Episode ended ──────────────────────────────────────────────
             if done:
                 logger.log_episode(episode, ep_reward, ep_steps, ep_outcome)
-                logger.print_summary(every=CFG.LOG_EVERY)
-
+                logger.print_summary(every=cfg.LOG_EVERY)
                 print("  Ep {0:>4} | steps:{1:>3} | reward:{2:>7.2f} | outcome:{3}".format(
                     episode, ep_steps, ep_reward, ep_outcome))
 
@@ -141,7 +150,6 @@ def train():
                 ep_outcome = "timeout"
                 episode   += 1
 
-            # ── Update ────────────────────────────────────────────────────
             if agent.buffer_full():
                 losses = agent.update(last_obs=obs)
                 update_count += 1
@@ -149,16 +157,15 @@ def train():
                 if update_count % 10 == 0:
                     print_update(losses)
 
-            # ── Periodic checkpoint ────────────────────────────────────────
-            if episode % CFG.SAVE_EVERY == 0 and done:
-                path = os.path.join(CFG.CHECKPOINT_DIR,
-                                    "{0}_ep{1}.pt".format(args.algo, episode))
+            if episode % cfg.SAVE_EVERY == 0 and done:
+                path = os.path.join(cfg.CHECKPOINT_DIR,
+                                    "{0}_{1}_ep{2}.pt".format(args.algo, args.env, episode))
                 agent.save(path)
 
     except KeyboardInterrupt:
         print("\nTraining interrupted. Saving checkpoint...")
-        path = os.path.join(CFG.CHECKPOINT_DIR,
-                            "{0}_ep{1}_interrupted.pt".format(args.algo, episode))
+        path = os.path.join(cfg.CHECKPOINT_DIR,
+                            "{0}_{1}_ep{2}_interrupted.pt".format(args.algo, args.env, episode))
         agent.save(path)
 
     finally:

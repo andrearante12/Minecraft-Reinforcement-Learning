@@ -1,28 +1,36 @@
 """
 envs/env_client.py
 ------------------
-Drop-in replacement for ParkourEnv that communicates over a socket.
-Import this in train_simple_jump.py instead of ParkourEnv directly.
+Generic environment client. Connects to env_server.py over a TCP socket
+and exposes the same reset() / step() / close() interface as ParkourEnv.
+
+No environment-specific knowledge lives here — the client just forwards
+commands and receives observations as JSON. INPUT_SIZE is passed in from
+the env's config so the training script knows the observation shape.
 
 Usage:
-    from envs.env_client import ParkourEnvClient
-    env = ParkourEnvClient()
+    from envs.env_client import EnvClient
+    from training.configs.simple_jump_cfg import SimpleJumpCFG as CFG
+
+    env = EnvClient(CFG.INPUT_SIZE)
     obs = env.reset()
     obs, reward, done, info = env.step(action)
 """
 
-import json, socket, struct
+import json
+import socket
+import struct
 import numpy as np
-from training.config import CFG
 
 HOST = "127.0.0.1"
 PORT = 9999
 
-class ParkourEnvClient:
-    def __init__(self, host=HOST, port=PORT):
+
+class EnvClient:
+    def __init__(self, input_size, host=HOST, port=PORT):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
-        self.observation_shape = (CFG.INPUT_SIZE,)
+        self.observation_shape = (input_size,)
         print("Connected to env server at {0}:{1}".format(host, port))
 
     def _send(self, data):
