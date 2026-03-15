@@ -4,17 +4,17 @@ A modular framework for training and evaluating reinforcement learning agents in
 
 ## Documentation
 
-- [Setup & Installation](./Malmo/docs/setup.md) — conda environments, Malmo installation, environment variables
-- [Observation Vector](./Malmo/docs/observation_vector.md) — what the agent perceives on each step
-- [New Model Architectures](./Malmo/docs/new_model.md) — how to swap in a different network
-- [New RL Algorithms](./Malmo/docs/new_algorithm.md) — how to add a new training algorithm
-- [New Environments](./Malmo/docs/new_environment.md) — how to create a new Malmo environment
+- [Setup & Installation](./malmo/docs/setup.md) — conda environments, Malmo installation, environment variables
+- [Observation Vector](./malmo/docs/observation_vector.md) — what the agent perceives on each step
+- [New Model Architectures](./malmo/docs/new_model.md) — how to swap in a different network
+- [New RL Algorithms](./malmo/docs/new_algorithm.md) — how to add a new training algorithm
+- [New Environments](./malmo/docs/new_environment.md) — how to create a new Malmo environment
 
 ---
 
 ## Running the Agent
 
-**First time setup?** See [Setup & Installation](./Malmo/docs/setup.md) before continuing.
+**First time setup?** See [Setup & Installation](./malmo/docs/setup.md) before continuing.
 
 **1. Launch the Minecraft client** (leave this running):
 

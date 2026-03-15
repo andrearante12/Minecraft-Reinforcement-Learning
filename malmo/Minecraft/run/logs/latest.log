@@ -1047,3 +1047,948 @@ OverclockingPlugin (MalmoMod-0.37.0.jar)
 [17:01:39] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
 [17:01:39] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
 [17:01:41] [Realms Notification Availability checker #1/INFO]: Could not authorize you against Realms server: java.lang.RuntimeException: Failed to parse into SignedJWT: FML
+[17:03:31] [Thread-14/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:03:31] [Thread-14/INFO]: [STDOUT]: ==== RES:  - -1773608611260
+[17:03:31] [Thread-14/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:03:31] [Thread-16/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:03:32] [Thread-16/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:03:33] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:03:33] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:03:33] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:03:33] [Thread-17/INFO]: [STDOUT]: INFO: ->com(0) Listening for messages on port 10278
+[17:03:33] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:03:33] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:03:33] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_NEW_WORLD
+[17:03:33] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_NEW_WORLD
+[17:03:35] [Server thread/INFO]: Starting integrated minecraft server version 1.11.2
+[17:03:35] [Server thread/INFO]: Generating keypair
+[17:03:37] [Server thread/INFO]: Preparing start region for level 0
+[17:03:38] [Server thread/INFO]: Changing view distance to 6, from 10
+[17:03:39] [Client thread/INFO]: Deleting level TEMP_10000_774173cd-05d0-4886-aae7-f1f91483c6e7
+[17:03:39] [Client thread/INFO]: Attempt 1...
+[17:03:39] [Netty Local Client IO #0/INFO]: [STDOUT]: Transformed Name: net.minecraft.client.entity.EntityOtherPlayerMP
+[17:03:39] [Netty Local Client IO #0/INFO]: [STDOUT]: MALMO: Attempting to transform MinecraftServer
+[17:03:39] [Netty Local Client IO #0/INFO]: [STDOUT]: MALMO: Found EntityOtherPlayerMP, attempting to transform it
+[17:03:39] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_MOD_READY
+[17:03:39] [Server thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:03:39] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:03:39] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_MOD_READY
+[17:03:39] [Server thread/INFO]: Parkour Agent[local:E:ce9e4908] logged in with entity id 0 at (891.5, 4.0, -678.5)
+[17:03:39] [Server thread/INFO]: Parkour Agent joined the game
+[17:03:39] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:03:39] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:03:39] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through ServerStateMachine constructor.
+[17:03:39] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:03:39] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:03:39] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:03:39] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:03:39] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:03:40] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:03:40] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:03:40] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:03:40] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:03:41] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:03:42] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:03:42] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:03:42] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:03:42] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:03:42] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:03:42] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:03:42] [Client thread/INFO]: [CHAT] §l30...
+[17:03:43] [Client thread/INFO]: [CHAT] §l29...
+[17:03:44] [Client thread/INFO]: [CHAT] §l28...
+[17:03:45] [Client thread/INFO]: [CHAT] §l27...
+[17:03:46] [Client thread/INFO]: [CHAT] §l26...
+[17:03:47] [Client thread/INFO]: [CHAT] §l25...
+[17:03:48] [Client thread/INFO]: [CHAT] §l24...
+[17:03:49] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:03:49] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:03:49] [Client thread/INFO]: [CHAT] §l23...
+[17:03:50] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:03:50] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:03:50] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:03:50] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:03:50] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:03:50] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:03:50] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10832.
+[17:03:50] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:03:50] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:03:50] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:03:50] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:03:50] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:03:50] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:03:50] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:03:50] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:03:51] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:03:51] [Thread-22/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:03:51] [Thread-22/INFO]: [STDOUT]: ==== RES:  - -559
+[17:03:51] [Thread-22/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:03:51] [Thread-24/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:03:51] [Thread-24/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:03:51] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:03:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:03:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:03:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:03:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:03:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:03:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:03:52] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:03:52] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:03:52] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:03:52] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:03:52] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:03:52] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:03:52] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:03:52] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:03:52] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:03:52] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:03:52] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:03:52] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:03:52] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:03:52] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:03:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:03:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:03:52] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:03:52] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:03:52] [Client thread/INFO]: [CHAT] §l30...
+[17:03:53] [Client thread/INFO]: [CHAT] §l29...
+[17:03:53] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10867) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.io.IOException: An existing connection was forcibly closed by the remote host
+[17:03:53] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10867) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:03:53] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10867) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:03:53] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10867) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:03:53] [Client thread/INFO]: [STDOUT]: ERROR: TCP messages are not getting through - quitting mission.
+[17:03:54] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:03:54] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:03:54] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:03:54] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:03:54] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:03:54] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:03:54] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10392.
+[17:03:54] [Client thread/INFO]: [STDOUT]: SEVERE: <-mcp(kubernetes.docker.internal:10392) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.io.IOException: An existing connection was forcibly closed by the remote host
+[17:03:54] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:03:54] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:03:54] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:03:54] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:03:54] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:03:54] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:03:54] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:03:54] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:03:54] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:09:45] [Thread-28/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:09:45] [Thread-28/INFO]: [STDOUT]: ==== RES:  - -333761
+[17:09:45] [Thread-28/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:09:45] [Thread-30/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:09:45] [Thread-30/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:09:45] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:09:45] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:09:45] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:09:45] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:09:45] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:09:45] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:09:45] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:09:45] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:09:45] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:09:45] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:09:45] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:09:45] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:09:45] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:09:45] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:09:45] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:09:45] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:09:45] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:09:45] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:09:45] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:09:45] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:09:45] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:09:46] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:09:46] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:09:46] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:09:46] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:09:46] [Client thread/INFO]: [CHAT] §l30...
+[17:09:47] [Client thread/INFO]: [CHAT] §l29...
+[17:09:48] [Client thread/INFO]: [CHAT] §l28...
+[17:09:48] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:09:48] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:09:49] [Client thread/INFO]: [CHAT] §l27...
+[17:09:49] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:09:49] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:09:49] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:09:49] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:09:49] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:09:49] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:09:49] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10332.
+[17:09:49] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:09:49] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:09:49] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:09:49] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:09:49] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:09:49] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:09:49] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:09:49] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:09:50] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:09:50] [Thread-34/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:09:50] [Thread-34/INFO]: [STDOUT]: ==== RES:  - 15199
+[17:09:50] [Thread-34/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:09:50] [Thread-36/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:09:50] [Thread-36/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:09:50] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:09:50] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:09:50] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:09:50] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:09:50] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:09:50] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:09:50] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:09:50] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:09:50] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:09:50] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:09:50] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:09:50] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:09:50] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:09:50] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:09:50] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:09:50] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:09:50] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:09:50] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:09:50] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:09:50] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:09:50] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:09:50] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:09:50] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:09:50] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:09:50] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:09:50] [Client thread/INFO]: [CHAT] §l30...
+[17:09:51] [Client thread/INFO]: [CHAT] §l29...
+[17:09:52] [Client thread/INFO]: [CHAT] §l28...
+[17:09:53] [Client thread/INFO]: [CHAT] §l27...
+[17:09:54] [Client thread/INFO]: [CHAT] §l26...
+[17:09:55] [Client thread/INFO]: [CHAT] §l25...
+[17:09:56] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:09:56] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:09:56] [Client thread/INFO]: [CHAT] §l24...
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:09:57] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:09:57] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:09:57] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10558.
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:09:57] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:09:57] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:09:57] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:09:57] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:09:57] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:09:57] [Thread-40/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:09:57] [Thread-40/INFO]: [STDOUT]: ==== RES:  - 12488
+[17:09:57] [Thread-40/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:09:57] [Thread-42/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:09:57] [Thread-42/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:09:57] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:09:57] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:09:57] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:09:57] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:09:57] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:09:57] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:09:57] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:09:57] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:09:57] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:09:57] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:09:57] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:09:57] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:09:58] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:09:58] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:09:58] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:09:58] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:09:58] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:09:58] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:09:58] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:09:58] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:09:58] [Client thread/INFO]: [CHAT] §l30...
+[17:09:58] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10535) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.io.IOException: An existing connection was forcibly closed by the remote host
+[17:09:59] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10535) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:09:59] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10535) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:09:59] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10535) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:09:59] [Client thread/INFO]: [STDOUT]: ERROR: TCP messages are not getting through - quitting mission.
+[17:09:59] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:09:59] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:09:59] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:09:59] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:09:59] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:09:59] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:09:59] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10503.
+[17:09:59] [Client thread/INFO]: [STDOUT]: SEVERE: <-mcp(kubernetes.docker.internal:10503) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.io.IOException: An existing connection was forcibly closed by the remote host
+[17:09:59] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:09:59] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:09:59] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:09:59] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:09:59] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:09:59] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:09:59] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:09:59] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:09:59] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:10:18] [Thread-46/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:10:18] [Thread-46/INFO]: [STDOUT]: ==== RES:  - -310
+[17:10:18] [Thread-46/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:18] [Thread-48/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:10:18] [Thread-48/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:18] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:18] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:10:18] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:10:18] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:18] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:18] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:10:18] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:10:18] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:18] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:10:18] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:18] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:10:18] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:10:18] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:10:18] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:10:18] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:10:18] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:18] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:10:18] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:18] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:10:18] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:10:18] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:18] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:10:18] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:10:18] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:10:18] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:10:18] [Client thread/INFO]: [CHAT] §l30...
+[17:10:19] [Client thread/INFO]: [CHAT] §l29...
+[17:10:20] [Client thread/INFO]: [CHAT] §l28...
+[17:10:21] [Client thread/INFO]: [CHAT] §l27...
+[17:10:22] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:10:22] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:10:22] [Client thread/INFO]: [CHAT] §l26...
+[17:10:23] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:10:23] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:10:23] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:10:23] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:10:23] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:10:23] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:10:23] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10258.
+[17:10:23] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:10:23] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:10:23] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:10:23] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:10:23] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:10:23] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:10:23] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:10:23] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:10:24] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:10:24] [Thread-52/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:10:24] [Thread-52/INFO]: [STDOUT]: ==== RES:  - 14025
+[17:10:24] [Thread-52/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:24] [Thread-54/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:10:24] [Thread-54/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:24] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:24] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:10:24] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:10:24] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:24] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:24] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:10:24] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:10:24] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:24] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:10:24] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:24] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:10:24] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:10:24] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:10:24] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:10:24] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:24] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:10:24] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:10:24] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:24] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:10:24] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:10:24] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:24] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:10:24] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:10:24] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:10:24] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:10:24] [Client thread/INFO]: [CHAT] §l30...
+[17:10:25] [Client thread/INFO]: [CHAT] §l29...
+[17:10:26] [Client thread/INFO]: [CHAT] §l28...
+[17:10:27] [Client thread/INFO]: [CHAT] §l27...
+[17:10:27] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:10:27] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:10:28] [Client thread/INFO]: [CHAT] §l26...
+[17:10:28] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:10:28] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:10:28] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:10:28] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:10:28] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:10:29] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:10:29] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10558.
+[17:10:29] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:10:29] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:10:29] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:10:29] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:10:29] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:10:29] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:10:29] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:10:29] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:10:29] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:10:29] [Thread-58/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:10:29] [Thread-58/INFO]: [STDOUT]: ==== RES:  - 14583
+[17:10:29] [Thread-58/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:29] [Thread-60/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:10:29] [Thread-60/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:29] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:29] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:10:29] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:10:29] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:29] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:29] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:10:29] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:10:29] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:29] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:10:29] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:29] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:10:29] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:10:29] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:10:29] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:10:29] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:29] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:10:29] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:10:29] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:29] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:10:29] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:10:29] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:30] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:10:30] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:10:30] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:10:30] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:10:30] [Client thread/INFO]: [CHAT] §l30...
+[17:10:31] [Client thread/INFO]: [CHAT] §l29...
+[17:10:32] [Client thread/INFO]: [CHAT] §l28...
+[17:10:33] [Client thread/INFO]: [CHAT] §l27...
+[17:10:34] [Client thread/INFO]: [CHAT] §l26...
+[17:10:35] [Client thread/INFO]: [CHAT] §l25...
+[17:10:36] [Client thread/INFO]: [CHAT] §l24...
+[17:10:37] [Client thread/INFO]: [CHAT] §l23...
+[17:10:38] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:10:38] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:10:38] [Client thread/INFO]: [CHAT] §l22...
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:10:39] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:10:39] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:10:39] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10753.
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:10:39] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:10:39] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:10:39] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:10:39] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:10:39] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:10:39] [Thread-64/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:10:39] [Thread-64/INFO]: [STDOUT]: ==== RES:  - 9987
+[17:10:39] [Thread-64/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:39] [Thread-66/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:10:39] [Thread-66/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:39] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:10:39] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:10:39] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:39] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:10:39] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:39] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:10:39] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:10:39] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:10:39] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:10:39] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:39] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:10:39] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:10:39] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:39] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:10:39] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:10:40] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:40] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:10:40] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:10:40] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:10:40] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:10:40] [Client thread/INFO]: [CHAT] §l30...
+[17:10:41] [Client thread/INFO]: [CHAT] §l29...
+[17:10:42] [Client thread/INFO]: [CHAT] §l28...
+[17:10:43] [Client thread/INFO]: [CHAT] §l27...
+[17:10:44] [Client thread/INFO]: [CHAT] §l26...
+[17:10:44] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:10:44] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:10:45] [Client thread/INFO]: [CHAT] §l25...
+[17:10:45] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:10:45] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:10:45] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:10:45] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:10:45] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:10:45] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:10:45] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10264.
+[17:10:45] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:10:45] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:10:45] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:10:45] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:10:45] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:10:45] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:10:45] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:10:45] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:10:45] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:10:46] [Thread-70/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:10:46] [Thread-70/INFO]: [STDOUT]: ==== RES:  - 13597
+[17:10:46] [Thread-70/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:46] [Thread-72/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:10:46] [Thread-72/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:46] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:46] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:10:46] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:10:46] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:46] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:46] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:10:46] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:10:46] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:46] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:10:46] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:46] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:10:46] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:10:46] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:10:46] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:10:46] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:46] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:10:46] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:10:46] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:46] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:10:46] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:10:46] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:46] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:10:46] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:10:46] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:10:46] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:10:46] [Client thread/INFO]: [CHAT] §l30...
+[17:10:47] [Client thread/INFO]: [CHAT] §l29...
+[17:10:48] [Client thread/INFO]: [CHAT] §l28...
+[17:10:49] [Client thread/INFO]: [CHAT] §l27...
+[17:10:50] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:10:50] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:10:50] [Client thread/INFO]: [CHAT] §l26...
+[17:10:51] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:10:51] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:10:51] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:10:51] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:10:51] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:10:51] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:10:51] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10182.
+[17:10:51] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:10:51] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:10:51] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:10:51] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:10:51] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:10:51] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:10:51] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:10:51] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:10:51] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:10:51] [Thread-76/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:10:51] [Thread-76/INFO]: [STDOUT]: ==== RES:  - 14078
+[17:10:51] [Thread-76/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:51] [Thread-78/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:10:51] [Thread-78/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:52] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:10:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:10:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:10:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:10:52] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:52] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:10:52] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:52] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:10:52] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:10:52] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:10:52] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:10:52] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:52] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:10:52] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:10:52] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:52] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:10:52] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:10:52] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:52] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:10:52] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:10:52] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:10:52] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:10:52] [Client thread/INFO]: [CHAT] §l30...
+[17:10:53] [Client thread/INFO]: [CHAT] §l29...
+[17:10:54] [Client thread/INFO]: [CHAT] §l28...
+[17:10:55] [Client thread/INFO]: [CHAT] §l27...
+[17:10:56] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:10:56] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:10:56] [Client thread/INFO]: [CHAT] §l26...
+[17:10:57] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:10:57] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:10:57] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:10:57] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:10:57] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:10:57] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:10:57] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10410.
+[17:10:57] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:10:57] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:10:57] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:10:57] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:10:57] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:10:57] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:10:57] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:10:57] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:10:57] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:10:57] [Thread-82/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:10:57] [Thread-82/INFO]: [STDOUT]: ==== RES:  - 13951
+[17:10:57] [Thread-82/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:57] [Thread-84/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:10:58] [Thread-84/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:10:58] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:58] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:10:58] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:10:58] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:58] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:10:58] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:10:58] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:10:58] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:58] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:10:58] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:10:58] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:10:58] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:10:58] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:10:58] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:10:58] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:58] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:10:58] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:10:58] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:10:58] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:10:58] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:10:58] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:10:58] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:10:58] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:10:58] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:10:58] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:10:58] [Client thread/INFO]: [CHAT] §l30...
+[17:10:59] [Client thread/INFO]: [CHAT] §l29...
+[17:11:00] [Client thread/INFO]: [CHAT] §l28...
+[17:11:01] [Client thread/INFO]: [CHAT] §l27...
+[17:11:02] [Client thread/INFO]: [CHAT] §l26...
+[17:11:03] [Client thread/INFO]: [CHAT] §l25...
+[17:11:04] [Client thread/INFO]: [CHAT] §l24...
+[17:11:05] [Client thread/INFO]: [CHAT] §l23...
+[17:11:06] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:11:06] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:11:06] [Client thread/INFO]: [CHAT] §l22...
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:11:07] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:11:07] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:11:07] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10372.
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:11:07] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:11:07] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:11:07] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:11:07] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:11:07] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:11:07] [Thread-88/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:11:07] [Thread-88/INFO]: [STDOUT]: ==== RES:  - 10158
+[17:11:07] [Thread-88/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:11:07] [Thread-90/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:11:07] [Thread-90/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:11:07] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:11:07] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:11:07] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:11:07] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:11:07] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:11:07] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:11:07] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:11:07] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:11:07] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:11:07] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:11:07] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:11:07] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:11:07] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:11:07] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:11:07] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:11:08] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:11:08] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:11:08] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:11:08] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:11:08] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:11:08] [Client thread/INFO]: [CHAT] §l30...
+[17:11:09] [Client thread/INFO]: [CHAT] §l29...
+[17:11:10] [Client thread/INFO]: [CHAT] §l28...
+[17:11:11] [Client thread/INFO]: [CHAT] §l27...
+[17:11:11] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:11:11] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:11:12] [Client thread/INFO]: [CHAT] §l26...
+[17:11:12] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:11:12] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:11:12] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:11:12] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:11:12] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:11:12] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:11:12] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10772.
+[17:11:12] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:11:12] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:11:12] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:11:12] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:11:12] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:11:12] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:11:13] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:11:13] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:11:13] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:11:13] [Thread-94/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:11:13] [Thread-94/INFO]: [STDOUT]: ==== RES:  - 14326
+[17:11:13] [Thread-94/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:11:13] [Thread-96/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:11:13] [Thread-96/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:11:13] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:11:13] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:11:13] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:11:13] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:11:13] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:11:13] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:11:13] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:11:13] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:11:13] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:11:13] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:11:13] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:11:13] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:11:13] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:11:13] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:11:13] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:11:13] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:11:13] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:11:13] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:11:13] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:11:13] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:11:13] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:11:14] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:11:14] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:11:14] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:11:14] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:11:14] [Client thread/INFO]: [CHAT] §l30...
+[17:11:14] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10157) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.io.IOException: An existing connection was forcibly closed by the remote host
+[17:11:14] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10157) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:11:14] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10157) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:11:14] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10157) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:11:14] [Client thread/INFO]: [STDOUT]: ERROR: TCP messages are not getting through - quitting mission.
+[17:11:14] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:11:14] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:11:14] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:11:14] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:11:14] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:11:14] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:11:14] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10495.
+[17:11:14] [Client thread/INFO]: [STDOUT]: SEVERE: <-mcp(kubernetes.docker.internal:10495) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.io.IOException: An existing connection was forcibly closed by the remote host
+[17:11:14] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:11:14] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:11:14] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:11:14] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:11:14] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:11:14] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:11:14] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:11:14] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:11:15] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:19:22] [Thread-100/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:19:22] [Thread-100/INFO]: [STDOUT]: ==== RES:  - -468955
+[17:19:22] [Thread-100/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:19:22] [Thread-102/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:19:22] [Thread-102/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:19:22] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:19:22] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:19:22] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:19:22] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:19:22] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:19:22] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:19:22] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:19:22] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:19:22] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:19:22] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:19:22] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:19:22] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:19:22] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:19:22] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:19:22] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:19:22] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:19:22] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:19:22] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:19:22] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:19:22] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:19:22] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:19:22] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:19:22] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:19:22] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:19:22] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:19:22] [Client thread/INFO]: [CHAT] §l30...
+[17:19:23] [Client thread/INFO]: [CHAT] §l29...
+[17:19:24] [Client thread/INFO]: [CHAT] §l28...
+[17:19:25] [Client thread/INFO]: [CHAT] §l27...
+[17:19:26] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:19:26] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:19:26] [Client thread/INFO]: [CHAT] §l26...
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:19:27] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:19:27] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:19:27] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10892.
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:19:27] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:19:27] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:19:27] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:19:27] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:19:27] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:19:27] [Thread-106/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:19:27] [Thread-106/INFO]: [STDOUT]: ==== RES:  - 14528
+[17:19:27] [Thread-106/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:19:27] [Thread-108/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:19:27] [Thread-108/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:19:27] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:19:27] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:19:27] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:19:28] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:19:28] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:19:28] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:19:28] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:19:28] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:19:28] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:19:28] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:19:28] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:19:28] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:19:28] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:19:28] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:19:28] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:19:28] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:19:28] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:19:28] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:19:28] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:19:28] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:19:28] [Client thread/INFO]: [CHAT] §l30...
+[17:19:29] [Client thread/INFO]: [CHAT] §l29...
+[17:19:30] [Client thread/INFO]: [CHAT] §l28...
+[17:19:31] [Client thread/INFO]: [CHAT] §l27...
+[17:19:32] [Client thread/INFO]: [CHAT] §l26...
+[17:19:33] [Server thread/INFO]: Parkour Agent fell from a high place
+[17:19:33] [Client thread/INFO]: [CHAT] Parkour Agent fell from a high place
+[17:19:33] [Client thread/INFO]: [CHAT] §l25...
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:19:34] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:19:34] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:19:34] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10279.
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:19:34] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:19:34] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:19:34] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:19:34] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:19:34] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
+[17:19:34] [Thread-112/INFO]: [STDOUT]: Received from kubernetes.docker.internal:MALMO_REQUEST_CLIENT:0.37.0:20000:
+[17:19:34] [Thread-112/INFO]: [STDOUT]: ==== RES:  - 13290
+[17:19:34] [Thread-112/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:19:34] [Thread-114/INFO]: [STDOUT]: Received from kubernetes.docker.internal:<?xml version="1.0" encoding="utf-8"?><MissionInit xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" SchemaVersion="" PlatformVersion="0.37.0"><Mission>          <About>      <Summary>Two-Block Gap</Summary></About><ServerSection>          <ServerInitialConditions>                <Time><StartTime>1000</StartTime></Time><Weather>clear</Weather></ServerInitialConditions><ServerHandlers>                                        <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="false"/><DrawingDecorator>                                      <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/><DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/></DrawingDecorator><ServerQuitFromTimeUp timeLimitMs="30000"/><ServerQuitWhenAnyAgentFinishes/></ServerHandlers></ServerSection><AgentSection mode="Survival">              <Name>Parkour Agent</Name><AgentStart>          <Placement x="0.5" y="46" z="0.5" yaw="0"/></AgentStart><Agen
+[17:19:34] [Thread-114/INFO]: [STDOUT]: REPLYING WITH: MALMOOK
+[17:19:34] [Client thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT request state: CREATING_HANDLERS
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT enter state: CREATING_HANDLERS
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT request state: EVALUATING_WORLD_REQUIREMENTS
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT enter state: EVALUATING_WORLD_REQUIREMENTS
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_READY
+[17:19:34] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_READY
+[17:19:34] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:19:34] [Server thread/INFO]: [STDOUT]: INCOMING MISSION: Received MissionInit directly through queue.
+[17:19:34] [Server thread/INFO]: [STDOUT]: Mission received: Two-Block Gap
+[17:19:34] [Server thread/INFO]: Received mission: §9Two-Block Gap
+[17:19:34] [Server thread/INFO]: Source: §akubernetes.docker.internal
+[17:19:34] [Server thread/INFO]: [STDOUT]: SERVER request state: BUILDING_WORLD
+[17:19:34] [Server thread/INFO]: [STDOUT]: SERVER enter state: BUILDING_WORLD
+[17:19:34] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:19:34] [Client thread/INFO]: [CHAT] Received mission: §9Two-Block Gap
+[17:19:34] [Client thread/INFO]: [CHAT] Source: §akubernetes.docker.internal
+[17:19:34] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_ASSEMBLE
+[17:19:34] [Server thread/INFO]: [STDOUT]: Experiment requires: 
+[17:19:34] [Server thread/INFO]: [STDOUT]: >>>> Parkour Agent
+[17:19:35] [Client thread/INFO]: [STDOUT]: ***Telling server we are ready - Parkour Agent
+[17:19:35] [Client thread/INFO]: [STDOUT]: CLIENT request state: RUNNING
+[17:19:35] [Client thread/INFO]: [STDOUT]: CLIENT enter state: RUNNING
+[17:19:35] [Server thread/INFO]: [STDOUT]: SERVER request state: RUNNING
+[17:19:35] [Server thread/INFO]: [STDOUT]: SERVER enter state: RUNNING
+[17:19:35] [Client thread/INFO]: [CHAT] §l30...
+[17:19:36] [Client thread/INFO]: [CHAT] §l29...
+[17:19:37] [Client thread/INFO]: [CHAT] §l28...
+[17:19:38] [Client thread/INFO]: [CHAT] §l27...
+[17:19:39] [Client thread/INFO]: [CHAT] §l26...
+[17:19:40] [Client thread/INFO]: [CHAT] §l25...
+[17:19:41] [Client thread/INFO]: [CHAT] §l24...
+[17:19:41] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10129) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.io.IOException: An existing connection was forcibly closed by the remote host
+[17:19:41] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10129) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:19:41] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10129) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:19:41] [Client thread/INFO]: [STDOUT]: SEVERE: <-obs(kubernetes.docker.internal:10129) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:19:41] [Client thread/INFO]: [STDOUT]: ERROR: TCP messages are not getting through - quitting mission.
+[17:19:41] [Client thread/INFO]: [STDOUT]: SEVERE: <-mcp(kubernetes.docker.internal:10781) Failed to send TCP bytes -- retrying : java.util.concurrent.ExecutionException: java.io.IOException: An existing connection was forcibly closed by the remote host
+[17:19:43] [Client thread/INFO]: [STDOUT]: SEVERE: <-mcp(kubernetes.docker.internal:10781) Failed to reconnect: java.util.concurrent.ExecutionException: java.io.IOException: The remote computer refused the network connection.
+
+[17:19:43] [Client thread/INFO]: [STDOUT]: Error - agent is not responding to pings.
+[17:19:43] [Client thread/INFO]: [STDOUT]: CLIENT request state: IDLING
+[17:19:43] [Client thread/INFO]: [STDOUT]: CLIENT enter state: IDLING
+[17:19:43] [Client thread/INFO]: [CHAT] §l23...
+[17:19:43] [Client thread/INFO]: [CHAT] §l22...
+[17:19:43] [Server thread/INFO]: [STDOUT]: SERVER request state: WAITING_FOR_AGENTS_TO_QUIT
+[17:19:43] [Server thread/INFO]: [STDOUT]: SERVER enter state: WAITING_FOR_AGENTS_TO_QUIT
+[17:19:43] [Client thread/INFO]: [STDOUT]: CLIENT request state: MISSION_ENDED
+[17:19:43] [Client thread/INFO]: [STDOUT]: CLIENT enter state: MISSION_ENDED
+[17:19:43] [Client thread/INFO]: [STDOUT]: Sending mission ended message to kubernetes.docker.internal:10781.
+[17:19:43] [Client thread/INFO]: [STDOUT]: SEVERE: <-mcp(kubernetes.docker.internal:10781) Failed to send TCP bytes: java.util.concurrent.ExecutionException: java.nio.channels.ClosedChannelException
+[17:19:43] [Client thread/INFO]: [STDOUT]: CLIENT request state: WAITING_FOR_SERVER_MISSION_END
+[17:19:43] [Client thread/INFO]: [STDOUT]: CLIENT enter state: WAITING_FOR_SERVER_MISSION_END
+[17:19:43] [Server thread/INFO]: [STDOUT]: SERVER request state: CLEAN_UP
+[17:19:43] [Server thread/INFO]: [STDOUT]: SERVER enter state: CLEAN_UP
+[17:19:43] [Server thread/INFO]: [STDOUT]: SERVER request state: DORMANT
+[17:19:43] [Client thread/INFO]: [STDOUT]: CLIENT request state: DORMANT
+[17:19:43] [Client thread/INFO]: [STDOUT]: CLIENT enter state: DORMANT
+[17:19:43] [Client thread/INFO]: [STDOUT]: JETTISONING 0 COMMANDS
+[17:19:43] [Server thread/INFO]: [STDOUT]: SERVER enter state: DORMANT
