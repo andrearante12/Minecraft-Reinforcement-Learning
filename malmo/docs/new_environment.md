@@ -1,56 +1,35 @@
 # Creating a New Environment
 
-This guide walks through adding a new environment from scratch using the **three-block gap** as a real worked example — identical to `simple_jump` but with a gap one block wider.
+This guide covers two scenarios:
 
-By the end you will have a fully working environment runnable with:
-```powershell
-python parkour/envs/env_server.py --env three_block_gap
-python parkour/training/train.py --env three_block_gap --algo ppo
-```
+1. **New parkour variant** — same observation/reward structure, different geometry (e.g. wider gap, higher platform). Only requires an XML file, a config, and two registry entries.
+2. **New task type** — fundamentally different gameplay like gathering materials or combat. Requires a new env class with its own observation space, action space, and reward logic.
 
 ---
 
-## How the Environment System Works
+## Part A — New Parkour Variant
 
-The environment system is split into two processes connected by a TCP socket. This is required because Malmo (Python 3.7) and PyTorch (Python 3.10) cannot run in the same Python environment.
+All parkour environments share a single `ParkourEnv` class (`envs/parkour_env.py`). Behavioral differences are driven entirely by config flags. This walkthrough uses **three-block gap** as a worked example.
+
+### Architecture
 
 ```
 malmo env (Python 3.7)              train_env (Python 3.10)
 ──────────────────────              ──────────────────────
 envs/env_server.py                  training/train.py
-  └── envs/<name>/env.py ←─JSON─→  envs/env_client.py
+  └── envs/parkour_env.py ←─JSON─→ envs/env_client.py
         MalmoPython                   PPO / DQN
 ```
 
-`env_server.py` and `env_client.py` are **shared across all environments** — you never create per-environment versions of them. The only files you need to create for a new environment are:
+`env_server.py` maps the `--env` name to a config class and passes it to `ParkourEnv`. No per-environment env.py files are needed.
 
-```
-envs/
-└── three_block_gap/
-    ├── __init__.py
-    ├── env.py                         ← Malmo wrapper (copy + change one line)
-    └── missions/
-        └── three_block_gap.xml        ← world definition
-
-training/configs/
-└── three_block_gap_cfg.py             ← env-specific settings
-```
-
-Then two lines each in `env_server.py` and `train.py` to register it.
-
----
-
-## Step 1 — Create the folder structure
+### Step 1 — Create the folder structure
 
 ```powershell
-mkdir parkour\envs\three_block_gap
-mkdir parkour\envs\three_block_gap\missions
-New-Item -Path "parkour\envs\three_block_gap\__init__.py" -ItemType File
+mkdir rl\envs\three_block_gap\missions
 ```
 
----
-
-## Step 2 — Create the mission XML
+### Step 2 — Create the mission XML
 
 Save as `envs/three_block_gap/missions/three_block_gap.xml`:
 
@@ -103,9 +82,7 @@ Save as `envs/three_block_gap/missions/three_block_gap.xml`:
 - `forceReset="true"` stays in the XML — the world rebuilds on each episode reset which guarantees a clean respawn. Do not change this to `false`
 - `mode="Survival"` is intentional — when the agent falls they die and Malmo ends the mission cleanly, respawning them at `<Placement>` on the next episode start
 
----
-
-## Step 3 — Create the config file
+### Step 3 — Create the config file
 
 Save as `training/configs/three_block_gap_cfg.py`:
 
@@ -155,103 +132,262 @@ class ThreeBlockGapCFG(BaseCFG):
         ("no_op",          [],                               []),
     ]
     N_ACTIONS = len(ACTIONS)
+
+    # ── Behavior overrides (defaults in BaseCFG) ────────────────────────────
+    SUCCESS_REQUIRES_ON_GROUND = True
+    REWARD_ON_MISSION_ENDED    = False
 ```
 
-**What changed vs `simple_jump_cfg.py`:**
+#### Config behavior flags
 
-| Setting | simple_jump | three_block_gap | Why |
-|---------|-------------|-----------------|-----|
-| `MISSION_FILE` | `simple_jump/...` | `three_block_gap/...` | Points to new XML |
-| `GOAL_POS` | `(0.5, 45.0, 7.0)` | `(0.5, 45.0, 8.0)` | Platform center one block further |
-| `Z_SUCCESS` | `5.0` | `7.0` | Platform starts at Z=7 |
+Two flags in `BaseCFG` control the behavioral differences between parkour variants:
 
-`INPUT_SIZE` stays 129 — the observation layout is unchanged.
+| Flag | Default | Effect |
+|------|---------|--------|
+| `SUCCESS_REQUIRES_ON_GROUND` | `False` | `True` = success requires `OnGround` flag. `False` = success requires `y >= FALL_Y_THRESHOLD` |
+| `REWARD_ON_MISSION_ENDED` | `True` | `True` = assign `REWARD_TIMEOUT` when mission ends unexpectedly. `False` = no reward penalty |
 
----
+Override these in your config only if the defaults don't match your env's needs.
 
-## Step 4 — Create `env.py`
+### Step 4 — Register in both registries
 
-Copy `simple_jump/env.py` and change the one config import line:
-
-```powershell
-copy parkour\envs\simple_jump\env.py parkour\envs\three_block_gap\env.py
-```
-
-Open the copy and change the config import:
+**`envs/env_server.py`** — add the config import and registry entry:
 
 ```python
-# Before
-from training.configs.simple_jump_cfg import SimpleJumpCFG as CFG
-
-# After
-from training.configs.three_block_gap_cfg import ThreeBlockGapCFG as CFG
-```
-
-That is the only change. The full `env.py` for reference:
-
-
----
-
-## Step 5 — Register in `env_server.py`
-
-Add two lines to `envs/env_server.py`:
-
-```python
-# Add import
-from envs.three_block_gap.env import ParkourEnv as ThreeBlockGapEnv
 from training.configs.three_block_gap_cfg import ThreeBlockGapCFG
 
-# Add to registry
-ENV_REGISTRY = {
-    "simple_jump":     (SimpleJumpEnv,    SimpleJumpCFG),
-    "three_block_gap": (ThreeBlockGapEnv, ThreeBlockGapCFG),  # add this
-}
-```
-
----
-
-## Step 6 — Register in `train.py`
-
-Add two lines to `training/train.py`:
-
-```python
-# Add import
-from training.configs.three_block_gap_cfg import ThreeBlockGapCFG
-
-# Add to registry
 ENV_REGISTRY = {
     "simple_jump":     SimpleJumpCFG,
     "three_block_gap": ThreeBlockGapCFG,  # add this
 }
 ```
 
----
+**`training/train.py`** — same pattern:
 
-## Step 7 — Run it
+```python
+from training.configs.three_block_gap_cfg import ThreeBlockGapCFG
 
-Terminal 1 (malmo env):
+ENV_REGISTRY = {
+    "simple_jump":     SimpleJumpCFG,
+    "three_block_gap": ThreeBlockGapCFG,  # add this
+}
+```
+
+### Step 5 — Run it
+
+Terminal 1 (Minecraft client):
+```powershell
+cd .\Malmo\Minecraft && .\launchClient.bat
+```
+
+Terminal 2 (malmo env):
 ```powershell
 conda activate malmo
-python parkour/envs/env_server.py --env three_block_gap
+python Malmo/rl/envs/env_server.py --env three_block_gap
 ```
 
-Terminal 2 (train_env):
+Terminal 3 (train_env):
 ```powershell
 conda activate train_env
-python parkour/training/train.py --env three_block_gap --algo ppo
+python Malmo/rl/training/train.py --env three_block_gap --algo ppo
 ```
 
----
+### Parkour variant checklist
 
-## Summary — what you need for every new environment
+| What | Where |
+|------|-------|
+| Mission XML | `envs/<name>/missions/<name>.xml` |
+| Config file | `training/configs/<name>_cfg.py` |
+| Register in server | `envs/env_server.py` — one import + one registry entry |
+| Register in train | `training/train.py` — one import + one registry entry |
 
-| What | Where | Notes |
-|------|-------|-------|
-| `__init__.py` | `envs/<name>/__init__.py` | Empty, required by Python |
-| Mission XML | `envs/<name>/missions/<name>.xml` | Use `<Name>` not `<n>`, keep `forceReset="true"` and `mode="Survival"` |
-| Config file | `training/configs/<name>_cfg.py` | Copy existing cfg, update geometry values |
-| `env.py` | `envs/<name>/env.py` | Copy from `simple_jump/env.py`, change one import line |
-| Register in server | `envs/env_server.py` | Two lines in `ENV_REGISTRY` |
-| Register in train | `training/train.py` | Two lines in `ENV_REGISTRY` |
+That's it — no env.py needed. `ParkourEnv` handles everything.
 
 ---
+
+## Part B — New Task Type (Non-Parkour)
+
+If the task has fundamentally different gameplay — gathering materials, combat, navigation to waypoints — you need a custom env class. The parkour observation space (proprioception + goal delta + voxel grid) and reward logic (fall detection, z-position success) won't apply.
+
+### What changes
+
+| Component | Parkour variant | New task type |
+|-----------|----------------|---------------|
+| Mission XML | New file | New file |
+| Config | Inherits `BaseCFG`, overrides geometry | Inherits `BaseCFG`, defines new task-specific fields |
+| Env class | Reuses `ParkourEnv` | New class (e.g. `CombatEnv`, `GatherEnv`) |
+| Observation space | 129-dim (fixed) | Custom — depends on what the agent needs to perceive |
+| Action space | 12 discrete movement actions | Custom — may need attack, use item, inventory, etc. |
+| Reward function | Position-based (fell/landed/progress) | Custom — damage dealt, items collected, etc. |
+| `env_server.py` | Config-only registry entry | Needs both env class and config in registry |
+
+### Step 1 — Design the observation and action spaces
+
+Before writing code, decide:
+
+- **What does the agent observe?** The Malmo XML `<AgentHandlers>` section controls what data is available. Common handlers beyond the parkour defaults:
+  - `<ObservationFromNearbyEntities>` — nearby mobs/players (combat)
+  - `<ObservationFromHotBar>` / `<InventoryCommands>` — inventory state (gathering)
+  - `<ObservationFromRay>` — what the agent is looking at (interaction tasks)
+  - `<ObservationFromRecentCommands>` — action feedback
+  - See [Malmo XML schema docs](http://microsoft.github.io/malmo/0.30.0/Schemas/MissionHandlers.html) for the full list
+
+- **What actions can the agent take?** Malmo command handlers to consider:
+  - `<ContinuousMovementCommands>` — movement (already used in parkour)
+  - `<DiscreteMovementCommands>` — grid-based movement
+  - `<InventoryCommands>` — swap/select inventory slots
+  - `<SimpleCraftCommands>` — crafting
+  - `<ChatCommands>` — sending chat (useful for some Malmo built-in commands)
+
+- **`INPUT_SIZE`** and **`N_ACTIONS`** must be defined in your config — the model and training loop depend on them.
+
+### Step 2 — Create the mission XML
+
+Same process as parkour, but the `<AgentHandlers>` section will look different. Example for a gathering task:
+
+```xml
+<AgentHandlers>
+  <ContinuousMovementCommands/>
+  <InventoryCommands/>
+  <ObservationFromFullStats/>
+  <ObservationFromHotBar/>
+  <ObservationFromGrid>
+    <Grid name="surroundings">
+      <min x="-3" y="-1" z="-3"/>
+      <max x="3"  y="2"  z="3"/>
+    </Grid>
+  </ObservationFromGrid>
+  <ObservationFromNearbyEntities>
+    <Range name="nearby_items" xrange="10" yrange="2" zrange="10"/>
+  </ObservationFromNearbyEntities>
+</AgentHandlers>
+```
+
+### Step 3 — Create the config
+
+Inherit from `BaseCFG` for shared training hyperparameters (learning rate, PPO/DQN settings, etc.), and define task-specific fields:
+
+```python
+import os
+from training.configs.base_cfg import BaseCFG
+
+
+class GatherWoodCFG(BaseCFG):
+    MISSION_FILE = os.path.join(
+        BaseCFG.ROOT_DIR, "envs", "gather_wood", "missions", "gather_wood.xml"
+    )
+    MALMO_PORT = 10000
+
+    SPAWN    = (0.5, 4.0, 0.5)
+    MAX_STEPS    = 500
+    STEP_DURATION = 0.15
+
+    # ── Task-specific rewards ────────────────────────────────────────────────
+    REWARD_COLLECT_WOOD = +5.0
+    REWARD_STEP_PENALTY = -0.05
+
+    # ── Observation space ────────────────────────────────────────────────────
+    # Define whatever makes sense for your task
+    INPUT_SIZE = 200   # example — must match what your env class builds
+
+    # ── Action space ─────────────────────────────────────────────────────────
+    ACTIONS = [
+        ("move_forward",  ["move 1"],    ["move 0"]),
+        ("turn_left",     ["turn -1"],   ["turn 0"]),
+        ("turn_right",    ["turn 1"],    ["turn 0"]),
+        ("jump",          ["jump 1"],    ["jump 0"]),
+        ("attack",        ["attack 1"],  ["attack 0"]),
+        ("no_op",         [],            []),
+    ]
+    N_ACTIONS = len(ACTIONS)
+```
+
+### Step 4 — Create the env class
+
+Create a new file like `envs/gather_env.py`. Your env class must implement the same interface that `env_server.py` and `env_client.py` expect:
+
+```python
+class GatherEnv:
+    def __init__(self, cfg, malmo_port=None):
+        """Set up Malmo agent host, load mission XML, init state."""
+        ...
+
+    def reset(self):
+        """Start a new episode. Returns obs (np.ndarray of shape (INPUT_SIZE,))."""
+        ...
+
+    def step(self, action):
+        """Execute action. Returns (obs, reward, done, info)."""
+        ...
+        # info must be a dict with at least: outcome, steps, pos, action
+        ...
+
+    def close(self):
+        """Clean up."""
+        ...
+```
+
+**Key constraints:**
+- `reset()` returns a numpy array of shape `(cfg.INPUT_SIZE,)`
+- `step()` returns `(obs, reward, done, info)` where `info` is a JSON-serializable dict
+- The `info` dict should include `"outcome"` (string), `"steps"` (int), `"pos"` (tuple), and `"action"` (string) — the logger and evaluator use these fields
+
+You can use `envs/parkour_env.py` as a reference for the Malmo boilerplate (`_start_mission`, `_take_action`, `_get_obs_dict`). Copy those methods and customize `_build_obs_vector`, `_get_reward`, and the action handling.
+
+### Step 5 — Register in `env_server.py`
+
+For non-parkour envs, the registry needs both the env class and the config. Update `env_server.py` to support this:
+
+```python
+from envs.gather_env import GatherEnv
+from training.configs.gather_wood_cfg import GatherWoodCFG
+
+ENV_REGISTRY = {
+    # Parkour envs — config-only (ParkourEnv is used automatically)
+    "simple_jump":     SimpleJumpCFG,
+    "three_block_gap": ThreeBlockGapCFG,
+    # Non-parkour envs — (EnvClass, CfgClass) tuples
+    "gather_wood":     (GatherEnv, GatherWoodCFG),
+}
+```
+
+Then update the `main()` function to handle both formats:
+
+```python
+entry = ENV_REGISTRY[args.env]
+if isinstance(entry, tuple):
+    EnvClass, cfg = entry
+else:
+    EnvClass, cfg = ParkourEnv, entry
+env = EnvClass(cfg, malmo_port=args.malmo_port)
+```
+
+### Step 6 — Register in `train.py`
+
+`train.py` only needs the config (it never imports env classes — it talks to the env through `EnvClient` over TCP):
+
+```python
+from training.configs.gather_wood_cfg import GatherWoodCFG
+
+ENV_REGISTRY = {
+    "simple_jump":     SimpleJumpCFG,
+    "gather_wood":     GatherWoodCFG,   # add this
+}
+```
+
+### Step 7 — Consider model changes
+
+The default `ActorCritic` model in `models/mlp.py` takes `INPUT_SIZE` and `N_ACTIONS` from the config. If your observation is a flat vector, the existing model works as-is — just set `INPUT_SIZE` and `N_ACTIONS` correctly in your config.
+
+If your task needs a fundamentally different architecture (e.g. CNN for image observations, attention for variable-length entity lists), create a new model in `models/` and register it in `train.py`. See `Malmo/docs/new_model.md`.
+
+### Non-parkour checklist
+
+| What | Where |
+|------|-------|
+| Mission XML | `envs/<name>/missions/<name>.xml` |
+| Config file | `training/configs/<name>_cfg.py` (inherit `BaseCFG`) |
+| Env class | `envs/<name>_env.py` (implement `reset`, `step`, `close`) |
+| Register in server | `envs/env_server.py` — `(EnvClass, CfgClass)` tuple in registry |
+| Register in train | `training/train.py` — config-only registry entry |
+| Model (if needed) | `models/<name>.py` — only if default MLP doesn't fit |

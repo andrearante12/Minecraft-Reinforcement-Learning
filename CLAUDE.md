@@ -74,7 +74,7 @@ The core constraint: Malmo's Python bindings only work with Python 3.7, while mo
 malmo (Python 3.7)                         train_env (Python 3.10)
 ─────────────────────────────────          ─────────────────────────
 env_server.py (TCP :9999)          ←→      train.py
-  └── envs/<name>/env.py                     ├── envs/env_client.py
+  └── envs/parkour_env.py                    ├── envs/env_client.py
         └── MalmoPython + Minecraft JVM      ├── models/mlp.py
                                              ├── algos/ppo.py or dqn.py
                                              └── utils/logger.py
@@ -94,16 +94,14 @@ forward, backward, left, right, sprint_forward, jump, sprint_jump, look_down, lo
 `ActorCritic`: two shared Linear(→128)→Tanh layers, then separate policy head (→Categorical) and value head (→scalar).
 
 ### Extensibility — Registry Pattern
-- `env_server.py` has `ENV_REGISTRY`: maps env name → env module
+- `env_server.py` has `ENV_REGISTRY`: maps env name → config class
 - `train.py` has `ALGO_REGISTRY`: maps algo name → agent class
 - Adding a new environment, algorithm, or model only requires implementing an interface and registering it — the training loop, logging, and checkpointing require no changes.
 
 ### Adding a New Environment
 1. Create `Malmo/rl/envs/<name>/missions/<name>.xml` (copy existing XML, modify geometry)
-2. Create `Malmo/rl/training/configs/<name>_cfg.py` (copy existing config, adjust values)
-3. Copy `envs/simple_jump/env.py` → `envs/<name>/env.py`, change one import
-4. Register in `ENV_REGISTRY` in `env_server.py`
-5. Register config in `train.py`
+2. Create `Malmo/rl/training/configs/<name>_cfg.py` (copy existing config, adjust values including `SUCCESS_REQUIRES_ON_GROUND` and `REWARD_ON_MISSION_ENDED` if needed)
+3. Register config in `ENV_REGISTRY` in `env_server.py` and in `train.py`
 
 ### Adding a New Algorithm
 1. Create `Malmo/rl/algos/<name>.py` inheriting `BaseAgent`

@@ -50,7 +50,11 @@ class BaseCFG:
     # ── Rewards ───────────────────────────────────────────────────────────────
     REWARD_FELL          = -5.0
     REWARD_SUCCESS       = +10.0
-    REWARD_STEP_PENALTY  = -0.1   
-    REWARD_PROGRESS_COEF = +0.5    
-    REWARD_TIMEOUT       = -5.0   
+    REWARD_STEP_PENALTY  = -0.1
+    REWARD_PROGRESS_COEF = +0.5
+    REWARD_TIMEOUT       = -5.0
+
+    # ── Environment behavior flags ───────────────────────────────────────────
+    SUCCESS_REQUIRES_ON_GROUND = False   # True = check OnGround, False = check y >= FALL_Y_THRESHOLD
+    REWARD_ON_MISSION_ENDED    = True    # True = assign REWARD_TIMEOUT when mission ends unexpectedly
 
