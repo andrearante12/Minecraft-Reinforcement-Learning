@@ -51,13 +51,13 @@ python Malmo/rl/training/train.py --env simple_jump --algo ppo
 Resume training from a checkpoint:
 
 ```powershell
-python Malmo/rl/training/train.py --env simple_jump --algo ppo --checkpoint parkour/checkpoints/ppo_simple_jump_ep500.pt
+python Malmo/rl/training/train.py --env simple_jump --algo ppo --checkpoint rl/checkpoints/ppo_simple_jump_ep500.pt
 ```
 
 Evaluate a trained checkpoint:
 
 ```powershell
 conda activate train_env
-python Malmo/rl/evaluation/evaluate.py --checkpoint parkour/checkpoints/ppo_simple_jump_ep1000.pt
-python Malmo/rl/evaluation/evaluate.py --checkpoint parkour/checkpoints/ppo_simple_jump_ep1000.pt --episodes 50
+python Malmo/rl/evaluation/evaluate.py --checkpoint rl/checkpoints/ppo_simple_jump_ep1000.pt
+python Malmo/rl/evaluation/evaluate.py --checkpoint rl/checkpoints/ppo_simple_jump_ep1000.pt --episodes 50
 ```
