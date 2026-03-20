@@ -60,3 +60,7 @@ class ThreeBlockGapCFG(BaseCFG):
         ("no_op",          [],                               []),
     ]
     N_ACTIONS = len(ACTIONS)
+
+    # ── Behavior overrides ──────────────────────────────────────────────────
+    SUCCESS_REQUIRES_ON_GROUND = True
+    REWARD_ON_MISSION_ENDED    = False

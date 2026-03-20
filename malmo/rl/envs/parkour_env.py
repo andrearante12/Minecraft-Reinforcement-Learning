@@ -1,7 +1,8 @@
 """
-envs/simple_jump/env.py
---------------------------------
-Gym-style Malmo wrapper for the simple jump environment.
+envs/parkour_env.py
+-------------------
+Unified Gym-style Malmo wrapper for all parkour environments.
+Behavioral differences between environments are driven entirely by config flags.
 
 Interface:
     env = ParkourEnv(cfg)
@@ -28,32 +29,25 @@ import json
 import numpy as np
 
 # ── Add parkour/ root to path so training.configs is importable ───────────────
-# This file lives at parkour/envs/simple_jump/env.py
-# Three levels up reaches parkour/
-PARKOUR_ROOT = os.path.dirname(
-    os.path.dirname(
-        os.path.dirname(os.path.abspath(__file__))
-    )
-)
+PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PARKOUR_ROOT)
 
-# ── Config import ─────────────────────────────────────────────────────────────
-from training.configs.simple_jump_cfg import SimpleJumpCFG as CFG
+from training.configs.base_cfg import BaseCFG
 
 # ── Malmo import ──────────────────────────────────────────────────────────────
-sys.path.insert(0, os.path.abspath(CFG.MALMO_PYTHON))
+sys.path.insert(0, os.path.abspath(BaseCFG.MALMO_PYTHON))
 
 try:
     import MalmoPython
 except ImportError:
     raise ImportError(
         "Could not import MalmoPython.\n"
-        "Tried: {0}".format(os.path.abspath(CFG.MALMO_PYTHON))
+        "Tried: {0}".format(os.path.abspath(BaseCFG.MALMO_PYTHON))
     )
 
 
 class ParkourEnv:
-    def __init__(self, cfg=CFG, malmo_port=None):
+    def __init__(self, cfg, malmo_port=None):
         self.cfg       = cfg
         self.actions   = cfg.ACTIONS
         self.n_actions = cfg.N_ACTIONS
@@ -74,7 +68,6 @@ class ParkourEnv:
         self._agent_host = MalmoPython.AgentHost()
         try:
             self._agent_host.parse(["env_server"])
-
         except RuntimeError as e:
             print("ERROR parsing AgentHost:", e)
             sys.exit(1)
@@ -102,7 +95,8 @@ class ParkourEnv:
 
         if not world_state.is_mission_running and not done:
             done, outcome = True, "mission_ended"
-            reward = self.cfg.REWARD_TIMEOUT  
+            if self.cfg.REWARD_ON_MISSION_ENDED:
+                reward = self.cfg.REWARD_TIMEOUT
         if self._steps >= self.cfg.MAX_STEPS:
             done, outcome = True, "timeout"
             reward = self.cfg.REWARD_TIMEOUT
