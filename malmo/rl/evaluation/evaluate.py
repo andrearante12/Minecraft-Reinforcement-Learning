@@ -16,11 +16,10 @@ import argparse
 PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PARKOUR_ROOT)
 
-from training.config  import CFG
+from training.configs.base_cfg import BaseCFG as CFG
 from models.mlp       import ActorCritic
 from algos.ppo        import PPO
-from Malmo.parkour.envs.simple_jump.parkour_env import ParkourEnv
-
+from envs.simple_jump.env     import ParkourEnv
 
 def parse_args():
     parser = argparse.ArgumentParser()

@@ -23,8 +23,8 @@ class SimpleJumpCFG(BaseCFG):
 
     # ── Episode termination ───────────────────────────────────────────────────
     FALL_Y_THRESHOLD = 43.0
-    Z_SUCCESS        = 5.0
-    MAX_STEPS        = 200
+    Z_SUCCESS        = 6.5
+    MAX_STEPS        = 100
     STEP_DURATION    = 0.15
 
     # ── Voxel grid: x[-2:+2]=5, y[-1:+2]=4, z[-2:+3]=6 ──────────────────────

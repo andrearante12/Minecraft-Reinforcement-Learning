@@ -51,9 +51,10 @@ class ReplayBuffer:
 
 
 class DQN(BaseAgent):
-    def __init__(self, model, cfg):
+    def __init__(self, model, cfg, n_envs=1):
         self.model     = model
         self.cfg       = cfg
+        self.n_envs    = n_envs
         self.device    = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         self.optimizer = optim.Adam(model.parameters(), lr=cfg.LR, eps=1e-5)
@@ -96,6 +97,21 @@ class DQN(BaseAgent):
         next_obs, reward, done, info = env.step(action)
         self.buffer.add(obs, action, reward, next_obs, done)
         return next_obs, reward, done, info
+
+    def collect_steps(self, envs, obs_all):
+        """Collect one step from each env independently."""
+        n_envs = len(envs)
+        next_obs_all = np.zeros_like(obs_all)
+        rewards = np.zeros(n_envs, dtype=np.float32)
+        dones = np.zeros(n_envs, dtype=np.float32)
+        infos = [None] * n_envs
+        for i, env in enumerate(envs):
+            next_obs, reward, done, info = self.collect_step(env, obs_all[i])
+            next_obs_all[i] = next_obs
+            rewards[i] = reward
+            dones[i] = float(done)
+            infos[i] = info
+        return next_obs_all, rewards, dones, infos
 
     def buffer_full(self):
         """DQN can update as soon as the buffer has enough samples."""

@@ -53,10 +53,11 @@ except ImportError:
 
 
 class ParkourEnv:
-    def __init__(self, cfg=CFG):
+    def __init__(self, cfg=CFG, malmo_port=None):
         self.cfg       = cfg
         self.actions   = cfg.ACTIONS
         self.n_actions = cfg.N_ACTIONS
+        self._malmo_port = malmo_port if malmo_port is not None else cfg.MALMO_PORT
 
         self._prev_pos = np.array(cfg.SPAWN, dtype=np.float32)
         self._goal_pos = np.array(cfg.GOAL_POS, dtype=np.float32)
@@ -133,17 +134,19 @@ class ParkourEnv:
 
         mission        = MalmoPython.MissionSpec(self._mission_xml, True)
         mission_record = MalmoPython.MissionRecordSpec()
+        client_pool    = MalmoPython.ClientPool()
+        client_pool.add(MalmoPython.ClientInfo("127.0.0.1", self._malmo_port))
 
         for attempt in range(max_retries):
             try:
-                self._agent_host.startMission(mission, mission_record)
+                self._agent_host.startMission(mission, client_pool, mission_record, 0, "")
                 break
             except RuntimeError as e:
                 if attempt == max_retries - 1:
                     raise RuntimeError(
                         "Could not start mission after {0} attempts: {1}\n"
                         "Is Minecraft running on port {2}?".format(
-                            max_retries, e, self.cfg.MALMO_PORT))
+                            max_retries, e, self._malmo_port))
                 print("  Retrying ({0}/{1})...".format(attempt + 1, max_retries))
                 time.sleep(2)
 

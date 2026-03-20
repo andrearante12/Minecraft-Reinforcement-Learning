@@ -8,7 +8,7 @@ Actor-Critic network used by PPO.
 import torch
 import torch.nn as nn
 from torch.distributions import Categorical
-
+    
 
 class ActorCritic(nn.Module):
     def __init__(self, input_size, hidden_size, n_actions):

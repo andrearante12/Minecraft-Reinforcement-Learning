@@ -32,8 +32,11 @@ from envs.three_block_gap.env import ParkourEnv as ThreeBlockGapEnv
 
 from training.configs.simple_jump_cfg      import SimpleJumpCFG
 from training.configs.three_block_gap_cfg  import ThreeBlockGapCFG
+from envs.one_block_gap.env import ParkourEnv as OneBlockGapEnv
+from training.configs.one_block_gap_cfg import OneBlockGapCFG
 
 ENV_REGISTRY = {
+    "one_block_gap":   (OneBlockGapEnv,   OneBlockGapCFG),
     "simple_jump":     (SimpleJumpEnv,    SimpleJumpCFG),
     "three_block_gap": (ThreeBlockGapEnv, ThreeBlockGapCFG),
 }
@@ -63,15 +66,19 @@ def main():
     parser.add_argument("--env", type=str, required=True,
                         choices=list(ENV_REGISTRY.keys()),
                         help="Environment to serve")
+    parser.add_argument("--port", type=int, default=PORT,
+                        help="TCP port to listen on (default: {0})".format(PORT))
+    parser.add_argument("--malmo-port", type=int, default=None,
+                        help="Minecraft/Malmo client port (default: from config, usually 10000)")
     args = parser.parse_args()
 
     EnvClass, CfgClass = ENV_REGISTRY[args.env]
-    env = EnvClass(CfgClass)
-    print("Env server starting — env:{0}  address:{1}:{2}".format(args.env, HOST, PORT))
+    env = EnvClass(CfgClass, malmo_port=args.malmo_port)
+    print("Env server starting — env:{0}  address:{1}:{2}".format(args.env, HOST, args.port))
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind((HOST, PORT))
+        s.bind((HOST, args.port))
         s.listen(1)
         print("Waiting for training script to connect...")
         conn, addr = s.accept()

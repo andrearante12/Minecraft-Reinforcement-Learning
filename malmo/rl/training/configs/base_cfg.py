@@ -31,7 +31,7 @@ class BaseCFG:
     GAE_LAMBDA   = 0.95
     CLIP_EPS     = 0.2
     VALUE_COEF   = 0.5
-    ENTROPY_COEF = 0.01
+    ENTROPY_COEF = 0.05
 
     # ── DQN ───────────────────────────────────────────────────────────────────
     BUFFER_CAPACITY     = 10000
@@ -41,7 +41,7 @@ class BaseCFG:
     TARGET_UPDATE_FREQ  = 500
 
     # ── Training loop ─────────────────────────────────────────────────────────
-    TOTAL_EPISODES = 2000
+    TOTAL_EPISODES = 5000
     SAVE_EVERY     = 100
     LOG_EVERY      = 10
     EVAL_EVERY     = 200
@@ -50,5 +50,7 @@ class BaseCFG:
     # ── Rewards ───────────────────────────────────────────────────────────────
     REWARD_FELL          = -5.0
     REWARD_SUCCESS       = +10.0
-    REWARD_STEP_PENALTY  = -0.01
-    REWARD_PROGRESS_COEF = +0.1
+    REWARD_STEP_PENALTY  = -0.1   
+    REWARD_PROGRESS_COEF = +0.5    
+    REWARD_TIMEOUT       = -5.0   
+

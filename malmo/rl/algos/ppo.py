@@ -22,26 +22,29 @@ from algos.base_agent import BaseAgent
 #   - log_prob: confidence -> Log(P) taken under the old policy used for PPO ratio
 #   - values: prediction of future rewards from this state (according to Critic)
 class RolloutBuffer:
-    def __init__(self, n_steps, obs_size):
-        self.n_steps  = n_steps
-        self.ptr      = 0
-        self.full     = False
-        self.obs       = np.zeros((n_steps, obs_size), dtype=np.float32)
-        self.actions   = np.zeros(n_steps, dtype=np.int64)
-        self.rewards   = np.zeros(n_steps, dtype=np.float32)
-        self.dones     = np.zeros(n_steps, dtype=np.float32)
-        self.log_probs = np.zeros(n_steps, dtype=np.float32)
-        self.values    = np.zeros(n_steps, dtype=np.float32)
+    def __init__(self, n_steps, obs_size, n_envs=1):
+        self.n_envs        = n_envs
+        self.n_steps_per_env = n_steps // n_envs
+        self.total_steps   = self.n_steps_per_env * n_envs
+        self.ptr           = 0
+        self.full          = False
+        self.obs       = np.zeros((self.n_steps_per_env, n_envs, obs_size), dtype=np.float32)
+        self.actions   = np.zeros((self.n_steps_per_env, n_envs), dtype=np.int64)
+        self.rewards   = np.zeros((self.n_steps_per_env, n_envs), dtype=np.float32)
+        self.dones     = np.zeros((self.n_steps_per_env, n_envs), dtype=np.float32)
+        self.log_probs = np.zeros((self.n_steps_per_env, n_envs), dtype=np.float32)
+        self.values    = np.zeros((self.n_steps_per_env, n_envs), dtype=np.float32)
 
     def add(self, obs, action, reward, done, log_prob, value):
+        """Accept arrays of shape (n_envs,) / (n_envs, obs_size) and store at current ptr."""
         self.obs[self.ptr]       = obs
         self.actions[self.ptr]   = action
         self.rewards[self.ptr]   = reward
-        self.dones[self.ptr]     = float(done)
+        self.dones[self.ptr]     = done
         self.log_probs[self.ptr] = log_prob
         self.values[self.ptr]    = value
         self.ptr += 1
-        if self.ptr >= self.n_steps:
+        if self.ptr >= self.n_steps_per_env:
             self.full = True
 
     def is_full(self):
@@ -52,57 +55,93 @@ class RolloutBuffer:
         self.full = False
 
     def get_tensors(self, device):
+        """Return flattened 1D tensors for mini-batch updates."""
+        total = self.total_steps
         return (
-            torch.tensor(self.obs,       dtype=torch.float32).to(device),
-            torch.tensor(self.actions,   dtype=torch.int64).to(device),
-            torch.tensor(self.rewards,   dtype=torch.float32).to(device),
-            torch.tensor(self.dones,     dtype=torch.float32).to(device),
-            torch.tensor(self.log_probs, dtype=torch.float32).to(device),
-            torch.tensor(self.values,    dtype=torch.float32).to(device),
+            torch.tensor(self.obs.reshape(total, -1),         dtype=torch.float32).to(device),
+            torch.tensor(self.actions.reshape(total),         dtype=torch.int64).to(device),
+            torch.tensor(self.rewards.reshape(total),         dtype=torch.float32).to(device),
+            torch.tensor(self.dones.reshape(total),           dtype=torch.float32).to(device),
+            torch.tensor(self.log_probs.reshape(total),       dtype=torch.float32).to(device),
+            torch.tensor(self.values.reshape(total),          dtype=torch.float32).to(device),
+        )
+
+    def get_rewards_dones_2d(self, device):
+        """Return (n_steps_per_env, n_envs) tensors for per-env return computation."""
+        return (
+            torch.tensor(self.rewards, dtype=torch.float32).to(device),
+            torch.tensor(self.dones,   dtype=torch.float32).to(device),
         )
 
 
 # Calculates the "target" return should be for each step (Discounted Reward)
-def compute_returns(rewards, dones, last_value, gamma):
-    n = len(rewards)
-    returns = torch.zeros(n, dtype=torch.float32)
+# Operates on 2D inputs (n_steps_per_env, n_envs) for correct per-env computation
+def compute_returns(rewards_2d, dones_2d, last_values, gamma):
+    n_steps, n_envs = rewards_2d.shape
+    returns = torch.zeros_like(rewards_2d)
 
-    # Estimated future value if the buffer ended here
-    R = last_value
+    # Estimated future value if the buffer ended here — one per env
+    R = last_values  # (n_envs,)
 
     # Iterate backwards through all the steps taken and accumulate rewards
-    for t in reversed(range(n)):
-        R = rewards[t] + gamma * R * (1.0 - dones[t])
+    for t in reversed(range(n_steps)):
+        R = rewards_2d[t] + gamma * R * (1.0 - dones_2d[t])
         returns[t] = R
-    return returns
+    return returns.reshape(-1)  # flatten to (n_steps_per_env * n_envs,)
 
 
 class PPO(BaseAgent):
-    def __init__(self, model, cfg):
+    def __init__(self, model, cfg, n_envs=1):
         self.model     = model
         self.cfg       = cfg
+        self.n_envs    = n_envs
         self.device    = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         # Adam optimizer with a small epsilon for better numerical stability
         self.optimizer = optim.Adam(model.parameters(), lr=cfg.LR, eps=1e-5)
-        self.buffer    = RolloutBuffer(cfg.N_STEPS, cfg.INPUT_SIZE)
+        self.buffer    = RolloutBuffer(cfg.N_STEPS, cfg.INPUT_SIZE, n_envs=n_envs)
         print("PPO initialized on device:", self.device)
+        if n_envs > 1:
+            print("  Parallel envs: {0} | Steps per env: {1}".format(
+                n_envs, self.buffer.n_steps_per_env))
+
+    def collect_steps(self, envs, obs_all):
+        """Batched collection: single GPU forward pass for all envs, then step each env."""
+        n_envs = len(envs)
+        # Stack all observations for a single forward pass
+        obs_t = torch.tensor(obs_all, dtype=torch.float32).to(self.device)
+
+        with torch.no_grad():
+            dist     = self.model.get_distribution(obs_t)
+            actions  = dist.sample()                    # (n_envs,)
+            log_probs = dist.log_prob(actions)          # (n_envs,)
+            values   = self.model.get_value(obs_t).squeeze(-1)  # (n_envs,)
+
+        actions_np   = actions.cpu().numpy()
+        log_probs_np = log_probs.cpu().numpy()
+        values_np    = values.cpu().numpy()
+
+        next_obs_all = np.zeros_like(obs_all)
+        rewards      = np.zeros(n_envs, dtype=np.float32)
+        dones        = np.zeros(n_envs, dtype=np.float32)
+        infos        = [None] * n_envs
+
+        for i, env in enumerate(envs):
+            next_obs, reward, done, info = env.step(int(actions_np[i]))
+            next_obs_all[i] = next_obs
+            rewards[i]      = reward
+            dones[i]        = float(done)
+            infos[i]        = info
+
+        self.buffer.add(obs_all, actions_np, rewards, dones, log_probs_np, values_np)
+        return next_obs_all, rewards, dones, infos
 
     # samples random actions in order to explore
     def collect_step(self, env, obs):
-        obs_t = torch.tensor(obs, dtype=torch.float32).unsqueeze(0).to(self.device)
-
-        # Stochastic sampling for exploration
-        with torch.no_grad():
-            dist     = self.model.get_distribution(obs_t)
-            action   = dist.sample()
-            log_prob = dist.log_prob(action) # probability (likelihood) of taking this action
-            value    = self.model.get_value(obs_t) # estimate of state quality
-
-        # execute that action in the enviornment and add to buffer
-        next_obs, reward, done, info = env.step(action.item())
-        self.buffer.add(obs, action.item(), reward, done, log_prob.item(), value.item())
-        return next_obs, reward, done, info
+        """Single-env wrapper around collect_steps for backward compat."""
+        obs_all = obs[np.newaxis]  # (1, obs_size)
+        next_obs_all, rewards, dones, infos = self.collect_steps([env], obs_all)
+        return next_obs_all[0], rewards[0], bool(dones[0]), infos[0]
 
     def buffer_full(self):
         return self.buffer.is_full()
@@ -111,29 +150,32 @@ class PPO(BaseAgent):
     def update(self, last_obs):
 
         # Bootstrapping step: predict the future rewards from this step
+        # last_obs is (n_envs, obs_size) for multi-env, (obs_size,) for single-env
+        last_obs_2d = np.atleast_2d(last_obs)
         with torch.no_grad():
-            last_val = self.model.get_value(
-                torch.tensor(last_obs, dtype=torch.float32).unsqueeze(0).to(self.device)
-            ).item()
+            last_vals = self.model.get_value(
+                torch.tensor(last_obs_2d, dtype=torch.float32).to(self.device)
+            ).squeeze(-1)  # (n_envs,)
 
         # Read from RolloutBuffer
-        obs_t, actions_t, rewards_t, dones_t, old_log_probs_t, values_t = \
+        obs_t, actions_t, rewards_flat_t, dones_flat_t, old_log_probs_t, values_t = \
             self.buffer.get_tensors(self.device)
 
-        # Sum of all returns the agent recieves from now until termination
-        returns    = compute_returns(rewards_t.cpu(), dones_t.cpu(), last_val, self.cfg.GAMMA).to(self.device)
-        
+        # Per-env return computation using 2D arrays
+        rewards_2d, dones_2d = self.buffer.get_rewards_dones_2d(self.device)
+        returns = compute_returns(rewards_2d, dones_2d, last_vals, self.cfg.GAMMA).to(self.device)
+
         # Advantage indicates whether the agent did something better/worse than its current strategy
         advantages = returns - values_t
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
-        
-        indices = np.arange(self.cfg.N_STEPS)
+        total_steps = self.buffer.total_steps
+        indices = np.arange(total_steps)
         total_policy_loss = total_value_loss = total_entropy = n_updates = 0
 
         for _ in range(self.cfg.N_EPOCHS):
             np.random.shuffle(indices)
-            for start in range(0, self.cfg.N_STEPS, self.cfg.BATCH_SIZE):
+            for start in range(0, total_steps, self.cfg.BATCH_SIZE):
                 idx = indices[start:start + self.cfg.BATCH_SIZE]
 
                 # reevaluate old actions using the new policy
@@ -168,7 +210,7 @@ class PPO(BaseAgent):
                 total_entropy += entropy.item()
                 n_updates += 1
 
-        
+
         self.buffer.clear()
         return {
             "policy_loss": total_policy_loss / max(n_updates, 1),

@@ -78,6 +78,21 @@ class BaseAgent(ABC):
         """
         pass
 
+    def collect_steps(self, envs, obs_all):
+        """Collect one step from each env. Override for batched GPU forward passes."""
+        n_envs = len(envs)
+        next_obs_all = np.zeros_like(obs_all)
+        rewards = np.zeros(n_envs, dtype=np.float32)
+        dones = np.zeros(n_envs, dtype=np.float32)
+        infos = [None] * n_envs
+        for i, env in enumerate(envs):
+            next_obs, reward, done, info = self.collect_step(env, obs_all[i])
+            next_obs_all[i] = next_obs
+            rewards[i] = reward
+            dones[i] = float(done)
+            infos[i] = info
+        return next_obs_all, rewards, dones, infos
+
     def buffer_full(self) -> bool:
         """
         Returns True when enough experience has been collected to update.
