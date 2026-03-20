@@ -854,10 +854,9 @@ Caused by: java.lang.IllegalStateException: Expected BEGIN_OBJECT but was STRING
 [17:24:22] [Server thread/DEBUG] [FML/]: Gathering id map for writing to world save TEMP_10000_b1a4f458-9cc0-4f9b-87a1-f6a0b727c6a4
 [17:25:07] [Server thread/DEBUG] [FML/]: Gathering id map for writing to world save TEMP_10000_b1a4f458-9cc0-4f9b-87a1-f6a0b727c6a4
 [17:25:52] [Server thread/DEBUG] [FML/]: Gathering id map for writing to world save TEMP_10000_b1a4f458-9cc0-4f9b-87a1-f6a0b727c6a4
-ge/forge]: 	net/minecraft/client/multiplayer/WorldClient$3
-[14:20:00] [Client thread/DEBUG] [forge/forge]: 	net/minecraft/client/multiplayer/WorldClient$4
-[14:20:00] [Client thread/DEBUG] [forge/forge]: 	net/minecraft/client/particle/ParticleManager$1
-[14:20:00] [Client thread/DEBUG] [forge/forge]: 	net/minecraft/client/particle/ParticleManager$2
+[17:26:37] [Server thread/DEBUG] [FML/]: Gathering id map for writing to world save TEMP_10000_b1a4f458-9cc0-4f9b-87a1-f6a0b727c6a4
+[17:27:22] [Server thread/DEBUG] [FML/]: Gathering id map for writing to world save TEMP_10000_b1a4f458-9cc0-4f9b-87a1-f6a0b727c6a4
+[Client thread/DEBUG] [forge/forge]: 	net/minecraft/client/particle/ParticleManager$2
 [14:20:00] [Client thread/DEBUG] [forge/forge]: 	net/minecraft/client/particle/ParticleManager$3
 [14:20:00] [Client thread/DEBUG] [forge/forge]: 	net/minecraft/client/particle/ParticleManager$4
 [14:20:00] [Client thread/DEBUG] [forge/forge]: 	net/minecraft/client/renderer/EntityRenderer$2
@@ -1279,3 +1278,7 @@ Caused by: java.lang.IllegalStateException: Expected BEGIN_OBJECT but was STRING
 [17:22:49] [Server thread/DEBUG] [FML/]: Gathering id map for writing to world save TEMP_10001_80fe8ddf-2bf5-43e2-8df9-9a83d6670fb2
 [17:23:34] [Server thread/DEBUG] [FML/]: Gathering id map for writing to world save TEMP_10001_80fe8ddf-2bf5-43e2-8df9-9a83d6670fb2
 [17:24:19] [Server thread/DEBUG] [FML/]: Gathering id map for writing to world save TEMP_10001_80fe8ddf-2bf5-43e2-8df9-9a83d6670fb2
+[17:25:04] [Server thread/DEBUG] [FML/]: Gathering id map for writing to world save TEMP_10001_80fe8ddf-2bf5-43e2-8df9-9a83d6670fb2
+[17:25:49] [Server thread/DEBUG] [FML/]: Gathering id map for writing to world save TEMP_10001_80fe8ddf-2bf5-43e2-8df9-9a83d6670fb2
+[17:26:34] [Server thread/DEBUG] [FML/]: Gathering id map for writing to world save TEMP_10001_80fe8ddf-2bf5-43e2-8df9-9a83d6670fb2
+[17:27:19] [Server thread/DEBUG] [FML/]: Gathering id map for writing to world save TEMP_10001_80fe8ddf-2bf5-43e2-8df9-9a83d6670fb2
