@@ -17,7 +17,11 @@ class BaseCFG:
     MALMO_PYTHON   = os.path.join(ROOT_DIR, "..", "Python_Examples")
 
     # ── Network ───────────────────────────────────────────────────────────────
-    HIDDEN_SIZE = 128
+    HIDDEN_SIZE      = 128        # kept for backward compat / old model
+    PROPRIO_HIDDEN   = 64         # proprio stream width
+    GOAL_HIDDEN      = 64         # goal stream width
+    VOXEL_HIDDEN     = 128        # voxel stream width
+    HEAD_HIDDEN      = 256        # actor & critic head width
 
     # ── Shared hyperparameters ────────────────────────────────────────────────
     GAMMA         = 0.99
@@ -32,6 +36,20 @@ class BaseCFG:
     CLIP_EPS     = 0.2
     VALUE_COEF   = 0.5
     ENTROPY_COEF = 0.05
+
+    # ── PPO improvements ───────────────────────────────────────────────────
+    # Normalization
+    OBS_NORM         = True
+    REWARD_NORM      = True
+    NORM_CLIP        = 10.0
+
+    # LR scheduling
+    LR_DECAY         = True
+    LR_END           = 0.0
+
+    # Entropy scheduling
+    ENTROPY_DECAY    = True
+    ENTROPY_COEF_END = 0.001
 
     # ── DQN ───────────────────────────────────────────────────────────────────
     BUFFER_CAPACITY     = 10000
@@ -50,9 +68,17 @@ class BaseCFG:
     # ── Rewards ───────────────────────────────────────────────────────────────
     REWARD_FELL          = -5.0
     REWARD_SUCCESS       = +10.0
-    REWARD_STEP_PENALTY  = -0.1
+    REWARD_STEP_PENALTY  = -0.01
     REWARD_PROGRESS_COEF = +0.5
     REWARD_TIMEOUT       = -5.0
+
+    # Proximity-scaled terminal penalties: scale fell/timeout by how far
+    # the agent got.  Close to goal = small penalty, at spawn = full penalty.
+    PROXIMITY_SCALED_TERMINAL = True
+
+    # Near-miss bonus: positive reward when agent times out close to the goal
+    NEAR_MISS_THRESHOLD = 1.5    # blocks from Z_SUCCESS
+    REWARD_NEAR_MISS    = +2.0
 
     # ── Environment behavior flags ───────────────────────────────────────────
     SUCCESS_REQUIRES_ON_GROUND = False   # True = check OnGround, False = check y >= FALL_Y_THRESHOLD

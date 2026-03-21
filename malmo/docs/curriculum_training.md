@@ -39,6 +39,42 @@ Random sampling with weights per environment:
 
 Env selection is deterministic given the seed + episode number, so checkpoint resume reproduces the same schedule.
 
+### Adaptive Mode
+
+Performance-gated progression — advance to the next stage only when the agent hits a target success rate:
+
+```json
+{
+  "mode": "adaptive",
+  "stages": [
+    {"env": "one_block_gap",   "target_success_rate": 0.9, "window": 50, "min_episodes": 100, "max_episodes": 2000},
+    {"env": "simple_jump",     "target_success_rate": 0.9, "window": 50, "min_episodes": 100, "max_episodes": 2000},
+    {"env": "three_block_gap", "max_episodes": 3000}
+  ]
+}
+```
+
+**Stage fields:**
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `env` | (required) | Environment name |
+| `target_success_rate` | `null` | Success rate threshold to advance (not needed on last stage) |
+| `window` | `50` | Rolling window size for computing success rate |
+| `min_episodes` | `100` | Minimum episodes before promotion is allowed |
+| `max_episodes` | `2000` | Safety cap — advance even if target not met |
+
+**How promotion works:**
+
+1. After each episode, the outcome ("landed" = success) is added to a rolling window.
+2. Promotion happens when **both**: (a) `min_episodes` have been completed on the current stage, AND (b) the rolling success rate over the last `window` episodes meets `target_success_rate`, OR `max_episodes` is reached.
+3. The last stage has no target — it runs until `max_episodes`.
+4. A banner is printed on each promotion showing the achieved success rate.
+
+Total episodes = sum of all `max_episodes` (upper bound; training may finish earlier if all stages promote quickly).
+
+**Checkpoint resume:** Adaptive mode saves a sidecar file (`*_curriculum.pt`) alongside the agent checkpoint. This stores which stage the agent is on, the episode count, and the outcome history. On resume, the scheduler restores its full state.
+
 ## Usage
 
 ```powershell

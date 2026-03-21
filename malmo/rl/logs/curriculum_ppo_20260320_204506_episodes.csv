@@ -1,8 +1,0 @@
-episode,reward,steps,outcome,env,timestamp
-1,11.3228,12,landed,one_block_gap,20:45:11
-2,-3.8,15,fell,simple_jump,20:45:31
-3,11.5069,14,landed,simple_jump,20:45:52
-4,-3.6589,15,fell,three_block_gap,20:46:16
-5,11.4554,16,landed,simple_jump,20:46:36
-6,-3.3971,15,fell,three_block_gap,20:46:55
-7,11.2647,13,landed,one_block_gap,20:47:19

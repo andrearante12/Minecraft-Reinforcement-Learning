@@ -62,9 +62,11 @@ class ParkourEnv:
 
         with open(cfg.MISSION_FILE, "r") as f:
             xml = f.read()
-        if not force_reset:
-            xml = xml.replace('forceReset="true"', 'forceReset="false"')
-        self._mission_xml = xml
+        # Store both variants: force_reset for first load after env switch,
+        # no_force for subsequent same-env resets (much faster)
+        self._mission_xml_force = xml
+        self._mission_xml_fast  = xml.replace('forceReset="true"', 'forceReset="false"')
+        self._next_force_reset  = force_reset
 
         self._agent_host = MalmoPython.AgentHost()
         try:
@@ -80,7 +82,12 @@ class ParkourEnv:
         self._prev_pos = np.array(self.cfg.SPAWN, dtype=np.float32)
         self._prev_z   = float(self.cfg.SPAWN[2])
         time.sleep(0.5)
-        self._start_mission()
+        # Use forceReset only on first reset after an env switch, then fast resets
+        if self._next_force_reset:
+            self._start_mission(self._mission_xml_force)
+            self._next_force_reset = False
+        else:
+            self._start_mission(self._mission_xml_fast)
         return self._get_observation()
 
     def step(self, action):
@@ -98,9 +105,30 @@ class ParkourEnv:
             done, outcome = True, "mission_ended"
             if self.cfg.REWARD_ON_MISSION_ENDED:
                 reward = self.cfg.REWARD_TIMEOUT
-        if self._steps >= self.cfg.MAX_STEPS:
-            done, outcome = True, "timeout"
-            reward = self.cfg.REWARD_TIMEOUT
+                if self.cfg.PROXIMITY_SCALED_TERMINAL:
+                    x_now = float(obs_dict.get("XPos", self.cfg.SPAWN[0]))
+                    y_now = float(obs_dict.get("YPos", self.cfg.SPAWN[1]))
+                    z_now = float(obs_dict.get("ZPos", self.cfg.SPAWN[2]))
+                    reward *= (1.0 - self._proximity(np.array([x_now, y_now, z_now])))
+        if self._steps >= self.cfg.MAX_STEPS and not done:
+            z_now = float(obs_dict.get("ZPos", self.cfg.SPAWN[2]))
+            y_now = float(obs_dict.get("YPos", self.cfg.SPAWN[1]))
+            if (z_now >= (self.cfg.Z_SUCCESS - self.cfg.NEAR_MISS_THRESHOLD)
+                    and y_now >= self.cfg.FALL_Y_THRESHOLD):
+                reward = self.cfg.REWARD_NEAR_MISS
+                done, outcome = True, "near_miss"
+            else:
+                done, outcome = True, "timeout"
+                reward = self.cfg.REWARD_TIMEOUT
+                if self.cfg.PROXIMITY_SCALED_TERMINAL:
+                    x_now = float(obs_dict.get("XPos", self.cfg.SPAWN[0]))
+                    reward *= (1.0 - self._proximity(np.array([x_now, y_now, z_now])))
+
+        if done:
+            try:
+                self._agent_host.sendCommand("quit")
+            except Exception:
+                pass
 
         info = {
             "outcome": outcome,
@@ -120,14 +148,16 @@ class ParkourEnv:
 
     # ── Malmo interaction ──────────────────────────────────────────────────────
 
-    def _start_mission(self, max_retries=3):
+    def _start_mission(self, mission_xml=None, max_retries=3):
         ws = self._agent_host.getWorldState()
         while ws.is_mission_running:
             time.sleep(0.1)
             ws = self._agent_host.getWorldState()
         time.sleep(0.5)
 
-        mission        = MalmoPython.MissionSpec(self._mission_xml, True)
+        if mission_xml is None:
+            mission_xml = self._mission_xml_fast
+        mission        = MalmoPython.MissionSpec(mission_xml, True)
         mission_record = MalmoPython.MissionRecordSpec()
         client_pool    = MalmoPython.ClientPool()
         client_pool.add(MalmoPython.ClientInfo("127.0.0.1", self._malmo_port))
@@ -219,12 +249,26 @@ class ParkourEnv:
 
     # ── Reward function ────────────────────────────────────────────────────────
 
+    def _proximity(self, pos):
+        """Return 0.0 (at spawn) to 1.0 (at goal) based on distance to goal."""
+        initial_dist = np.linalg.norm(
+            np.array(self.cfg.SPAWN, dtype=np.float32) - np.array(self.cfg.GOAL_POS, dtype=np.float32)
+        )
+        current_dist = np.linalg.norm(pos - np.array(self.cfg.GOAL_POS, dtype=np.float32))
+        if initial_dist == 0:
+            return 1.0
+        return max(1.0 - current_dist / initial_dist, 0.0)
+
     def _get_reward(self, obs, prev_z):
+        x = float(obs.get("XPos", self.cfg.SPAWN[0]))
         y = float(obs.get("YPos", self.cfg.SPAWN[1]))
         z = float(obs.get("ZPos", self.cfg.SPAWN[2]))
 
         if y < self.cfg.FALL_Y_THRESHOLD:
-            return self.cfg.REWARD_FELL, True, "fell"
+            reward = self.cfg.REWARD_FELL
+            if self.cfg.PROXIMITY_SCALED_TERMINAL:
+                reward *= (1.0 - self._proximity(np.array([x, y, z])))
+            return reward, True, "fell"
 
         if z >= self.cfg.Z_SUCCESS and y >= self.cfg.FALL_Y_THRESHOLD:
             return self.cfg.REWARD_SUCCESS, True, "landed"

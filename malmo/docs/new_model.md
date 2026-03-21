@@ -12,6 +12,21 @@ Any model must implement these three methods with the same signatures:
 | `get_value(obs)` | `(1, INPUT_SIZE)` tensor | `(1, 1)` scalar tensor |
 | `evaluate_actions(obs, actions)` | `(batch, INPUT_SIZE)`, `(batch,)` | `log_probs (batch,)`, `values (batch,)`, `entropy (scalar)` |
 
+## Constructor
+
+The default `ActorCritic` (in `models/actor_critic.py`) takes a single `cfg` object. Required config attributes:
+
+- `PROPRIOCEPTION_SIZE` — size of proprioception slice (default: 6)
+- `GOAL_DELTA_SIZE` — size of goal delta slice (default: 3)
+- `GRID_SIZE` — size of voxel grid slice (default: 120)
+- `N_ACTIONS` — number of discrete actions
+- `PROPRIO_HIDDEN` — hidden width for proprioception stream (default: 64)
+- `GOAL_HIDDEN` — hidden width for goal stream (default: 64)
+- `VOXEL_HIDDEN` — hidden width for voxel stream (default: 128)
+- `HEAD_HIDDEN` — hidden width for actor/critic heads (default: 256)
+
+The old `models/mlp.py` is kept as a fallback for loading old checkpoints. It uses `ActorCritic(input_size, hidden_size, n_actions)`.
+
 ## Steps to Add a New Architecture
 
 **1. Create a new file in `models/`**
@@ -24,8 +39,12 @@ import torch.nn as nn
 from torch.distributions import Categorical
 
 class ActorCritic(nn.Module):
-    def __init__(self, input_size, hidden_size, n_actions):
+    def __init__(self, cfg):
         super().__init__()
+        input_size  = cfg.INPUT_SIZE
+        hidden_size = cfg.HIDDEN_SIZE
+        n_actions   = cfg.N_ACTIONS
+
         self.shared = nn.Sequential(
             nn.Linear(input_size, hidden_size), nn.Tanh(),
             nn.Linear(hidden_size, hidden_size), nn.Tanh(),
@@ -52,11 +71,11 @@ class ActorCritic(nn.Module):
         return dist.log_prob(actions), values.squeeze(-1), dist.entropy().mean()
 ```
 
-**2. Update the import in `training/train_simple_jump.py`**
+**2. Update the import in `training/train.py`**
 
 ```python
 # Before
-from models.mlp import ActorCritic
+from models.actor_critic import ActorCritic
 
 # After
 from models.mlp_deep import ActorCritic

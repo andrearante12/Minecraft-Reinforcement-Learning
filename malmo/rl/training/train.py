@@ -28,7 +28,7 @@ PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PARKOUR_ROOT)
 
 from training.configs.one_block_gap_cfg import OneBlockGapCFG
-from models.mlp       import ActorCritic
+from models.actor_critic import ActorCritic
 from envs.env_client  import EnvClient
 from utils.logger     import Logger
 from training.curriculum import CurriculumScheduler
@@ -85,7 +85,8 @@ def print_header(env_name, algo_name, cfg, num_envs=1, total_episodes=None):
     print("Total episodes: ", total_episodes if total_episodes is not None else cfg.TOTAL_EPISODES)
     print("Obs size:       ", cfg.INPUT_SIZE)
     print("N actions:      ", cfg.N_ACTIONS)
-    print("Hidden size:    ", cfg.HIDDEN_SIZE)
+    print("Architecture:    ", "multi-stream ({0}/{1}/{2}) -> {3}".format(
+        cfg.PROPRIO_HIDDEN, cfg.GOAL_HIDDEN, cfg.VOXEL_HIDDEN, cfg.HEAD_HIDDEN))
     if algo_name == "ppo":
         print("N steps/update: ", cfg.N_STEPS)
         if num_envs > 1:
@@ -140,20 +141,41 @@ def train():
     # Create N env clients, each connecting to base_port+i
     base_port = args.base_port
     envs   = [EnvClient(cfg.INPUT_SIZE, port=base_port + i) for i in range(n_envs)]
-    model  = ActorCritic(cfg.INPUT_SIZE, cfg.HIDDEN_SIZE, cfg.N_ACTIONS)
+    model  = ActorCritic(cfg)
     agent  = ALGO_REGISTRY[args.algo](model, cfg, n_envs=n_envs)
     logger = Logger(cfg.LOG_DIR, run_name)
 
-    env_label = args.curriculum if args.curriculum else args.env
+    if args.curriculum:
+        if scheduler.mode == "adaptive":
+            env_label = "adaptive ({0} stages: {1})".format(
+                len(scheduler.stages),
+                " -> ".join(s["env"] for s in scheduler.stages))
+        else:
+            env_label = args.curriculum
+    else:
+        env_label = args.env
     print_header(env_label, args.algo, cfg, num_envs=n_envs, total_episodes=total_episodes)
 
     start_episode = 1
     if args.checkpoint:
         agent.load(args.checkpoint)
         try:
-            start_episode = int(args.checkpoint.split("ep")[-1].split(".")[0]) + 1
+            ep_str = args.checkpoint.split("ep")[-1].split(".")[0]
+            # Strip non-digit suffixes like "_interrupted"
+            ep_num = ""
+            for ch in ep_str:
+                if ch.isdigit():
+                    ep_num += ch
+                else:
+                    break
+            start_episode = int(ep_num) + 1
         except Exception:
             pass
+        # Restore adaptive curriculum state if sidecar exists
+        curriculum_path = args.checkpoint.replace(".pt", "_curriculum.pt")
+        if os.path.exists(curriculum_path):
+            scheduler.load_state_dict(torch.load(curriculum_path, weights_only=False))
+            print("Restored curriculum state from {0}".format(curriculum_path))
         print("Resuming from episode {0}".format(start_episode))
         print()
 
@@ -177,7 +199,7 @@ def train():
     print()
 
     try:
-        while episode <= total_episodes:
+        while episode <= total_episodes and not scheduler.is_complete():
 
             next_obs_all, rewards, dones, infos = agent.collect_steps(envs, obs_all)
 
@@ -189,11 +211,21 @@ def train():
                     ep_outcome[i] = infos[i]["outcome"]
 
                 if dones[i]:
+                    if hasattr(agent, "set_progress"):
+                        agent.set_progress(episode / total_episodes)
+
                     logger.log_episode(episode, ep_rewards[i], int(ep_steps[i]),
                                        ep_outcome[i], env_name=current_envs[i])
                     logger.print_summary(every=cfg.LOG_EVERY)
-                    print("  Ep {0:>4} | env:{1} | steps:{2:>3} | reward:{3:>7.2f} | outcome:{4}".format(
-                        episode, current_envs[i], int(ep_steps[i]), ep_rewards[i], ep_outcome[i]))
+
+                    # Report outcome to adaptive scheduler (no-op for other modes)
+                    scheduler.report_outcome(ep_outcome[i])
+
+                    ep_line = "  Ep {0:>4} | env:{1} | steps:{2:>3} | reward:{3:>7.2f} | outcome:{4}".format(
+                        episode, current_envs[i], int(ep_steps[i]), ep_rewards[i], ep_outcome[i])
+                    if scheduler.mode == "adaptive":
+                        ep_line += " | sr:{0:.0%}".format(scheduler.current_success_rate())
+                    print(ep_line)
 
                     # Switch env if curriculum says so
                     next_env = scheduler.env_for_episode(episode + 1)
@@ -211,9 +243,12 @@ def train():
                         path = os.path.join(cfg.CHECKPOINT_DIR,
                                             "{0}_{1}_ep{2}.pt".format(args.algo, run_name, episode))
                         agent.save(path)
+                        curriculum_state = scheduler.state_dict()
+                        if curriculum_state is not None:
+                            torch.save(curriculum_state, path.replace(".pt", "_curriculum.pt"))
 
                     episode += 1
-                    if episode > total_episodes:
+                    if episode > total_episodes or scheduler.is_complete():
                         break
 
             obs_all = next_obs_all
@@ -230,6 +265,9 @@ def train():
         path = os.path.join(cfg.CHECKPOINT_DIR,
                             "{0}_{1}_ep{2}_interrupted.pt".format(args.algo, run_name, episode))
         agent.save(path)
+        curriculum_state = scheduler.state_dict()
+        if curriculum_state is not None:
+            torch.save(curriculum_state, path.replace(".pt", "_curriculum.pt"))
 
     finally:
         for env in envs:

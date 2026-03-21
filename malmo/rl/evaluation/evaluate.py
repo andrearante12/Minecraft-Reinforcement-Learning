@@ -16,8 +16,8 @@ import argparse
 PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PARKOUR_ROOT)
 
-from training.configs.base_cfg import BaseCFG as CFG
-from models.mlp       import ActorCritic
+from training.configs.simple_jump_cfg import SimpleJumpCFG as CFG
+from models.actor_critic import ActorCritic
 from algos.ppo        import PPO
 from envs.simple_jump.env     import ParkourEnv
 
@@ -41,7 +41,7 @@ def evaluate():
     print()
 
     env   = ParkourEnv(CFG)
-    model = ActorCritic(CFG.INPUT_SIZE, CFG.HIDDEN_SIZE, CFG.N_ACTIONS)
+    model = ActorCritic(CFG)
     agent = PPO(model, CFG)
     agent.load(args.checkpoint)
 
