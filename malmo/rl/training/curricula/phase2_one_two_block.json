@@ -1,0 +1,9 @@
+{
+  "mode": "weighted",
+  "total_episodes": 3000,
+  "window": 10,
+  "envs": [
+    {"env": "one_block_gap", "weight": 0.4},
+    {"env": "simple_jump", "weight": 0.6}
+  ]
+}

@@ -24,15 +24,14 @@ import argparse
 import numpy as np
 import torch
 
-from training.configs.one_block_gap_cfg import OneBlockGapCFG
-
-
 PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PARKOUR_ROOT)
 
+from training.configs.one_block_gap_cfg import OneBlockGapCFG
 from models.mlp       import ActorCritic
 from envs.env_client  import EnvClient
 from utils.logger     import Logger
+from training.curriculum import CurriculumScheduler
 
 # ── Algorithm registry ────────────────────────────────────────────────────────
 from algos.ppo import PPO
@@ -44,14 +43,15 @@ ALGO_REGISTRY = {
 }
 
 # ── Environment registry ──────────────────────────────────────────────────────
-# Only configs are needed here — the client is generic
+# Tuples of (EnvClass, CfgClass) — EnvClass is not used directly by the client,
+# but the scheduler needs the full registry for validation.
 from training.configs.simple_jump_cfg      import SimpleJumpCFG
 from training.configs.three_block_gap_cfg  import ThreeBlockGapCFG
 
 ENV_REGISTRY = {
-    "one_block_gap":   OneBlockGapCFG,
-    "simple_jump":     SimpleJumpCFG,
-    "three_block_gap": ThreeBlockGapCFG,
+    "one_block_gap":   (None, OneBlockGapCFG),
+    "simple_jump":     (None, SimpleJumpCFG),
+    "three_block_gap": (None, ThreeBlockGapCFG),
 }
 
 
@@ -69,10 +69,12 @@ def parse_args():
                         help="Number of parallel env servers (default: 1)")
     parser.add_argument("--base-port",  type=int, default=9999,
                         help="Port of first env server; others at base+1, base+2, ... (default: 9999)")
+    parser.add_argument("--curriculum", type=str, default=None,
+                        help="Path to curriculum JSON file (overrides --env for scheduling)")
     return parser.parse_args()
 
 
-def print_header(env_name, algo_name, cfg, num_envs=1):
+def print_header(env_name, algo_name, cfg, num_envs=1, total_episodes=None):
     print("=" * 60)
     print("Malmo RL Training")
     print("=" * 60)
@@ -80,7 +82,7 @@ def print_header(env_name, algo_name, cfg, num_envs=1):
     print("Algorithm:      ", algo_name.upper())
     print("Device:         ", "cuda" if torch.cuda.is_available() else "cpu")
     print("Num envs:       ", num_envs)
-    print("Total episodes: ", cfg.TOTAL_EPISODES)
+    print("Total episodes: ", total_episodes if total_episodes is not None else cfg.TOTAL_EPISODES)
     print("Obs size:       ", cfg.INPUT_SIZE)
     print("N actions:      ", cfg.N_ACTIONS)
     print("Hidden size:    ", cfg.HIDDEN_SIZE)
@@ -112,8 +114,19 @@ def print_update(losses):
 
 def train():
     args    = parse_args()
-    cfg     = ENV_REGISTRY[args.env]
     n_envs  = args.num_envs
+
+    # Build curriculum scheduler
+    if args.curriculum:
+        scheduler = CurriculumScheduler.from_json(args.curriculum, ENV_REGISTRY)
+        _, cfg = ENV_REGISTRY[scheduler.all_env_names()[0]]
+        total_episodes = scheduler.total_episodes()
+        run_name = "curriculum_{0}".format(args.algo)
+    else:
+        _, cfg = ENV_REGISTRY[args.env]
+        total_episodes = cfg.TOTAL_EPISODES
+        scheduler = CurriculumScheduler.single_env(args.env, total_episodes, ENV_REGISTRY)
+        run_name = "{0}_{1}".format(args.env, args.algo)
 
     # Validate N_STEPS divisibility for PPO
     if args.algo == "ppo" and cfg.N_STEPS % n_envs != 0:
@@ -129,9 +142,10 @@ def train():
     envs   = [EnvClient(cfg.INPUT_SIZE, port=base_port + i) for i in range(n_envs)]
     model  = ActorCritic(cfg.INPUT_SIZE, cfg.HIDDEN_SIZE, cfg.N_ACTIONS)
     agent  = ALGO_REGISTRY[args.algo](model, cfg, n_envs=n_envs)
-    logger = Logger(cfg.LOG_DIR, "{0}_{1}".format(args.env, args.algo))
+    logger = Logger(cfg.LOG_DIR, run_name)
 
-    print_header(args.env, args.algo, cfg, num_envs=n_envs)
+    env_label = args.curriculum if args.curriculum else args.env
+    print_header(env_label, args.algo, cfg, num_envs=n_envs, total_episodes=total_episodes)
 
     start_episode = 1
     if args.checkpoint:
@@ -142,6 +156,10 @@ def train():
             pass
         print("Resuming from episode {0}".format(start_episode))
         print()
+
+    # Determine initial env for each slot
+    initial_env = scheduler.env_for_episode(start_episode)
+    current_envs = [initial_env] * n_envs
 
     # Per-env state tracking
     obs_all    = np.zeros((n_envs, cfg.INPUT_SIZE), dtype=np.float32)
@@ -159,7 +177,7 @@ def train():
     print()
 
     try:
-        while episode <= cfg.TOTAL_EPISODES:
+        while episode <= total_episodes:
 
             next_obs_all, rewards, dones, infos = agent.collect_steps(envs, obs_all)
 
@@ -171,10 +189,17 @@ def train():
                     ep_outcome[i] = infos[i]["outcome"]
 
                 if dones[i]:
-                    logger.log_episode(episode, ep_rewards[i], int(ep_steps[i]), ep_outcome[i])
+                    logger.log_episode(episode, ep_rewards[i], int(ep_steps[i]),
+                                       ep_outcome[i], env_name=current_envs[i])
                     logger.print_summary(every=cfg.LOG_EVERY)
-                    print("  Ep {0:>4} | steps:{1:>3} | reward:{2:>7.2f} | outcome:{3}".format(
-                        episode, int(ep_steps[i]), ep_rewards[i], ep_outcome[i]))
+                    print("  Ep {0:>4} | env:{1} | steps:{2:>3} | reward:{3:>7.2f} | outcome:{4}".format(
+                        episode, current_envs[i], int(ep_steps[i]), ep_rewards[i], ep_outcome[i]))
+
+                    # Switch env if curriculum says so
+                    next_env = scheduler.env_for_episode(episode + 1)
+                    if next_env != current_envs[i]:
+                        envs[i].switch_env(next_env)
+                        current_envs[i] = next_env
 
                     # Reset this env
                     next_obs_all[i] = envs[i].reset()
@@ -184,11 +209,11 @@ def train():
 
                     if episode % cfg.SAVE_EVERY == 0:
                         path = os.path.join(cfg.CHECKPOINT_DIR,
-                                            "{0}_{1}_ep{2}.pt".format(args.algo, args.env, episode))
+                                            "{0}_{1}_ep{2}.pt".format(args.algo, run_name, episode))
                         agent.save(path)
 
                     episode += 1
-                    if episode > cfg.TOTAL_EPISODES:
+                    if episode > total_episodes:
                         break
 
             obs_all = next_obs_all
@@ -203,7 +228,7 @@ def train():
     except KeyboardInterrupt:
         print("\nTraining interrupted. Saving checkpoint...")
         path = os.path.join(cfg.CHECKPOINT_DIR,
-                            "{0}_{1}_ep{2}_interrupted.pt".format(args.algo, args.env, episode))
+                            "{0}_{1}_ep{2}_interrupted.pt".format(args.algo, run_name, episode))
         agent.save(path)
 
     finally:

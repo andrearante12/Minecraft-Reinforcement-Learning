@@ -20,7 +20,7 @@ class Logger:
         self.ep_path   = base + "_episodes.csv"
         self.ep_file   = open(self.ep_path, "w", newline="")
         self.ep_writer = csv.writer(self.ep_file)
-        self.ep_writer.writerow(["episode", "reward", "steps", "outcome", "timestamp"])
+        self.ep_writer.writerow(["episode", "reward", "steps", "outcome", "env", "timestamp"])
 
         # Update log — columns written dynamically on first call
         self.upd_path    = base + "_updates.csv"
@@ -33,6 +33,7 @@ class Logger:
         self.ep_rewards    = deque(maxlen=self.window)
         self.ep_steps      = deque(maxlen=self.window)
         self.ep_outcomes   = deque(maxlen=self.window)
+        self.ep_envs       = deque(maxlen=self.window)
         self.episode_count = 0
         self.update_count  = 0
         self.start_time    = time.time()
@@ -41,13 +42,14 @@ class Logger:
         print("  Episodes: {0}".format(self.ep_path))
         print("  Updates:  {0}".format(self.upd_path))
 
-    def log_episode(self, episode, reward, steps, outcome):
+    def log_episode(self, episode, reward, steps, outcome, env_name=""):
         self.ep_writer.writerow([episode, round(reward, 4), steps, outcome,
-                                  time.strftime("%H:%M:%S")])
+                                  env_name, time.strftime("%H:%M:%S")])
         self.ep_file.flush()
         self.ep_rewards.append(reward)
         self.ep_steps.append(steps)
         self.ep_outcomes.append(outcome)
+        self.ep_envs.append(env_name)
         self.episode_count = episode
 
     def log_update(self, **losses):
@@ -84,6 +86,19 @@ class Logger:
         print("  Outcomes: landed={0}  fell={1}  timeout={2}".format(
             n_landed, n_fell, n_timeout))
         print("  Success rate: {0:.1f}%".format(100 * n_landed / n))
+
+        # Per-env breakdown (only if multiple envs seen)
+        unique_envs = set(self.ep_envs)
+        unique_envs.discard("")
+        if len(unique_envs) > 1:
+            print("  Per-env:")
+            for env_name in sorted(unique_envs):
+                env_rewards = [r for r, e in zip(self.ep_rewards, self.ep_envs) if e == env_name]
+                env_landed = sum(1 for o, e in zip(self.ep_outcomes, self.ep_envs) if e == env_name and o == "landed")
+                if env_rewards:
+                    print("    {0}: n={1}  mean_rew={2:.2f}  landed={3}".format(
+                        env_name, len(env_rewards), sum(env_rewards) / len(env_rewards), env_landed))
+
         print("=" * 60)
 
     def close(self):

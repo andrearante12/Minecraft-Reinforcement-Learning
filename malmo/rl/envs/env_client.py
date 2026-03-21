@@ -68,6 +68,13 @@ class EnvClient:
             resp["info"],
         )
 
+    def switch_env(self, env_name):
+        self._send({"cmd": "switch_env", "env": env_name})
+        resp = self._recv()
+        if "error" in resp:
+            raise RuntimeError("switch_env failed: {0}".format(resp["error"]))
+        return resp
+
     def close(self):
         self._send({"cmd": "close"})
         self.sock.close()

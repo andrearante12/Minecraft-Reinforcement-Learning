@@ -34,9 +34,10 @@ from training.configs.three_block_gap_cfg  import ThreeBlockGapCFG
 from training.configs.one_block_gap_cfg    import OneBlockGapCFG
 
 ENV_REGISTRY = {
-    "one_block_gap":   OneBlockGapCFG,
-    "simple_jump":     SimpleJumpCFG,
-    "three_block_gap": ThreeBlockGapCFG,
+    "one_block_gap":   (ParkourEnv, OneBlockGapCFG),
+    "simple_jump":     (ParkourEnv, SimpleJumpCFG),
+    "three_block_gap": (ParkourEnv, ThreeBlockGapCFG),
+    # Future: "combat_basic": (CombatEnv, CombatBasicCFG),
 }
 
 HOST = "127.0.0.1"
@@ -70,8 +71,8 @@ def main():
                         help="Minecraft/Malmo client port (default: from config, usually 10000)")
     args = parser.parse_args()
 
-    cfg = ENV_REGISTRY[args.env]
-    env = ParkourEnv(cfg, malmo_port=args.malmo_port)
+    EnvClass, cfg = ENV_REGISTRY[args.env]
+    env = EnvClass(cfg, malmo_port=args.malmo_port)
     print("Env server starting — env:{0}  address:{1}:{2}".format(args.env, HOST, args.port))
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -102,6 +103,19 @@ def main():
                         "done":   done,
                         "info":   info,
                     })
+
+                elif cmd == "switch_env":
+                    env_name = msg["env"]
+                    if env_name not in ENV_REGISTRY:
+                        send_msg(conn, {"error": "Unknown env: {0}".format(env_name)})
+                    else:
+                        try:
+                            env.close()
+                        except Exception:
+                            pass
+                        EnvClass, cfg = ENV_REGISTRY[env_name]
+                        env = EnvClass(cfg, malmo_port=args.malmo_port, force_reset=True)
+                        send_msg(conn, {"status": "ok", "env": env_name})
 
                 elif cmd == "close":
                     env.close()

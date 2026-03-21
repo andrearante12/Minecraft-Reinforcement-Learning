@@ -47,7 +47,7 @@ except ImportError:
 
 
 class ParkourEnv:
-    def __init__(self, cfg, malmo_port=None):
+    def __init__(self, cfg, malmo_port=None, force_reset=False):
         self.cfg       = cfg
         self.actions   = cfg.ACTIONS
         self.n_actions = cfg.N_ACTIONS
@@ -62,7 +62,8 @@ class ParkourEnv:
 
         with open(cfg.MISSION_FILE, "r") as f:
             xml = f.read()
-        xml = xml.replace('forceReset="true"', 'forceReset="false"')
+        if not force_reset:
+            xml = xml.replace('forceReset="true"', 'forceReset="false"')
         self._mission_xml = xml
 
         self._agent_host = MalmoPython.AgentHost()

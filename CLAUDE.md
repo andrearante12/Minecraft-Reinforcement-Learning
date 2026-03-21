@@ -59,6 +59,18 @@ Note: On Windows, some port ranges (e.g. 10000-10001) may be reserved by Hyper-V
 If you hit `WinError 10013`, pick a different `--base-port`.
 Use `netsh interface ipv4 show excludedportrange protocol=tcp` to check reserved ranges.
 
+### Curriculum Training
+```powershell
+# Same Minecraft clients + env servers as multi-env training above.
+# The training script handles env switching via --curriculum:
+conda activate train_env
+python Malmo/rl/training/train.py --curriculum path/to/curriculum.json --algo ppo --base-port 10002
+
+# Resume from checkpoint:
+python Malmo/rl/training/train.py --curriculum path/to/curriculum.json --algo ppo --checkpoint checkpoints/ppo_curriculum_ppo_ep500.pt
+```
+See `Malmo/docs/curriculum_training.md` for JSON format and details.
+
 ### Evaluation
 ```powershell
 conda activate train_env
@@ -94,8 +106,9 @@ forward, backward, left, right, sprint_forward, jump, sprint_jump, look_down, lo
 `ActorCritic`: two shared Linear(→128)→Tanh layers, then separate policy head (→Categorical) and value head (→scalar).
 
 ### Extensibility — Registry Pattern
-- `env_server.py` has `ENV_REGISTRY`: maps env name → config class
-- `train.py` has `ALGO_REGISTRY`: maps algo name → agent class
+- `env_server.py` has `ENV_REGISTRY`: maps env name → `(EnvClass, CfgClass)` tuple
+- `train.py` has `ENV_REGISTRY` (same format) and `ALGO_REGISTRY`: maps algo name → agent class
+- `CurriculumScheduler` (`training/curriculum.py`): schedules env switching across episodes (sequential stages or weighted random sampling). Validated to ensure all envs share `INPUT_SIZE`/`N_ACTIONS`.
 - Adding a new environment, algorithm, or model only requires implementing an interface and registering it — the training loop, logging, and checkpointing require no changes.
 
 ### Adding a New Environment
@@ -115,7 +128,7 @@ Rewards: SUCCESS=+10, FELL=-5, TIMEOUT=-5, STEP_PENALTY=-0.1
 
 ### Logging
 Each run produces two timestamped CSVs in `Malmo/rl/logs/`:
-- `*_episodes.csv`: episode, reward, steps, outcome
+- `*_episodes.csv`: episode, reward, steps, outcome, env
 - `*_updates.csv`: update number + dynamic loss columns (automatically adapts to algorithm)
 
 Checkpoints saved every 100 episodes to `Malmo/rl/checkpoints/`. Interrupted training saves `*_interrupted.pt`.
@@ -125,3 +138,4 @@ Checkpoints saved every 100 episodes to `Malmo/rl/checkpoints/`. Interrupted tra
 - `Malmo/docs/observation_vector.md` — observation space details
 - `Malmo/docs/action_space.md` — action space and Malmo command reference
 - `Malmo/docs/new_algorithm.md`, `new_environment.md`, `new_model.md` — extension guides
+- `Malmo/docs/curriculum_training.md` — curriculum training guide
