@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <About>
+    <Summary>Diagonal Small - 1-block gap, 1-block X offset</Summary>
+  </About>
+
+  <ServerSection>
+    <ServerInitialConditions>
+      <Time><StartTime>1000</StartTime></Time>
+      <Weather>clear</Weather>
+    </ServerInitialConditions>
+    <ServerHandlers>
+      <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="true"/>
+
+      <DrawingDecorator>
+
+        <!-- Starting platform: single block at Z=3 -->
+        <DrawCuboid x1="0" y1="45" z1="3" x2="0" y2="45" z2="3" type="stone"/>
+        <!-- Landing platform: single block at Z=5, X=1 (gap is Z=4 = 1 block, diagonal) -->
+        <DrawCuboid x1="1" y1="45" z1="5" x2="1" y2="45" z2="5" type="stone"/>
+
+      </DrawingDecorator>
+
+      <ServerQuitFromTimeUp timeLimitMs="6000"/>
+      <ServerQuitWhenAnyAgentFinishes/>
+    </ServerHandlers>
+  </ServerSection>
+
+  <AgentSection mode="Survival">
+    <Name>Parkour Agent</Name>
+    <AgentStart>
+      <Placement x="0.5" y="46" z="3.5" yaw="0"/>
+    </AgentStart>
+    <AgentHandlers>
+      <ContinuousMovementCommands/>
+      <ObservationFromFullStats/>
+
+      <ObservationFromGrid>
+        <Grid name="floor3x3">
+          <min x="-2" y="-1" z="-2"/>
+          <max x="2"  y="3"  z="3"/>
+        </Grid>
+      </ObservationFromGrid>
+
+      <AgentQuitFromTouchingBlockType>
+          <Block type="gold_block" />
+      </AgentQuitFromTouchingBlockType>
+    </AgentHandlers>
+  </AgentSection>
+</Mission>

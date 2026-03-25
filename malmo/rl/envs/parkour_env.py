@@ -7,9 +7,9 @@ Behavioral differences between environments are driven entirely by config flags.
 Interface:
     env = ParkourEnv(cfg)
     obs = env.reset()                          # np.ndarray (INPUT_SIZE,)
-    obs, reward, done, info = env.step(action) # action is an int 0-11
+    obs, reward, done, info = env.step(action) # action is an int 0-14
 
-Observation vector layout (INPUT_SIZE = 129):
+Observation vector layout (INPUT_SIZE = 159):
     [0]      onGround        (0 or 1)
     [1]      yaw             (normalized -1 to 1)
     [2]      pitch           (normalized -1 to 1)
@@ -19,7 +19,7 @@ Observation vector layout (INPUT_SIZE = 129):
     [6]      goal_dx         (goal_x - agent_x)
     [7]      goal_dy
     [8]      goal_dz
-    [9:129]  voxel grid      (5 x 4 x 6 = 120 values, encoded as ints)
+    [9:159]  voxel grid      (5 x 5 x 6 = 150 values, encoded as ints)
 """
 
 import sys
@@ -55,8 +55,9 @@ class ParkourEnv:
 
         self._prev_pos = np.array(cfg.SPAWN, dtype=np.float32)
         self._goal_pos = np.array(cfg.GOAL_POS, dtype=np.float32)
-        self._prev_z   = float(cfg.SPAWN[2])
         self._steps    = 0
+        self._landing_counter = 0
+        self._landing_active  = False
 
         self.observation_shape = (cfg.INPUT_SIZE,)
 
@@ -80,7 +81,8 @@ class ParkourEnv:
     def reset(self):
         self._steps    = 0
         self._prev_pos = np.array(self.cfg.SPAWN, dtype=np.float32)
-        self._prev_z   = float(self.cfg.SPAWN[2])
+        self._landing_counter = 0
+        self._landing_active  = False
         time.sleep(0.5)
         # Use forceReset only on first reset after an env switch, then fast resets
         if self._next_force_reset:
@@ -92,14 +94,13 @@ class ParkourEnv:
 
     def step(self, action):
         self._steps += 1
-        prev_z = self._prev_z
+        prev_pos = self._prev_pos.copy()
 
         self._take_action(action)
 
         obs_dict, world_state = self._get_obs_dict()
-        self._prev_z = float(obs_dict.get("ZPos", self.cfg.SPAWN[2]))
-        obs          = self._build_obs_vector(obs_dict)
-        reward, done, outcome = self._get_reward(obs_dict, prev_z)
+        obs          = self._build_obs_vector(obs_dict)  # updates self._prev_pos
+        reward, done, outcome = self._get_reward(obs_dict, prev_pos)
 
         if not world_state.is_mission_running and not done:
             done, outcome = True, "mission_ended"
@@ -113,8 +114,16 @@ class ParkourEnv:
         if self._steps >= self.cfg.MAX_STEPS and not done:
             z_now = float(obs_dict.get("ZPos", self.cfg.SPAWN[2]))
             y_now = float(obs_dict.get("YPos", self.cfg.SPAWN[1]))
+            nm_y_min = self.cfg.Y_SUCCESS_MIN if self.cfg.Y_SUCCESS_MIN is not None else self.cfg.FALL_Y_THRESHOLD
+            nm_x_ok = True
+            if self.cfg.X_SUCCESS_MIN is not None:
+                x_now = float(obs_dict.get("XPos", self.cfg.SPAWN[0]))
+                if x_now < self.cfg.X_SUCCESS_MIN - self.cfg.NEAR_MISS_THRESHOLD:
+                    nm_x_ok = False
+                if self.cfg.X_SUCCESS_MAX is not None and x_now > self.cfg.X_SUCCESS_MAX + self.cfg.NEAR_MISS_THRESHOLD:
+                    nm_x_ok = False
             if (z_now >= (self.cfg.Z_SUCCESS - self.cfg.NEAR_MISS_THRESHOLD)
-                    and y_now >= self.cfg.FALL_Y_THRESHOLD):
+                    and y_now >= nm_y_min and nm_x_ok):
                 reward = self.cfg.REWARD_NEAR_MISS
                 done, outcome = True, "near_miss"
             else:
@@ -148,9 +157,21 @@ class ParkourEnv:
 
     # ── Malmo interaction ──────────────────────────────────────────────────────
 
-    def _start_mission(self, mission_xml=None, max_retries=3):
+    def _start_mission(self, mission_xml=None, max_retries=3,
+                       begin_timeout=30.0, running_timeout=30.0):
+        # Wait for any previous mission to finish
+        t0 = time.time()
         ws = self._agent_host.getWorldState()
         while ws.is_mission_running:
+            if time.time() - t0 > running_timeout:
+                print("\nWARNING: Previous mission still running after {0}s, "
+                      "forcing quit".format(running_timeout))
+                try:
+                    self._agent_host.sendCommand("quit")
+                except Exception:
+                    pass
+                time.sleep(1)
+                break
             time.sleep(0.1)
             ws = self._agent_host.getWorldState()
         time.sleep(0.5)
@@ -165,26 +186,45 @@ class ParkourEnv:
         for attempt in range(max_retries):
             try:
                 self._agent_host.startMission(mission, client_pool, mission_record, 0, "")
-                break
             except RuntimeError as e:
                 if attempt == max_retries - 1:
                     raise RuntimeError(
                         "Could not start mission after {0} attempts: {1}\n"
                         "Is Minecraft running on port {2}?".format(
                             max_retries, e, self._malmo_port))
+                print("  Retrying start ({0}/{1})...".format(attempt + 1, max_retries))
+                time.sleep(2)
+                continue
+
+            # Wait for the mission to actually begin (with timeout)
+            print("Waiting for mission to start...", end=" ")
+            t0 = time.time()
+            ws = self._agent_host.getWorldState()
+            timed_out = False
+            while not ws.has_mission_begun:
+                if time.time() - t0 > begin_timeout:
+                    timed_out = True
+                    break
+                print(".", end="", flush=True)
+                time.sleep(0.1)
+                ws = self._agent_host.getWorldState()
+                for error in ws.errors:
+                    print("\nMission error:", error.text)
+
+            if not timed_out:
+                print(" ready!")
+                time.sleep(0.5)
+                return
+
+            # Mission begin timed out — retry
+            print("\nWARNING: Mission did not begin within {0}s".format(begin_timeout))
+            if attempt < max_retries - 1:
                 print("  Retrying ({0}/{1})...".format(attempt + 1, max_retries))
                 time.sleep(2)
 
-        print("Waiting for mission to start...", end=" ")
-        ws = self._agent_host.getWorldState()
-        while not ws.has_mission_begun:
-            print(".", end="", flush=True)
-            time.sleep(0.1)
-            ws = self._agent_host.getWorldState()
-            for error in ws.errors:
-                print("\nMission error:", error.text)
-        print(" ready!")
-        time.sleep(0.5)
+        raise RuntimeError(
+            "Mission failed to begin after {0} attempts "
+            "(port {1})".format(max_retries, self._malmo_port))
 
     def _take_action(self, action_idx):
         _, cmds_on, cmds_off = self.actions[action_idx]
@@ -259,7 +299,22 @@ class ParkourEnv:
             return 1.0
         return max(1.0 - current_dist / initial_dist, 0.0)
 
-    def _get_reward(self, obs, prev_z):
+    def _in_landing_zone(self, x, y, z):
+        """Check if position is within the landing zone bounds."""
+        if z < self.cfg.Z_SUCCESS:
+            return False
+        if self.cfg.Z_SUCCESS_MAX is not None and z > self.cfg.Z_SUCCESS_MAX:
+            return False
+        y_min = self.cfg.Y_SUCCESS_MIN if self.cfg.Y_SUCCESS_MIN is not None else self.cfg.FALL_Y_THRESHOLD
+        if y < y_min:
+            return False
+        if self.cfg.X_SUCCESS_MIN is not None and x < self.cfg.X_SUCCESS_MIN:
+            return False
+        if self.cfg.X_SUCCESS_MAX is not None and x > self.cfg.X_SUCCESS_MAX:
+            return False
+        return True
+
+    def _get_reward(self, obs, prev_pos):
         x = float(obs.get("XPos", self.cfg.SPAWN[0]))
         y = float(obs.get("YPos", self.cfg.SPAWN[1]))
         z = float(obs.get("ZPos", self.cfg.SPAWN[2]))
@@ -268,12 +323,40 @@ class ParkourEnv:
             reward = self.cfg.REWARD_FELL
             if self.cfg.PROXIMITY_SCALED_TERMINAL:
                 reward *= (1.0 - self._proximity(np.array([x, y, z])))
+            # Landing phase interrupted by falling
+            self._landing_active = False
+            self._landing_counter = 0
             return reward, True, "fell"
 
-        if z >= self.cfg.Z_SUCCESS and y >= self.cfg.FALL_Y_THRESHOLD:
-            return self.cfg.REWARD_SUCCESS, True, "landed"
+        # ── Landing phase logic ──────────────────────────────────────────────
+        if self._landing_active:
+            if self._in_landing_zone(x, y, z):
+                self._landing_counter += 1
+                if self._landing_counter >= self.cfg.LANDING_TICKS:
+                    return self.cfg.REWARD_SUCCESS, True, "landed"
+                return self.cfg.REWARD_LANDING_TICK, False, "alive"
+            else:
+                # Fell off / overshot — full fell penalty (no proximity scaling,
+                # the agent WAS on the block and failed to stay)
+                self._landing_active = False
+                self._landing_counter = 0
+                return self.cfg.REWARD_FELL, True, "fell"
 
-        progress = z - prev_z
-        reward   = (self.cfg.REWARD_STEP_PENALTY
-                    + self.cfg.REWARD_PROGRESS_COEF * progress)
+        # ── Success check ────────────────────────────────────────────────────
+        if self._in_landing_zone(x, y, z):
+            if self.cfg.LANDING_TICKS > 0:
+                # Enter landing phase — no reward yet, must survive a tick first
+                self._landing_active = True
+                self._landing_counter = 0
+                return 0.0, False, "alive"
+            else:
+                # Instant success (backward compat)
+                return self.cfg.REWARD_SUCCESS, True, "landed"
+
+        pos_now   = np.array([x, y, z], dtype=np.float32)
+        dist_now  = np.linalg.norm(pos_now - self._goal_pos)
+        dist_prev = np.linalg.norm(prev_pos - self._goal_pos)
+        progress  = dist_prev - dist_now
+        reward    = (self.cfg.REWARD_STEP_PENALTY
+                     + self.cfg.REWARD_PROGRESS_COEF * progress)
         return reward, False, "alive"

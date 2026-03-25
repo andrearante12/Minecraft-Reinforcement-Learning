@@ -71,10 +71,30 @@ python Malmo/rl/training/train.py --curriculum path/to/curriculum.json --algo pp
 ```
 See `Malmo/docs/curriculum_training.md` for JSON format and details.
 
+### Behavioral Cloning (Demo Recording + Pre-training)
+```powershell
+# Record human demonstrations (env server must be running):
+conda activate train_env
+python Malmo/rl/utils/record_demos.py --env one_block_gap --port 10002
+
+# BC pre-training on demo data:
+python Malmo/rl/training/train.py --env one_block_gap --algo bc --demo-path demos/one_block_gap.json --base-port 10002
+
+# PPO fine-tuning from BC checkpoint:
+python Malmo/rl/training/train.py --env one_block_gap --algo ppo --checkpoint checkpoints/ppo_one_block_gap_bc_ep500.pt --base-port 10002
+```
+See `Malmo/docs/behavioral_cloning.md` for full guide.
+
 ### Evaluation
 ```powershell
+# Requires env_server.py running on the target env:
+python Malmo/rl/envs/env_server.py --env simple_jump --port 10002 --malmo-port 10000
+
 conda activate train_env
-python Malmo/rl/evaluation/evaluate.py --checkpoint checkpoints/ppo_simple_jump_ep1000.pt --episodes 50
+python Malmo/rl/evaluation/evaluate.py --env simple_jump --checkpoint checkpoints/ppo_simple_jump_ep1000.pt --episodes 50 --port 10002
+
+# Multi-jump course evaluation:
+python Malmo/rl/evaluation/evaluate.py --env multi_jump_course --checkpoint <checkpoint>.pt --episodes 50 --port 10002
 ```
 
 ## Architecture
@@ -94,13 +114,13 @@ env_server.py (TCP :9999)          ←→      train.py
 
 Communication is JSON over TCP: `{"cmd": "reset"/"step", "action": int}` → `{"obs": [...], "reward": float, "done": bool, "info": {...}}`
 
-### Observation Space (129-dim vector)
+### Observation Space (159-dim vector)
 - **[0-5]**: Proprioception — onGround, yaw, pitch, delta_y, delta_x, delta_z
 - **[6-8]**: Goal delta — goal_dx, goal_dy, goal_dz
-- **[9-128]**: Voxel grid — 5×4×6=120 blocks encoded as 0=air, 1=stone
+- **[9-158]**: Voxel grid — 5×5×6=150 blocks encoded as 0=air, 1=stone
 
-### Action Space (12 discrete)
-forward, backward, left, right, sprint_forward, jump, sprint_jump, look_down, look_up, turn_left, turn_right, no_op
+### Action Space (15 discrete)
+forward, backward, left, right, sprint_forward, jump, sprint_jump, jump_forward, sprint_jump_left, sprint_jump_right, look_down, look_up, turn_left, turn_right, no_op
 
 ### Model (`models/mlp.py`)
 `ActorCritic`: two shared Linear(→128)→Tanh layers, then separate policy head (→Categorical) and value head (→scalar).
@@ -124,7 +144,9 @@ forward, backward, left, right, sprint_forward, jump, sprint_jump, look_down, lo
 ### Key Hyperparameters (`training/configs/base_cfg.py`)
 PPO defaults: N_STEPS=512, N_EPOCHS=4, CLIP_EPS=0.2, ENTROPY_COEF=0.05, LR=3e-4
 DQN defaults: BUFFER_CAPACITY=10000, EPSILON_START=1.0, EPSILON_END=0.05, TARGET_UPDATE_FREQ=500
-Rewards: SUCCESS=+10, FELL=-5, TIMEOUT=-5, STEP_PENALTY=-0.1
+BC defaults: BC_EPOCHS=10, BC_BATCH_SIZE=64, DEMO_PATH=None (set via --demo-path)
+Rewards: SUCCESS=+10, FELL=-5, TIMEOUT=-5, STEP_PENALTY=-0.01
+Landing phase: LANDING_TICKS=0 (instant success) or >0 (must stay on block), REWARD_LANDING_TICK=+0.5, Z_SUCCESS_MAX=None
 
 ### Logging
 Each run produces two timestamped CSVs in `Malmo/rl/logs/`:
@@ -139,3 +161,5 @@ Checkpoints saved every 100 episodes to `Malmo/rl/checkpoints/`. Interrupted tra
 - `Malmo/docs/action_space.md` — action space and Malmo command reference
 - `Malmo/docs/new_algorithm.md`, `new_environment.md`, `new_model.md` — extension guides
 - `Malmo/docs/curriculum_training.md` — curriculum training guide
+- `Malmo/docs/behavioral_cloning.md` — BC + PPO fine-tuning pipeline
+- `Malmo/docs/parkour_bot_report.md` — full architecture report and design decisions

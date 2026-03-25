@@ -10,6 +10,8 @@ A modular framework for training and evaluating reinforcement learning agents in
 - [New Model Architectures](./malmo/docs/new_model.md) — how to swap in a different network
 - [New RL Algorithms](./malmo/docs/new_algorithm.md) — how to add a new training algorithm
 - [New Environments](./malmo/docs/new_environment.md) — how to create a new Malmo environment
+- [Behavioral Cloning](./malmo/docs/behavioral_cloning.md) — BC pre-training from human demos + PPO fine-tuning
+- [Architecture Report](./malmo/docs/parkour_bot_report.md) — full system architecture and design decisions
 
 ---
 

@@ -1,0 +1,13 @@
+{
+  "mode": "weighted",
+  "total_episodes": 5000,
+  "window": 20,
+  "envs": [
+    {"env": "one_block_gap",    "weight": 1},
+    {"env": "simple_jump",      "weight": 1},
+    {"env": "diagonal_small",   "weight": 2},
+    {"env": "diagonal_medium",  "weight": 2},
+    {"env": "vertical_small",   "weight": 2},
+    {"env": "three_block_gap",  "weight": 4}
+  ]
+}

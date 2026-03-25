@@ -1,0 +1,11 @@
+{
+  "mode": "adaptive",
+  "stages": [
+    {"env": "one_block_gap",    "target_success_rate": 0.9, "window": 50, "min_episodes": 100, "max_episodes": 2000},
+    {"env": "simple_jump",      "target_success_rate": 0.9, "window": 50, "min_episodes": 100, "max_episodes": 2000},
+    {"env": "diagonal_small",   "target_success_rate": 0.8, "window": 50, "min_episodes": 100, "max_episodes": 2000},
+    {"env": "diagonal_medium",  "target_success_rate": 0.7, "window": 50, "min_episodes": 100, "max_episodes": 2000},
+    {"env": "vertical_small",   "target_success_rate": 0.7, "window": 50, "min_episodes": 100, "max_episodes": 2000},
+    {"env": "three_block_gap",  "max_episodes": 3000}
+  ]
+}

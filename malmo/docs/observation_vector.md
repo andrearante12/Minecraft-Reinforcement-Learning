@@ -1,6 +1,6 @@
 # Observation Vector
 
-All algorithms receive the same observation — a flat float32 numpy array of 129 values built by `parkour_env.py` on every step. The observation is divided into three parts.
+All algorithms receive the same observation — a flat float32 numpy array of 159 values built by `parkour_env.py` on every step. The observation is divided into three parts.
 
 ## Proprioception (indices 0–5)
 
@@ -25,14 +25,14 @@ Vector from the agent's current position to the landing platform:
 | 7 | `goal_dy` | `goal_y - agent_y` |
 | 8 | `goal_dz` | `goal_z - agent_z` — how far to the target |
 
-## Voxel Grid (indices 9–128)
+## Voxel Grid (indices 9–158)
 
-A 3D snapshot of blocks surrounding the agent (5×4×6 = 120 values):
+A 3D snapshot of blocks surrounding the agent (5×5×6 = 150 values):
 
 | Dimension | Range | Size |
 |-----------|-------|------|
 | X (lateral) | -2 to +2 | 5 |
-| Y (vertical) | -1 to +2 | 4 |
+| Y (vertical) | -1 to +3 | 5 |
 | Z (forward) | -2 to +3 | 6 |
 
 Each value is encoded as `0` (air) or `1` (solid block). The grid is asymmetric in Z — it looks 3 blocks further forward than backward since jumps always travel in the forward direction.

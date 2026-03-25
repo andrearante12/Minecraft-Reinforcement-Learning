@@ -17,11 +17,14 @@ Each action sends one or more Malmo commands when it starts, holds them for `STE
 | 4 | `sprint_forward` | `sprint 1` + `move 1` | Sprint forward — covers more distance per step |
 | 5 | `jump` | `jump 1` | Jump in place |
 | 6 | `sprint_jump` | `sprint 1` + `move 1` + `jump 1` | Sprint and jump simultaneously — the primary jump for crossing gaps |
-| 7 | `look_down` | `pitch 1` | Tilt camera downward |
-| 8 | `look_up` | `pitch -1` | Tilt camera upward |
-| 9 | `turn_left` | `turn -1` | Rotate left |
-| 10 | `turn_right` | `turn 1` | Rotate right |
-| 11 | `no_op` | — | Do nothing — allows the agent to wait or hold position |
+| 7 | `jump_forward` | `move 1` + `jump 1` | Jump forward without sprinting — for shorter gaps and precise vertical jumps |
+| 8 | `sprint_jump_left` | `sprint 1` + `move 1` + `strafe -1` + `jump 1` | Diagonal sprint-jump to the left |
+| 9 | `sprint_jump_right` | `sprint 1` + `move 1` + `strafe 1` + `jump 1` | Diagonal sprint-jump to the right |
+| 10 | `look_down` | `pitch 1` | Tilt camera downward |
+| 11 | `look_up` | `pitch -1` | Tilt camera upward |
+| 12 | `turn_left` | `turn -1` | Rotate left |
+| 13 | `turn_right` | `turn 1` | Rotate right |
+| 14 | `no_op` | — | Do nothing — allows the agent to wait or hold position |
 
 ---
 
@@ -53,18 +56,7 @@ Commands remain active until a `0` (or release command) is sent. `_take_action()
 
 ## Adding or Removing Actions
 
-Actions are defined per-environment in the config. To add a new action, append a tuple to the `ACTIONS` list and update `N_ACTIONS`:
-
-```python
-ACTIONS = [
-    ...
-    ("sprint_jump_left", ["sprint 1", "move 1", "strafe -1", "jump 1"],
-                         ["sprint 0", "move 0", "strafe 0",  "jump 0"]),
-]
-N_ACTIONS = len(ACTIONS)
-```
-
-To remove an action, delete its entry from the list. `N_ACTIONS` is computed automatically via `len(ACTIONS)`.
+The default action set is defined in `training/configs/base_cfg.py` as `DEFAULT_ACTIONS`. Per-environment configs reference it via `ACTIONS = BaseCFG.DEFAULT_ACTIONS`, but can override with a custom list if needed. To add a new action, append a tuple to `DEFAULT_ACTIONS` and `N_ACTIONS` updates automatically via `len(ACTIONS)`.
 
 If you change `N_ACTIONS`, the policy head output size changes — any saved checkpoints trained with the old action count will be incompatible and cannot be loaded.
 

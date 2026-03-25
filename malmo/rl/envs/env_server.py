@@ -29,15 +29,22 @@ sys.path.insert(0, PARKOUR_ROOT)
 # ── Environment registry ──────────────────────────────────────────────────────
 from envs.parkour_env import ParkourEnv
 
-from training.configs.simple_jump_cfg      import SimpleJumpCFG
-from training.configs.three_block_gap_cfg  import ThreeBlockGapCFG
-from training.configs.one_block_gap_cfg    import OneBlockGapCFG
+from training.configs.simple_jump_cfg       import SimpleJumpCFG
+from training.configs.three_block_gap_cfg   import ThreeBlockGapCFG
+from training.configs.one_block_gap_cfg     import OneBlockGapCFG
+from training.configs.diagonal_small_cfg    import DiagonalSmallCFG
+from training.configs.diagonal_medium_cfg   import DiagonalMediumCFG
+from training.configs.vertical_small_cfg      import VerticalSmallCFG
+from training.configs.multi_jump_course_cfg   import MultiJumpCourseCFG
 
 ENV_REGISTRY = {
-    "one_block_gap":   (ParkourEnv, OneBlockGapCFG),
-    "simple_jump":     (ParkourEnv, SimpleJumpCFG),
-    "three_block_gap": (ParkourEnv, ThreeBlockGapCFG),
-    # Future: "combat_basic": (CombatEnv, CombatBasicCFG),
+    "one_block_gap":       (ParkourEnv, OneBlockGapCFG),
+    "simple_jump":         (ParkourEnv, SimpleJumpCFG),
+    "three_block_gap":     (ParkourEnv, ThreeBlockGapCFG),
+    "diagonal_small":      (ParkourEnv, DiagonalSmallCFG),
+    "diagonal_medium":     (ParkourEnv, DiagonalMediumCFG),
+    "vertical_small":      (ParkourEnv, VerticalSmallCFG),
+    "multi_jump_course":   (ParkourEnv, MultiJumpCourseCFG),
 }
 
 HOST = "127.0.0.1"
@@ -92,17 +99,25 @@ def main():
                 cmd = msg["cmd"]
 
                 if cmd == "reset":
-                    obs = env.reset()
-                    send_msg(conn, {"obs": obs.tolist()})
+                    try:
+                        obs = env.reset()
+                        send_msg(conn, {"obs": obs.tolist()})
+                    except RuntimeError as e:
+                        print("ERROR during reset: {0}".format(e))
+                        send_msg(conn, {"error": str(e)})
 
                 elif cmd == "step":
-                    obs, reward, done, info = env.step(msg["action"])
-                    send_msg(conn, {
-                        "obs":    obs.tolist(),
-                        "reward": reward,
-                        "done":   done,
-                        "info":   info,
-                    })
+                    try:
+                        obs, reward, done, info = env.step(msg["action"])
+                        send_msg(conn, {
+                            "obs":    obs.tolist(),
+                            "reward": reward,
+                            "done":   done,
+                            "info":   info,
+                        })
+                    except RuntimeError as e:
+                        print("ERROR during step: {0}".format(e))
+                        send_msg(conn, {"error": str(e)})
 
                 elif cmd == "switch_env":
                     env_name = msg["env"]

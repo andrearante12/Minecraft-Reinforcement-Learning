@@ -53,14 +53,29 @@ class EnvClient:
         except Exception as e:
             raise ConnectionError("recv failed: {0}".format(e))
 
-    def reset(self):
-        self._send({"cmd": "reset"})
-        resp = self._recv()
-        return np.array(resp["obs"], dtype=np.float32)
+    def reset(self, max_retries=3):
+        for attempt in range(max_retries):
+            self._send({"cmd": "reset"})
+            resp = self._recv()
+            if "error" in resp:
+                print("WARNING: reset failed (attempt {0}/{1}): {2}".format(
+                    attempt + 1, max_retries, resp["error"]))
+                if attempt == max_retries - 1:
+                    raise RuntimeError("reset failed after {0} retries: {1}".format(
+                        max_retries, resp["error"]))
+                import time
+                time.sleep(5)
+                continue
+            return np.array(resp["obs"], dtype=np.float32)
 
     def step(self, action):
         self._send({"cmd": "step", "action": int(action)})
         resp = self._recv()
+        if "error" in resp:
+            # Treat mission failure mid-episode as a terminal step
+            print("WARNING: step failed (mission error), ending episode")
+            dummy_obs = np.zeros(self.observation_shape, dtype=np.float32)
+            return dummy_obs, -5.0, True, {"outcome": "mission_error", "steps": 0, "pos": (0, 0, 0), "action": "none"}
         return (
             np.array(resp["obs"], dtype=np.float32),
             float(resp["reward"]),

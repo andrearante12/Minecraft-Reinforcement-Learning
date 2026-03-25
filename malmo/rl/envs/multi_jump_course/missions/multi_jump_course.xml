@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <About>
+    <Summary>Multi-Jump Course - 3 consecutive jumps (1/2/3 block gaps)</Summary>
+  </About>
+
+  <ServerSection>
+    <ServerInitialConditions>
+      <Time><StartTime>1000</StartTime></Time>
+      <Weather>clear</Weather>
+    </ServerInitialConditions>
+    <ServerHandlers>
+      <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="true"/>
+
+      <DrawingDecorator>
+        <!-- Start: single block at Z=3 -->
+        <DrawCuboid x1="0" y1="45" z1="3" x2="0" y2="45" z2="3" type="stone"/>
+        <!-- Jump 1 landing: Z=5 (1-block gap at Z=4) -->
+        <DrawCuboid x1="0" y1="45" z1="5" x2="0" y2="45" z2="5" type="stone"/>
+        <!-- Jump 2 landing: Z=8 (2-block gap at Z=6,7) -->
+        <DrawCuboid x1="0" y1="45" z1="8" x2="0" y2="45" z2="8" type="stone"/>
+        <!-- Jump 3 landing: Z=12 (3-block gap at Z=9,10,11) -->
+        <DrawCuboid x1="0" y1="45" z1="12" x2="0" y2="45" z2="12" type="stone"/>
+      </DrawingDecorator>
+
+      <ServerQuitFromTimeUp timeLimitMs="15000"/>
+      <ServerQuitWhenAnyAgentFinishes/>
+    </ServerHandlers>
+  </ServerSection>
+
+  <AgentSection mode="Survival">
+    <Name>Parkour Agent</Name>
+    <AgentStart>
+      <Placement x="0.5" y="46" z="3.5" yaw="0"/>
+    </AgentStart>
+    <AgentHandlers>
+      <ContinuousMovementCommands/>
+      <ObservationFromFullStats/>
+
+      <ObservationFromGrid>
+        <Grid name="floor3x3">
+          <min x="-2" y="-1" z="-2"/>
+          <max x="2"  y="3"  z="3"/>
+        </Grid>
+      </ObservationFromGrid>
+
+      <AgentQuitFromTouchingBlockType>
+          <Block type="gold_block" />
+      </AgentQuitFromTouchingBlockType>
+    </AgentHandlers>
+  </AgentSection>
+</Mission>

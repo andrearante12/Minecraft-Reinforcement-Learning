@@ -14,13 +14,14 @@
       
       <DrawingDecorator>
         
-        <DrawCuboid x1="0" y1="45" z1="-20" x2="0" y2="45" z2="3" type="stone"/>
-
-        <DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="20" type="stone"/>
+        <!-- Starting platform: single block at Z=3 -->
+        <DrawCuboid x1="0" y1="45" z1="3" x2="0" y2="45" z2="3" type="stone"/>
+        <!-- Landing platform: single block at Z=6 (gap is Z=4,5 = 2 blocks) -->
+        <DrawCuboid x1="0" y1="45" z1="6" x2="0" y2="45" z2="6" type="stone"/>
         
       </DrawingDecorator>
       
-      <ServerQuitFromTimeUp timeLimitMs="15000"/>
+      <ServerQuitFromTimeUp timeLimitMs="6000"/>
       <ServerQuitWhenAnyAgentFinishes/>
     </ServerHandlers>
   </ServerSection>
@@ -28,7 +29,7 @@
   <AgentSection mode="Survival">
     <Name>Parkour Agent</Name>
     <AgentStart>
-      <Placement x="0.5" y="46" z="0.5" yaw="0"/>
+      <Placement x="0.5" y="46" z="3.5" yaw="0"/>
     </AgentStart>
     <AgentHandlers>
       <ContinuousMovementCommands/>
@@ -37,7 +38,7 @@
       <ObservationFromGrid>
         <Grid name="floor3x3">
           <min x="-2" y="-1" z="-2"/>
-          <max x="2"  y="2"  z="3"/>
+          <max x="2"  y="3"  z="3"/>
         </Grid>
       </ObservationFromGrid>
       

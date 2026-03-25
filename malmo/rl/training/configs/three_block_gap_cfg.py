@@ -18,20 +18,22 @@ class ThreeBlockGapCFG(BaseCFG):
     MALMO_PORT = 10000
 
     # ── Agent spawn and goal ──────────────────────────────────────────────────
-    SPAWN    = (0.5, 46.0, 0.5)
-    GOAL_POS = (0.5, 45.0, 8.0)   # landing platform center (one block further than simple_jump)
+    SPAWN    = (0.5, 46.0, 3.5)
+    GOAL_POS = (0.5, 45.0, 7.5)   # landing block center
 
     # ── Episode termination ───────────────────────────────────────────────────
     FALL_Y_THRESHOLD = 43.0
-    Z_SUCCESS        = 7.0         # landing platform starts at Z=7
-    MAX_STEPS        = 200
+    Z_SUCCESS        = 7.0         # landing block at Z=7
+    Z_SUCCESS_MAX    = 8.0
+    LANDING_TICKS    = 5
+    MAX_STEPS        = 30
     STEP_DURATION    = 0.15
 
-    # ── Voxel grid: x[-2:+2]=5, y[-1:+2]=4, z[-2:+3]=6 ──────────────────────
+    # ── Voxel grid: x[-2:+2]=5, y[-1:+3]=5, z[-2:+3]=6 ──────────────────────
     GRID_X    = 5
-    GRID_Y    = 4
+    GRID_Y    = 5
     GRID_Z    = 6
-    GRID_SIZE = GRID_X * GRID_Y * GRID_Z  # 120
+    GRID_SIZE = GRID_X * GRID_Y * GRID_Z  # 150
 
     BLOCK_ENCODING = {
         "air":   0,
@@ -39,28 +41,24 @@ class ThreeBlockGapCFG(BaseCFG):
     }
     GOAL_BLOCK = "stone"
 
-    # Observation: proprioception(6) + goal_delta(3) + voxels(120) = 129
+    # Observation: proprioception(6) + goal_delta(3) + voxels(150) = 159
     PROPRIOCEPTION_SIZE = 6
     GOAL_DELTA_SIZE     = 3
     INPUT_SIZE          = PROPRIOCEPTION_SIZE + GOAL_DELTA_SIZE + GRID_SIZE
 
-    # ── Actions (name, commands_on, commands_off) ─────────────────────────────
-    ACTIONS = [
-        ("move_forward",   ["move 1"],                       ["move 0"]),
-        ("move_backward",  ["move -1"],                      ["move 0"]),
-        ("strafe_left",    ["strafe -1"],                    ["strafe 0"]),
-        ("strafe_right",   ["strafe 1"],                     ["strafe 0"]),
-        ("sprint_forward", ["sprint 1", "move 1"],           ["sprint 0", "move 0"]),
-        ("jump",           ["jump 1"],                       ["jump 0"]),
-        ("sprint_jump",    ["sprint 1", "move 1", "jump 1"], ["sprint 0", "move 0", "jump 0"]),
-        ("look_down",      ["pitch 1"],                      ["pitch 0"]),
-        ("look_up",        ["pitch -1"],                     ["pitch 0"]),
-        ("turn_left",      ["turn -1"],                      ["turn 0"]),
-        ("turn_right",     ["turn 1"],                       ["turn 0"]),
-        ("no_op",          [],                               []),
-    ]
+    # ── Actions ──────────────────────────────────────────────────────────────
+    ACTIONS   = BaseCFG.DEFAULT_ACTIONS
     N_ACTIONS = len(ACTIONS)
 
     # ── Behavior overrides ──────────────────────────────────────────────────
     SUCCESS_REQUIRES_ON_GROUND = True
     REWARD_ON_MISSION_ENDED    = False
+
+    # ── Three-block-gap tuning ───────────────────────────────────────────
+    # Longer training with slower decay — the agent needs more time to
+    # discover precise sprint-jump timing than easier envs
+    TOTAL_EPISODES   = 10000
+    ENTROPY_COEF     = 0.05
+    ENTROPY_COEF_END = 0.01    # floor higher than default to maintain exploration
+    LR               = 3e-4
+    LR_END           = 5e-5    # don't decay to zero — keep learning capacity

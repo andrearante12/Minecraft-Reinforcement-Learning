@@ -36,22 +36,32 @@ from training.curriculum import CurriculumScheduler
 # ── Algorithm registry ────────────────────────────────────────────────────────
 from algos.ppo import PPO
 from algos.dqn import DQN
+from algos.behavioral_cloning import BehavioralCloning
 
 ALGO_REGISTRY = {
     "ppo": PPO,
     "dqn": DQN,
+    "bc":  BehavioralCloning,
 }
 
 # ── Environment registry ──────────────────────────────────────────────────────
 # Tuples of (EnvClass, CfgClass) — EnvClass is not used directly by the client,
 # but the scheduler needs the full registry for validation.
-from training.configs.simple_jump_cfg      import SimpleJumpCFG
-from training.configs.three_block_gap_cfg  import ThreeBlockGapCFG
+from training.configs.simple_jump_cfg       import SimpleJumpCFG
+from training.configs.three_block_gap_cfg   import ThreeBlockGapCFG
+from training.configs.diagonal_small_cfg    import DiagonalSmallCFG
+from training.configs.diagonal_medium_cfg   import DiagonalMediumCFG
+from training.configs.vertical_small_cfg      import VerticalSmallCFG
+from training.configs.multi_jump_course_cfg   import MultiJumpCourseCFG
 
 ENV_REGISTRY = {
-    "one_block_gap":   (None, OneBlockGapCFG),
-    "simple_jump":     (None, SimpleJumpCFG),
-    "three_block_gap": (None, ThreeBlockGapCFG),
+    "one_block_gap":       (None, OneBlockGapCFG),
+    "simple_jump":         (None, SimpleJumpCFG),
+    "three_block_gap":     (None, ThreeBlockGapCFG),
+    "diagonal_small":      (None, DiagonalSmallCFG),
+    "diagonal_medium":     (None, DiagonalMediumCFG),
+    "vertical_small":      (None, VerticalSmallCFG),
+    "multi_jump_course":   (None, MultiJumpCourseCFG),
 }
 
 
@@ -71,6 +81,8 @@ def parse_args():
                         help="Port of first env server; others at base+1, base+2, ... (default: 9999)")
     parser.add_argument("--curriculum", type=str, default=None,
                         help="Path to curriculum JSON file (overrides --env for scheduling)")
+    parser.add_argument("--demo-path", type=str, default=None,
+                        help="Path to demo JSON file (required for --algo bc)")
     return parser.parse_args()
 
 
@@ -104,6 +116,11 @@ def print_header(env_name, algo_name, cfg, num_envs=1, total_episodes=None):
         print("Epsilon start:  ", cfg.EPSILON_START)
         print("Epsilon end:    ", cfg.EPSILON_END)
         print("Target update:  ", cfg.TARGET_UPDATE_FREQ)
+    elif algo_name == "bc":
+        print("Demo path:      ", cfg.DEMO_PATH)
+        print("BC epochs:      ", cfg.BC_EPOCHS)
+        print("BC batch size:  ", cfg.BC_BATCH_SIZE)
+        print("LR:             ", cfg.LR)
     print("=" * 60)
     print()
 
@@ -128,6 +145,10 @@ def train():
         total_episodes = cfg.TOTAL_EPISODES
         scheduler = CurriculumScheduler.single_env(args.env, total_episodes, ENV_REGISTRY)
         run_name = "{0}_{1}".format(args.env, args.algo)
+
+    # Pass demo path to config for BC
+    if args.demo_path:
+        cfg.DEMO_PATH = args.demo_path
 
     # Validate N_STEPS divisibility for PPO
     if args.algo == "ppo" and cfg.N_STEPS % n_envs != 0:
@@ -190,6 +211,7 @@ def train():
     ep_outcome = ["timeout"] * n_envs
 
     for i, env in enumerate(envs):
+        env.switch_env(initial_env)
         obs_all[i] = env.reset()
 
     episode      = start_episode
