@@ -11,8 +11,8 @@ __pycache__/
 *.pyo
 
 # Training outputs
-malmo/parkour/checkpoints/
-malmo/parkour/logs/
+Malmo/rl/checkpoints/
+Malmo/rl/logs/
 
 # Conda
 *.egg-info/
