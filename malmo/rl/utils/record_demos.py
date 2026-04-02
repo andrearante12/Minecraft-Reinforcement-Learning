@@ -31,6 +31,10 @@ import os
 import json
 import argparse
 import time
+import functools
+
+# Force unbuffered stdout so logs appear in real time
+print = functools.partial(print, flush=True)
 
 PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PARKOUR_ROOT)
@@ -44,15 +48,23 @@ except ImportError:
     print("ERROR: 'keyboard' package required. Install with: pip install keyboard")
     sys.exit(1)
 
+# Import mouse library for right-click detection (bridging env)
+try:
+    import mouse
+except ImportError:
+    mouse = None  # only required for bridging env
+
 # Environment registry (mirrors train.py) — only need configs for INPUT_SIZE
 from training.configs.simple_jump_cfg     import SimpleJumpCFG
 from training.configs.one_block_gap_cfg   import OneBlockGapCFG
 from training.configs.three_block_gap_cfg import ThreeBlockGapCFG
+from training.configs.bridging_cfg        import BridgingCFG
 
 ENV_CONFIGS = {
     "simple_jump":     SimpleJumpCFG,
     "one_block_gap":   OneBlockGapCFG,
     "three_block_gap": ThreeBlockGapCFG,
+    "bridging":        BridgingCFG,
 }
 
 # Action indices matching base_cfg.py DEFAULT_ACTIONS
@@ -76,7 +88,7 @@ ACTION_NAMES = [
 
 
 def translate_keys_to_action():
-    """Read held keys and translate to the best-matching action index.
+    """Read held keys and translate to the best-matching parkour action index.
 
     Uses standard Minecraft controls. Combinations are checked from most
     specific (4 keys) to least specific (1 key) so the richest matching
@@ -135,6 +147,74 @@ def translate_keys_to_action():
     return None
 
 
+def translate_keys_to_action_bridging():
+    """Read held keys and translate to bridging action index.
+
+    Bridging action space (14 actions):
+        0: move_forward       1: move_backward
+        2: strafe_left        3: strafe_right
+        4: look_down          5: look_up
+        6: turn_left          7: turn_right
+        8: sneak              9: place_block
+       10: sneak_forward     11: sneak_backward
+       12: sneak_place       13: no_op
+
+    Keyboard mapping:
+        W/S/A/D         = movement
+        Arrows          = camera (look/turn)
+        Shift           = sneak (hold/release)
+        Right-click     = place block
+        Shift+W         = sneak_forward
+        Shift+S         = sneak_backward
+        Shift+Rclick    = sneak_place
+
+    Returns:
+        Action index (int) or None if no keys are held.
+    """
+    w     = keyboard.is_pressed("w")
+    s     = keyboard.is_pressed("s")
+    a     = keyboard.is_pressed("a")
+    d     = keyboard.is_pressed("d")
+    shift = keyboard.is_pressed("shift")
+    up    = keyboard.is_pressed("up")
+    down  = keyboard.is_pressed("down")
+    left  = keyboard.is_pressed("left")
+    right = keyboard.is_pressed("right")
+    place = mouse.is_pressed("right") if mouse else False
+
+    # ── 2-key combos (most specific first) ─────────────────────────────────
+    if shift and place:
+        return 12  # sneak_place
+    if shift and w:
+        return 10  # sneak_forward
+    if shift and s:
+        return 11  # sneak_backward
+
+    # ── 1-key actions ──────────────────────────────────────────────────────
+    if place:
+        return 9   # place_block
+    if shift:
+        return 8   # sneak
+    if w:
+        return 0   # move_forward
+    if s:
+        return 1   # move_backward
+    if a:
+        return 2   # strafe_left
+    if d:
+        return 3   # strafe_right
+    if down:
+        return 4   # look_down
+    if up:
+        return 5   # look_up
+    if left:
+        return 6   # turn_left
+    if right:
+        return 7   # turn_right
+
+    return None
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Record human demonstrations")
     parser.add_argument("--env", type=str, required=True,
@@ -152,6 +232,16 @@ def parse_args():
 def record():
     args = parse_args()
     cfg = ENV_CONFIGS[args.env]
+
+    # Select the correct key translator and action names for this env
+    if args.env == "bridging":
+        if mouse is None:
+            print("ERROR: 'mouse' package required for bridging. Install with: pip install mouse")
+            sys.exit(1)
+        key_translator = translate_keys_to_action_bridging
+    else:
+        key_translator = translate_keys_to_action
+    action_names = [a[0] for a in cfg.ACTIONS]
 
     output_path = args.output or os.path.join(PARKOUR_ROOT, "..", "demos",
                                                "{0}.json".format(args.env))
@@ -176,13 +266,21 @@ def record():
     print("Tick rate:   ", "{0}s ({1}Hz)".format(args.tick_rate,
                                                    int(1 / args.tick_rate)))
     print()
-    print("Controls (standard Minecraft):")
-    print("  W=forward  S=back  A=strafe_L  D=strafe_R")
-    print("  Space=jump  Ctrl=sprint (hold with W)")
-    print("  Ctrl+W+Space=sprint_jump  W+Space=jump_fwd")
-    print("  Ctrl+W+A+Space=sprint_jump_L  Ctrl+W+D+Space=sprint_jump_R")
-    print("  Arrows=look/turn")
-    print("  Enter=finish episode  Esc=save & quit")
+    if args.env == "bridging":
+        print("Controls (bridging):")
+        print("  W=forward  S=back  A=strafe_L  D=strafe_R")
+        print("  Shift=sneak (hold)  Right-click=place_block")
+        print("  Shift+W=sneak_forward  Shift+S=sneak_backward")
+        print("  Shift+Rclick=sneak_place  Arrows=look/turn")
+        print("  Enter=finish episode  Esc=save & quit")
+    else:
+        print("Controls (standard Minecraft):")
+        print("  W=forward  S=back  A=strafe_L  D=strafe_R")
+        print("  Space=jump  Ctrl=sprint (hold with W)")
+        print("  Ctrl+W+Space=sprint_jump  W+Space=jump_fwd")
+        print("  Ctrl+W+A+Space=sprint_jump_L  Ctrl+W+D+Space=sprint_jump_R")
+        print("  Arrows=look/turn")
+        print("  Enter=finish episode  Esc=save & quit")
     print("=" * 60)
     print()
 
@@ -199,35 +297,41 @@ def record():
             step_count = 0
             info = None
 
+            prev_blocks_placed = 0
+
             while not done and running:
                 # Check for quit
                 if keyboard.is_pressed("esc"):
                     running = False
                     break
 
-                # Check for manual episode end
-                if keyboard.is_pressed("enter"):
-                    print("  (manual reset)")
-                    time.sleep(0.3)  # debounce
-                    break
+                # Auto-reset on done (success or failure) — no manual reset needed
 
-                action = translate_keys_to_action()
+                action = key_translator()
 
                 if action is not None:
-                    # Record and execute
-                    steps.append({
-                        "obs": obs.tolist(),
-                        "action": int(action),
-                    })
-
+                    obs_prev = obs.copy()
                     obs, reward, done, info = env.step(action)
                     total_reward += reward
                     step_count += 1
+                    placed_flag = ""
 
-                    # Real-time feedback
-                    if step_count % 5 == 0:
-                        print("  step:{0:>3} | action:{1:<18} | reward:{2:>6.2f}".format(
-                            step_count, ACTION_NAMES[action], total_reward), end="\r")
+                    # Bridging: override action if inventory says a block was placed
+                    if args.env == "bridging" and info:
+                        new_placed = info.get("blocks_placed", 0)
+                        if new_placed > prev_blocks_placed:
+                            if action not in (9, 12):
+                                action = 12  # sneak_place (safest default for bridging)
+                            prev_blocks_placed = new_placed
+
+                    steps.append({
+                        "obs": obs_prev.tolist(),
+                        "action": int(action),
+                    })
+
+                    placed = " [PLACED #{0}]".format(prev_blocks_placed) if prev_blocks_placed > 0 and action in (9, 12) else ""
+                    print("  step:{0:>4} | action:{1:<18} | reward:{2:>7.2f}{3}".format(
+                        step_count, action_names[action], total_reward, placed))
 
                 time.sleep(args.tick_rate)
 

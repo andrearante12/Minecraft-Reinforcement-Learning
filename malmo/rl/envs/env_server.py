@@ -36,6 +36,9 @@ from training.configs.diagonal_small_cfg    import DiagonalSmallCFG
 from training.configs.diagonal_medium_cfg   import DiagonalMediumCFG
 from training.configs.vertical_small_cfg      import VerticalSmallCFG
 from training.configs.multi_jump_course_cfg   import MultiJumpCourseCFG
+from training.configs.bridging_cfg            import BridgingCFG
+
+from envs.bridging_env import BridgingEnv
 
 ENV_REGISTRY = {
     "one_block_gap":       (ParkourEnv, OneBlockGapCFG),
@@ -45,6 +48,7 @@ ENV_REGISTRY = {
     "diagonal_medium":     (ParkourEnv, DiagonalMediumCFG),
     "vertical_small":      (ParkourEnv, VerticalSmallCFG),
     "multi_jump_course":   (ParkourEnv, MultiJumpCourseCFG),
+    "bridging":            (BridgingEnv, BridgingCFG),
 }
 
 HOST = "127.0.0.1"
@@ -102,7 +106,9 @@ def main():
                     try:
                         obs = env.reset()
                         send_msg(conn, {"obs": obs.tolist()})
-                    except RuntimeError as e:
+                    except Exception as e:
+                        import traceback
+                        traceback.print_exc()
                         print("ERROR during reset: {0}".format(e))
                         send_msg(conn, {"error": str(e)})
 
@@ -115,7 +121,9 @@ def main():
                             "done":   done,
                             "info":   info,
                         })
-                    except RuntimeError as e:
+                    except Exception as e:
+                        import traceback
+                        traceback.print_exc()
                         print("ERROR during step: {0}".format(e))
                         send_msg(conn, {"error": str(e)})
 
