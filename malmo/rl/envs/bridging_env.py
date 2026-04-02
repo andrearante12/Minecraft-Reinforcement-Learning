@@ -38,7 +38,6 @@ import sys
 import os
 import time
 import json
-import math
 import numpy as np
 
 # ── Add parkour/ root to path so training.configs is importable ───────────────
@@ -71,8 +70,8 @@ class BridgingEnv:
         self._steps    = 0
 
         # Bridging-specific state
-        self._prev_grid      = None        # voxel grid from previous step
-        self._placed_blocks  = set()       # (x, y, z) of blocks placed by agent
+        self._prev_inv_count = 64          # previous inventory count for placement detection
+        self._blocks_placed  = 0           # total blocks placed this episode
         self._max_z          = cfg.SPAWN[2]  # furthest Z the agent has reached
         self._landing_counter = 0
         self._landing_active  = False
@@ -97,8 +96,8 @@ class BridgingEnv:
     def reset(self):
         self._steps           = 0
         self._prev_pos        = np.array(self.cfg.SPAWN, dtype=np.float32)
-        self._prev_grid       = None
-        self._placed_blocks   = set()
+        self._prev_inv_count  = 64
+        self._blocks_placed   = 0
         self._max_z           = self.cfg.SPAWN[2]
         self._landing_counter = 0
         self._landing_active  = False
@@ -120,12 +119,19 @@ class BridgingEnv:
         obs_dict, world_state = self._get_obs_dict()
         obs = self._build_obs_vector(obs_dict)  # updates self._prev_pos
 
-        # Detect block placement via voxel grid diff
-        current_grid = obs_dict.get("floor3x3", [])
-        placement_reward, placement_outcome = self._check_block_placement(
-            obs_dict, current_grid
-        )
-        self._prev_grid = list(current_grid)
+        # Debug: print hotbar/inventory keys on first step to verify key name
+        if self._steps == 1:
+            hotbar_keys = [k for k in obs_dict if "otbar" in k or "nventory" in k or "lot" in k.lower()]
+            print("DEBUG bridging obs keys (hotbar/inv): {0}".format(hotbar_keys))
+
+        # Detect block placement via inventory count drop
+        inv_count = int(obs_dict.get("Hotbar_0_size", self._prev_inv_count))
+        placement_reward = 0.0
+        if inv_count < self._prev_inv_count:
+            blocks_used = self._prev_inv_count - inv_count
+            self._blocks_placed += blocks_used
+            placement_reward = self.cfg.REWARD_BLOCK_PLACED * blocks_used
+        self._prev_inv_count = inv_count
 
         reward, done, outcome = self._get_reward(obs_dict, prev_pos)
 
@@ -168,7 +174,7 @@ class BridgingEnv:
                               obs_dict.get("YPos", 0),
                               obs_dict.get("ZPos", 0)),
             "action":        self.actions[action][0],
-            "blocks_placed": len(self._placed_blocks),
+            "blocks_placed": self._blocks_placed,
         }
         return obs, reward, done, info
 
@@ -267,9 +273,6 @@ class BridgingEnv:
 
     def _get_observation(self):
         obs_dict, _ = self._get_obs_dict()
-        # Initialize prev_grid on first observation
-        if self._prev_grid is None:
-            self._prev_grid = list(obs_dict.get("floor3x3", []))
         return self._build_obs_vector(obs_dict)
 
     # ── Observation building ──────────────────────────────────────────────────
@@ -328,67 +331,6 @@ class BridgingEnv:
         for i, block in enumerate(raw_grid):
             encoded[i] = float(self.cfg.BLOCK_ENCODING.get(block, 1))
         return encoded
-
-    # ── Block placement detection ─────────────────────────────────────────────
-
-    def _check_block_placement(self, obs_dict, current_grid):
-        """Compare current voxel grid with previous to detect placed blocks."""
-        if self._prev_grid is None or len(current_grid) == 0:
-            return 0.0, None
-
-        if len(current_grid) != len(self._prev_grid):
-            return 0.0, None
-
-        reward = 0.0
-        outcome = None
-
-        x_agent = float(obs_dict.get("XPos", self.cfg.SPAWN[0]))
-        y_agent = float(obs_dict.get("YPos", self.cfg.SPAWN[1]))
-        z_agent = float(obs_dict.get("ZPos", self.cfg.SPAWN[2]))
-
-        for i in range(len(current_grid)):
-            prev_block = self._prev_grid[i]
-            curr_block = current_grid[i]
-
-            # A new solid block appeared where there was air
-            if prev_block == "air" and curr_block != "air":
-                # Convert flat index to 3D grid position relative to agent
-                gx = self.cfg.GRID_X  # 5
-                gy = self.cfg.GRID_Y  # 5
-                gz = self.cfg.GRID_Z  # 8
-
-                # Malmo grid ordering: x varies fastest, then y, then z
-                ix = i % gx
-                iy = (i // gx) % gy
-                iz = i // (gx * gy)
-
-                # Convert to world-relative offsets (grid min: x=-2, y=-2, z=-2)
-                rel_x = ix - 2
-                rel_y = iy - 2
-                rel_z = iz - 2
-
-                # World position of placed block
-                world_x = int(math.floor(x_agent)) + rel_x
-                world_y = int(math.floor(y_agent)) + rel_y
-                world_z = int(math.floor(z_agent)) + rel_z
-
-                pos_key = (world_x, world_y, world_z)
-                if pos_key in self._placed_blocks:
-                    continue  # already counted
-
-                self._placed_blocks.add(pos_key)
-
-                # Check if this is a valid bridge block
-                if (self.cfg.BRIDGE_Z_START <= world_z <= self.cfg.BRIDGE_Z_END
-                        and world_y == self.cfg.BRIDGE_Y
-                        and self.cfg.BRIDGE_X_MIN <= world_x <= self.cfg.BRIDGE_X_MAX):
-                    reward += self.cfg.REWARD_BLOCK_PLACED
-                    outcome = "block_placed"
-                else:
-                    reward += self.cfg.REWARD_WASTEFUL_PLACE
-                    outcome = "wasteful_place"
-
-        return reward, outcome
 
     # ── Reward function ───────────────────────────────────────────────────────
 
