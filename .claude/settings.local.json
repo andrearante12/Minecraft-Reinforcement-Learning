@@ -5,7 +5,9 @@
       "Bash(netsh interface:*)",
       "Bash(git commit:*)",
       "Bash(python:*)",
-      "Bash(ls -lt malmo/rl/logs/*episodes*.csv Malmo/rl/logs/*episodes*.csv)"
+      "Bash(ls -lt malmo/rl/logs/*episodes*.csv Malmo/rl/logs/*episodes*.csv)",
+      "Bash(grep -r \"InventoryCommands\\\\|UseBlock\\\\|PlaceBlock\\\\|inventory\\\\|ItemType\" /c/Users/andre/Desktop/Minecraft-Reinforcement-Learning/Malmo/rl --include=*.py)",
+      "Bash(pip list:*)"
     ]
   }
 }
