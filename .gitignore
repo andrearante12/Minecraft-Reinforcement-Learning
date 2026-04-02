@@ -3,6 +3,8 @@ malmo/Minecraft/.gradle/
 malmo/Minecraft/build/
 malmo/Minecraft/run/
 malmo/Minecraft/*.lock
+malmo/Minecraft/.minecraft/
+malmo/Minecraft/.minecraftserver/
 
 # Python
 __pycache__/
@@ -11,11 +13,20 @@ __pycache__/
 *.pyo
 
 # Training outputs
-malmo/parkour/checkpoints/
-malmo/parkour/logs/
+Malmo/rl/checkpoints/
+Malmo/rl/logs/
+
+# Demo recordings
+Malmo/demos/
+
+# SB3 checkpoints
+*.zip
 
 # Conda
 *.egg-info/
+
+# Claude Code
+.claude/
 
 # OS
 .DS_Store
