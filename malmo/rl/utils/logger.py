@@ -28,6 +28,12 @@ class Logger:
         self.upd_writer  = csv.writer(self.upd_file)
         self._upd_header = False   # header written on first log_update call
 
+        # Trajectory log — header written on first init_trajectory() call
+        self.traj_path   = base + "_trajectories.csv"
+        self.traj_file   = open(self.traj_path, "w", newline="")
+        self.traj_writer = csv.writer(self.traj_file)
+        self._traj_init  = False
+
         # Rolling window for console summary
         self.window        = 100
         self.ep_rewards    = deque(maxlen=self.window)
@@ -39,8 +45,55 @@ class Logger:
         self.start_time    = time.time()
 
         print("Logging to:")
-        print("  Episodes: {0}".format(self.ep_path))
-        print("  Updates:  {0}".format(self.upd_path))
+        print("  Episodes:     {0}".format(self.ep_path))
+        print("  Updates:      {0}".format(self.upd_path))
+        print("  Trajectories: {0}".format(self.traj_path))
+
+    def init_trajectory(self, env_name, cfg):
+        """
+        Write the comment-header block and column header that data_loader.py expects.
+        Call once after the logger is created and the initial env is known.
+
+        Block geometry is omitted here — data_loader.py supplements from the
+        mission XML via the env name in the # env: line.
+        """
+        self.traj_file.write("# env: {0}\n".format(env_name))
+        self.traj_file.write("# spawn: {0},{1},{2}\n".format(*cfg.SPAWN))
+        self.traj_file.write("# goal: {0},{1},{2}\n".format(*cfg.GOAL_POS))
+        self.traj_writer.writerow([
+            "episode", "step", "x", "y", "z",
+            "yaw", "pitch", "on_ground",
+            "action", "reward", "done", "outcome", "env",
+        ])
+        self.traj_file.flush()
+        self._traj_init = True
+
+    def log_step(self, episode, step, info, reward, done, env_name=""):
+        """
+        Append one row to the trajectory CSV.
+
+        Uses .get() for yaw/pitch/on_ground so the env_client error-fallback
+        path (which returns a minimal info dict) is handled gracefully.
+        """
+        if not self._traj_init:
+            return
+        pos = info.get("pos", (0.0, 0.0, 0.0))
+        self.traj_writer.writerow([
+            episode,
+            step,
+            round(float(pos[0]), 4),
+            round(float(pos[1]), 4),
+            round(float(pos[2]), 4),
+            round(float(info.get("yaw",      0.0)), 2),
+            round(float(info.get("pitch",    0.0)), 2),
+            int(info.get("on_ground", 1)),
+            info.get("action", "none"),
+            round(float(reward), 4),
+            int(done),
+            info.get("outcome", "alive"),
+            env_name,
+        ])
+        self.traj_file.flush()
 
     def log_episode(self, episode, reward, steps, outcome, env_name=""):
         self.ep_writer.writerow([episode, round(reward, 4), steps, outcome,
@@ -104,4 +157,5 @@ class Logger:
     def close(self):
         self.ep_file.close()
         self.upd_file.close()
+        self.traj_file.close()
         print("Logger closed. Files saved.")

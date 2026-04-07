@@ -203,6 +203,7 @@ def train():
     # Determine initial env for each slot
     initial_env = scheduler.env_for_episode(start_episode)
     current_envs = [initial_env] * n_envs
+    logger.init_trajectory(initial_env, cfg)
 
     # Per-env state tracking
     obs_all    = np.zeros((n_envs, cfg.INPUT_SIZE), dtype=np.float32)
@@ -228,6 +229,15 @@ def train():
             for i in range(n_envs):
                 ep_rewards[i] += rewards[i]
                 ep_steps[i]   += 1
+
+                logger.log_step(
+                    episode  = episode,
+                    step     = int(ep_steps[i]) - 1,
+                    info     = infos[i],
+                    reward   = rewards[i],
+                    done     = dones[i],
+                    env_name = current_envs[i],
+                )
 
                 if dones[i]:
                     ep_outcome[i] = infos[i]["outcome"]
