@@ -104,6 +104,8 @@ def main():
 
                 if cmd == "reset":
                     try:
+                        if msg.get("force_reset") and hasattr(env, '_next_force_reset'):
+                            env._next_force_reset = True
                         obs = env.reset()
                         send_msg(conn, {"obs": obs.tolist()})
                     except Exception as e:

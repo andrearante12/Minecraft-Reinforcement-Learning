@@ -53,9 +53,12 @@ class EnvClient:
         except Exception as e:
             raise ConnectionError("recv failed: {0}".format(e))
 
-    def reset(self, max_retries=3):
+    def reset(self, max_retries=3, force_reset=False):
         for attempt in range(max_retries):
-            self._send({"cmd": "reset"})
+            msg = {"cmd": "reset"}
+            if force_reset:
+                msg["force_reset"] = True
+            self._send(msg)
             resp = self._recv()
             if "error" in resp:
                 print("WARNING: reset failed (attempt {0}/{1}): {2}".format(

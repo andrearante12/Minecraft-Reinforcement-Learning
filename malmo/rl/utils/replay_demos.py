@@ -58,7 +58,37 @@ def parse_args():
     return parser.parse_args()
 
 
-def replay_episode(env, episode_data, episode_idx, action_names, tick_delay):
+def calibrate_camera(env):
+    """Measure degrees moved per single camera action by sending one test action each.
+
+    Resets the env twice (yaw=0, pitch=70 at spawn) and measures the obs delta
+    after one turn_right and one look_down. Returns (yaw_degs, pitch_degs).
+    Falls back to reasonable defaults if the measured delta is too small.
+    """
+    print("Calibrating camera... ", end="")
+
+    obs = env.reset()
+    yaw_before = obs[1] * 180.0
+    obs_after, _, _, _ = env.step(7)   # turn_right
+    yaw_after = obs_after[1] * 180.0
+    yaw_degs = abs(yaw_after - yaw_before)
+    if yaw_degs > 180.0:
+        yaw_degs = 360.0 - yaw_degs   # wrap-around
+
+    obs = env.reset()
+    pitch_before = obs[2] * 90.0
+    obs_after, _, _, _ = env.step(4)   # look_down
+    pitch_after = obs_after[2] * 90.0
+    pitch_degs = abs(pitch_after - pitch_before)
+
+    yaw_degs   = yaw_degs   if yaw_degs   > 0.5 else 27.0
+    pitch_degs = pitch_degs if pitch_degs > 0.5 else 13.5
+    print("yaw={0:.1f}°/action  pitch={1:.1f}°/action".format(yaw_degs, pitch_degs))
+    return yaw_degs, pitch_degs
+
+
+def replay_episode(env, episode_data, episode_idx, action_names, tick_delay,
+                   cam_yaw_degs, cam_pitch_degs):
     """Replay a single episode through the env server.
 
     Returns:
@@ -79,8 +109,30 @@ def replay_episode(env, episode_data, episode_idx, action_names, tick_delay):
         action = step_data["action"]
         action_name = action_names[action] if action < len(action_names) else "action_{0}".format(action)
 
-        obs, reward, done, info = env.step(action)
-        total_reward += reward
+        yaw_delta   = step_data.get("yaw_delta")    # degrees, always positive
+        pitch_delta = step_data.get("pitch_delta")  # degrees, always positive
+
+        if yaw_delta is not None:
+            # Send exactly N turn actions to reproduce the recorded yaw change.
+            # No feedback loop — avoids oscillation from overshoot.
+            n = max(1, round(yaw_delta / cam_yaw_degs))
+            for _ in range(n):
+                obs, reward, done, info = env.step(action)
+                total_reward += reward
+                if done:
+                    break
+                time.sleep(tick_delay)
+        elif pitch_delta is not None:
+            n = max(1, round(pitch_delta / cam_pitch_degs))
+            for _ in range(n):
+                obs, reward, done, info = env.step(action)
+                total_reward += reward
+                if done:
+                    break
+                time.sleep(tick_delay)
+        else:
+            obs, reward, done, info = env.step(action)
+            total_reward += reward
 
         print("  step:{0:>4} | action:{1:<18} | reward:{2:>7.2f} | total:{3:>7.2f}".format(
             i + 1, action_name, reward, total_reward))
@@ -147,9 +199,16 @@ def replay():
 
     env = EnvClient(cfg.INPUT_SIZE, port=args.port)
 
+    # Calibrate camera once so N-actions replay is accurate
+    if args.env == "bridging":
+        cam_yaw_degs, cam_pitch_degs = calibrate_camera(env)
+    else:
+        cam_yaw_degs, cam_pitch_degs = 27.0, 13.5  # unused for non-bridging envs
+
     try:
         for idx, (ep_idx, ep_data) in enumerate(to_replay):
-            replay_episode(env, ep_data, ep_idx, action_names, tick_delay)
+            replay_episode(env, ep_data, ep_idx, action_names, tick_delay,
+                           cam_yaw_degs, cam_pitch_degs)
 
             # Pause between episodes if more remain
             if idx < len(to_replay) - 1:
