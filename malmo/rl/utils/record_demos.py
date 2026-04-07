@@ -39,6 +39,7 @@ print = functools.partial(print, flush=True)
 PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PARKOUR_ROOT)
 
+
 from envs.env_client import EnvClient
 
 # Import keyboard library for real-time key detection
@@ -189,12 +190,22 @@ def translate_keys_to_action_bridging():
         return 10  # sneak_forward
     if shift and s:
         return 11  # sneak_backward
+    # Camera while sneaking — arrow takes priority over bare sneak since the
+    # action space has no sneak+camera combo and camera intent is more valuable
+    if shift and down:
+        return 4   # look_down
+    if shift and up:
+        return 5   # look_up
+    if shift and left:
+        return 6   # turn_left
+    if shift and right:
+        return 7   # turn_right
 
     # ── 1-key actions ──────────────────────────────────────────────────────
     if place:
         return 9   # place_block
     if shift:
-        return 8   # sneak
+        return 8   # sneak (no other key held)
     if w:
         return 0   # move_forward
     if s:
@@ -226,8 +237,8 @@ def parse_args():
                         help="Output JSON path (default: demos/<env>.json)")
     parser.add_argument("--tick-rate", type=float, default=0.05,
                         help="Seconds between ticks (default: 0.05 = 20Hz)")
-    parser.add_argument("--max-steps", type=int, default=600,
-                        help="Max steps per episode (default: 600 = 30s at 20Hz)")
+    parser.add_argument("--max-steps", type=int, default=300,
+                        help="Max steps per episode (default: 300 = 15s at 20Hz)")
     return parser.parse_args()
 
 
@@ -275,7 +286,7 @@ def record():
         print("  W=forward  S=back  A=strafe_L  D=strafe_R")
         print("  Shift=sneak (hold)  Right-click=place_block")
         print("  Shift+W=sneak_forward  Shift+S=sneak_backward")
-        print("  Shift+Rclick=sneak_place  Arrows=look/turn")
+        print("  Shift+Rclick=sneak_place  Mouse=look/turn")
         print("  Enter=finish episode  Esc=save & quit")
     else:
         print("Controls (standard Minecraft):")
@@ -294,7 +305,7 @@ def record():
     try:
         while running:
             print("Episode {0} — recording...".format(episode_num))
-            obs = env.reset()
+            obs = env.reset(force_reset=True)
             steps = []
             done = False
             total_reward = 0.0
@@ -318,31 +329,65 @@ def record():
                     print("  (max steps reached)")
                     break
 
-                action = key_translator()
+                keyboard_action = key_translator()
 
-                if action is not None:
-                    obs_prev = obs.copy()
-                    obs, reward, done, info = env.step(action)
-                    total_reward += reward
-                    step_count += 1
-                    placed_flag = ""
+                # Always step the env each tick (no_op if no key held) so we
+                # can detect camera movement via obs pitch/yaw delta.
+                step_action = keyboard_action if keyboard_action is not None else 13  # 13=no_op
+                obs_prev = obs.copy()
+                obs, reward, done, info = env.step(step_action)
+                total_reward += reward
+                step_count += 1
 
-                    # Bridging: override action if inventory says a block was placed
-                    if args.env == "bridging" and info:
-                        new_placed = info.get("blocks_placed", 0)
-                        if new_placed > prev_blocks_placed:
-                            if action not in (9, 12):
-                                action = 12  # sneak_place (safest default for bridging)
-                            prev_blocks_placed = new_placed
+                actions_to_record = []
 
-                    steps.append({
-                        "obs": obs_prev.tolist(),
-                        "action": int(action),
-                    })
+                # Bridging: blocks-placed override on keyboard action
+                if args.env == "bridging" and info:
+                    new_placed = info.get("blocks_placed", 0)
+                    if new_placed > prev_blocks_placed:
+                        if keyboard_action not in (9, 12):
+                            keyboard_action = 12  # sneak_place
+                        prev_blocks_placed = new_placed
 
-                    placed = " [PLACED #{0}]".format(prev_blocks_placed) if prev_blocks_placed > 0 and action in (9, 12) else ""
+                if keyboard_action is not None:
+                    actions_to_record.append(keyboard_action)
+
+                # Bridging: detect camera movement from obs pitch/yaw delta and
+                # append as an additional action. Mouse controls camera so
+                # keyboard polling alone misses all camera input.
+                # Store the exact target angle so replay can drive closed-loop
+                # to the correct angle rather than guessing action counts.
+                if args.env == "bridging":
+                    pitch_delta = obs[2] - obs_prev[2]  # positive = look down
+                    yaw_delta   = obs[1] - obs_prev[1]  # positive = turn right
+                    if yaw_delta > 1.0:
+                        yaw_delta -= 2.0
+                    elif yaw_delta < -1.0:
+                        yaw_delta += 2.0
+                    CAMERA_THRESH = 0.01  # ~0.9° pitch or ~1.8° yaw
+                    if abs(pitch_delta) > CAMERA_THRESH or abs(yaw_delta) > CAMERA_THRESH:
+                        if abs(pitch_delta) >= abs(yaw_delta):
+                            camera_action = 4 if pitch_delta > 0 else 5  # look_down / look_up
+                            camera_target = {"pitch_delta": float(abs(pitch_delta) * 90.0)}
+                        else:
+                            camera_action = 7 if yaw_delta > 0 else 6    # turn_right / turn_left
+                            camera_target = {"yaw_delta": float(abs(yaw_delta) * 180.0)}
+                        if camera_action not in actions_to_record:
+                            actions_to_record.append((camera_action, camera_target))
+
+                # Record all actions sequentially, all using obs_prev.
+                # Camera steps carry a target_yaw or target_pitch for closed-loop replay.
+                for item in actions_to_record:
+                    if isinstance(item, tuple):
+                        rec_action, extra = item
+                    else:
+                        rec_action, extra = item, {}
+                    step_record = {"obs": obs_prev.tolist(), "action": int(rec_action)}
+                    step_record.update(extra)
+                    steps.append(step_record)
+                    placed = " [PLACED #{0}]".format(prev_blocks_placed) if rec_action in (9, 12) and prev_blocks_placed > 0 else ""
                     print("  step:{0:>4} | action:{1:<18} | reward:{2:>7.2f}{3}".format(
-                        step_count, action_names[action], total_reward, placed))
+                        step_count, action_names[rec_action], total_reward, placed))
 
                 time.sleep(args.tick_rate)
 

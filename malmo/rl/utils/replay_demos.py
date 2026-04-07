@@ -28,6 +28,11 @@ sys.path.insert(0, PARKOUR_ROOT)
 
 from envs.env_client import EnvClient
 
+# Degrees the camera rotates per single discrete action.
+# Derived from STEP_DURATION=0.15s × Malmo default turn speed (180°/s yaw, 90°/s pitch).
+CAMERA_YAW_DEGS_PER_ACTION   = 27.0
+CAMERA_PITCH_DEGS_PER_ACTION = 13.5
+
 # Environment registry — only need configs for INPUT_SIZE and action names
 from training.configs.simple_jump_cfg     import SimpleJumpCFG
 from training.configs.one_block_gap_cfg   import OneBlockGapCFG
@@ -79,8 +84,32 @@ def replay_episode(env, episode_data, episode_idx, action_names, tick_delay):
         action = step_data["action"]
         action_name = action_names[action] if action < len(action_names) else "action_{0}".format(action)
 
-        obs, reward, done, info = env.step(action)
-        total_reward += reward
+        yaw_delta   = step_data.get("yaw_delta")
+        pitch_delta = step_data.get("pitch_delta")
+
+        if yaw_delta is not None:
+            n = round(yaw_delta / CAMERA_YAW_DEGS_PER_ACTION)
+            if n == 0:
+                continue
+            for _ in range(n):
+                obs, reward, done, info = env.step(action)
+                total_reward += reward
+                if done:
+                    break
+                time.sleep(tick_delay)
+        elif pitch_delta is not None:
+            n = round(pitch_delta / CAMERA_PITCH_DEGS_PER_ACTION)
+            if n == 0:
+                continue
+            for _ in range(n):
+                obs, reward, done, info = env.step(action)
+                total_reward += reward
+                if done:
+                    break
+                time.sleep(tick_delay)
+        else:
+            obs, reward, done, info = env.step(action)
+            total_reward += reward
 
         print("  step:{0:>4} | action:{1:<18} | reward:{2:>7.2f} | total:{3:>7.2f}".format(
             i + 1, action_name, reward, total_reward))
