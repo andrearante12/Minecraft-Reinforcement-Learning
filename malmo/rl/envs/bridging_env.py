@@ -101,6 +101,7 @@ class BridgingEnv:
         self._max_z           = self.cfg.SPAWN[2]
         self._landing_counter = 0
         self._landing_active  = False
+        self._prev_obs_dict   = {}
 
         time.sleep(0.5)
         if self._next_force_reset:
@@ -130,7 +131,12 @@ class BridgingEnv:
         if inv_count < self._prev_inv_count:
             blocks_used = self._prev_inv_count - inv_count
             self._blocks_placed += blocks_used
-            placement_reward = self.cfg.REWARD_BLOCK_PLACED * blocks_used
+            # Use previous step's raycast to determine if placement was in the bridge zone
+            prev_los = self._prev_obs_dict.get("LineOfSight", {})
+            if self._is_valid_bridge_placement(prev_los):
+                placement_reward = self.cfg.REWARD_BLOCK_PLACED * blocks_used
+            else:
+                placement_reward = self.cfg.REWARD_WASTEFUL_PLACE * blocks_used
         self._prev_inv_count = inv_count
 
         reward, done, outcome = self._get_reward(obs_dict, prev_pos)
@@ -167,6 +173,8 @@ class BridgingEnv:
             except Exception:
                 pass
 
+        self._prev_obs_dict = obs_dict
+
         info = {
             "outcome":       outcome,
             "steps":         self._steps,
@@ -188,6 +196,10 @@ class BridgingEnv:
 
     def _take_action(self, action_idx):
         _, cmds_on, cmds_off = self.actions[action_idx]
+        # Cancel any residual camera velocity from Minecraft's native mouse look
+        # which is active during the gap between env steps.
+        self._agent_host.sendCommand("pitch 0")
+        self._agent_host.sendCommand("turn 0")
         for cmd in cmds_on:
             self._agent_host.sendCommand(cmd)
         time.sleep(self.cfg.STEP_DURATION)
@@ -290,27 +302,41 @@ class BridgingEnv:
         vel            = pos - prev_pos
         self._prev_pos = pos
 
-        # Base proprioception (6)
-        base_proprio = [gnd, yaw / 180.0, pit / 90.0, vel[1], vel[0], vel[2]]
+        # Base proprioception (9): onGround, yaw, pitch, velocity, absolute position
+        norm_x = x - self.cfg.SPAWN[0]
+        norm_y = y - self.cfg.SPAWN[1]
+        norm_z = z - self.cfg.SPAWN[2]
+        base_proprio = [gnd, yaw / 180.0, pit / 90.0, vel[1], vel[0], vel[2],
+                        norm_x, norm_y, norm_z]
 
         # Bridging-specific observations (5)
         inv_count = float(obs.get("Hotbar_0_size", 0)) / 64.0
 
-        # Ray-cast: what the crosshair is pointing at
+        # Ray-cast: what the crosshair is pointing at (7 values)
         los = obs.get("LineOfSight", {})
         if los and los.get("hitType") == "block":
             ray_hit   = 1.0
             ray_rel_x = float(los.get("x", 0)) - x
             ray_rel_y = float(los.get("y", 0)) - y
             ray_rel_z = float(los.get("z", 0)) - z
+            # Face encoding: vertical axis (+1 top, -1 bottom, 0 side),
+            # horizontal dx (+1 east, -1 west, 0), horizontal dz (+1 south, -1 north, 0)
+            face = los.get("face", "")
+            face_v  = +1.0 if face == "top"   else (-1.0 if face == "bottom" else 0.0)
+            face_dx = +1.0 if face == "east"  else (-1.0 if face == "west"   else 0.0)
+            face_dz = +1.0 if face == "south" else (-1.0 if face == "north"  else 0.0)
         else:
             ray_hit   = 0.0
             ray_rel_x = 0.0
             ray_rel_y = 0.0
             ray_rel_z = 0.0
+            face_v    = 0.0
+            face_dx   = 0.0
+            face_dz   = 0.0
 
         extra_proprio = [inv_count, ray_hit,
-                         ray_rel_x, ray_rel_y, ray_rel_z]
+                         ray_rel_x, ray_rel_y, ray_rel_z,
+                         face_v, face_dx, face_dz]
 
         proprio = np.array(base_proprio + extra_proprio, dtype=np.float32)
 
@@ -333,6 +359,38 @@ class BridgingEnv:
         return encoded
 
     # ── Reward function ───────────────────────────────────────────────────────
+
+    def _is_valid_bridge_placement(self, los):
+        """Return True if the raycast target would result in a block placed in the bridge zone.
+
+        Handles two placement styles:
+        - Side-face (south): agent crouches off edge, looks at south face of block they
+          stand on; new block goes at lz+1. Target z can be one behind the gap.
+        - Top-face: agent looks down at top of gap block; new block goes at ly+1.
+        """
+        if not los or los.get("hitType") != "block":
+            return False
+        lx   = int(round(float(los.get("x", -999))))
+        ly   = int(round(float(los.get("y", -999))))
+        lz   = int(round(float(los.get("z", -999))))
+        face = los.get("face", "")
+
+        x_ok = self.cfg.BRIDGE_X_MIN <= lx <= self.cfg.BRIDGE_X_MAX
+
+        if face == "south":
+            # New block lands at lz+1 — allow targeting block just before gap start
+            new_z = lz + 1
+            return (x_ok
+                    and ly == self.cfg.BRIDGE_Y
+                    and self.cfg.BRIDGE_Z_START <= new_z <= self.cfg.BRIDGE_Z_END + 1)
+
+        if face == "top":
+            # New block lands at ly+1 — agent looks down into gap
+            return (x_ok
+                    and ly == self.cfg.BRIDGE_Y - 1
+                    and self.cfg.BRIDGE_Z_START <= lz <= self.cfg.BRIDGE_Z_END)
+
+        return False
 
     def _current_pos(self, obs_dict):
         return np.array([
