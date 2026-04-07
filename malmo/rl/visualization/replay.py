@@ -29,7 +29,7 @@ if _RL_DIR not in sys.path:
 
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider
+from matplotlib.widgets import Button, CheckButtons, Slider
 
 from visualization.data_loader    import discover_runs, load_run
 from visualization.world_renderer import (
@@ -158,8 +158,9 @@ def _update_info_panel(info_ax, state, run_data, run_name, theme_key, total_eps)
 
 def _run_heatmap(run_data, run_name, args):
     outcome_filter = args.outcome or None
+    t = _THEMES.get(args.theme or "dark", _THEMES["dark"])
 
-    # Episode filtering by index list / range
+    # Episode filtering by index list / range (--episodes flag)
     episodes = run_data.episodes
     if args.episodes:
         episodes = {
@@ -167,30 +168,112 @@ def _run_heatmap(run_data, run_name, args):
             if ep in args.episodes
         }
 
-    density_grid, grid_meta = accumulate_density(
-        episodes,
-        outcome_filter=outcome_filter,
-        resolution=0.25,
-    )
+    sorted_eps = sorted(episodes.keys())
 
-    fig = plt.figure(figsize=(12, 8))
-    fig.patch.set_facecolor("#1A1A2E")
+    # --- Figure ---
+    fig = plt.figure(figsize=(13, 8))
+    fig.patch.set_facecolor(t["bg"])
+    fig.canvas.manager.set_window_title(f"Heatmap — {run_name}")
 
     ax = fig.add_subplot(111, projection="3d")
-    ax.set_facecolor("#1A1A2E")
+    ax.set_position([0.0, 0.15, 1.0, 0.83])
+    ax.set_facecolor(t["bg"])
     ax.view_init(elev=35, azim=-55)
 
-    title = f"Heatmap — {run_name}"
-    if outcome_filter:
-        title += f"  [outcome={outcome_filter}]"
-    ax.set_title(title, color="#E0E0E0", fontsize=10, pad=10)
+    # --- No-data graceful degradation ---
+    if not sorted_eps:
+        configure_axes(ax, run_data.blocks, run_data.spawn, run_data.goal)
+        render_special_markers(ax, run_data.spawn, run_data.goal)
+        ax.set_title(f"Heatmap — {run_name}  (no data)", color=t["text"], fontsize=10, pad=10)
+        plt.show()
+        return
 
-    configure_axes(ax, run_data.blocks, run_data.spawn, run_data.goal)
-    render_heatmap(ax, fig, density_grid, grid_meta,
-                   run_data.blocks, colormap=args.colormap)
-    render_special_markers(ax, run_data.spawn, run_data.goal)
+    # --- Bottom controls ---
+    ax_ep_sl = fig.add_axes([0.08, 0.08, 0.60, 0.03])
+    ax_chk   = fig.add_axes([0.70, 0.03, 0.28, 0.08])
 
-    plt.tight_layout()
+    ep_sl = Slider(ax_ep_sl, "Up to episode",
+                   sorted_eps[0], sorted_eps[-1],
+                   valinit=sorted_eps[-1], valstep=1,
+                   color=t["slider_ep"])
+
+    ax_ep_sl.set_facecolor(t["panel_bg"])
+    for spine in ax_ep_sl.spines.values():
+        spine.set_edgecolor(t["text"])
+    ax_ep_sl.tick_params(colors=t["text"])
+    ax_ep_sl.yaxis.label.set_color(t["text"])
+    ax_ep_sl.xaxis.label.set_color(t["text"])
+
+    chk = CheckButtons(ax_chk, ["Show Final Heatmap Only"], [False])
+    chk.labels[0].set_color(t["text"])
+    chk.labels[0].set_fontsize(8)
+    ax_chk.set_facecolor(t["panel_bg"])
+
+    # --- Redraw helper ---
+    hm_state  = {"cb": None}
+    final_mode = {"on": False}
+
+    def _redraw(max_ep=None):
+        # Remove old colorbar
+        if hm_state["cb"] is not None:
+            try:
+                hm_state["cb"].remove()
+            except Exception:
+                pass
+            hm_state["cb"] = None
+
+        # Clear and restore 3D axes
+        ax.cla()
+        ax.set_facecolor(t["bg"])
+        ax.view_init(elev=35, azim=-55)
+
+        # Filter episodes by max_ep
+        filtered = episodes if max_ep is None else {
+            ep: data for ep, data in episodes.items() if ep <= max_ep
+        }
+        n_shown = len(filtered)
+
+        density_grid, grid_meta = accumulate_density(
+            filtered, outcome_filter=outcome_filter, resolution=0.25,
+        )
+
+        _, cb = render_heatmap(ax, fig, density_grid, grid_meta,
+                               run_data.blocks, colormap=args.colormap)
+        hm_state["cb"] = cb
+
+        configure_axes(ax, run_data.blocks, run_data.spawn, run_data.goal)
+        render_special_markers(ax, run_data.spawn, run_data.goal)
+
+        ep_label = (f"all {n_shown} eps" if max_ep is None
+                    else f"eps 1-{max_ep}  ({n_shown} shown)")
+        title = f"Heatmap — {run_name}  [{ep_label}]"
+        if outcome_filter:
+            title += f"  [outcome={outcome_filter}]"
+        ax.set_title(title, color=t["text"], fontsize=10, pad=10)
+
+        fig.canvas.draw_idle()
+
+    # --- Callbacks ---
+    def on_slider_change(val):
+        if final_mode["on"]:
+            return
+        ep = min(sorted_eps, key=lambda e: abs(e - int(round(val))))
+        _redraw(max_ep=ep)
+
+    def on_toggle(label):
+        final_mode["on"] = not final_mode["on"]
+        if final_mode["on"]:
+            _redraw(max_ep=None)
+        else:
+            ep = min(sorted_eps, key=lambda e: abs(e - int(round(ep_sl.val))))
+            _redraw(max_ep=ep)
+
+    ep_sl.on_changed(on_slider_change)
+    chk.on_clicked(on_toggle)
+
+    # Initial draw — slider at far right = all episodes
+    _redraw(max_ep=sorted_eps[-1])
+
     plt.show()
 
 
@@ -206,11 +289,11 @@ def _run_replay(run_data, run_name, args):
     fig.patch.set_facecolor(t["bg"])
     fig.canvas.manager.set_window_title(f"Replay — {run_name}")
 
-    # Layout
+    # Layout — bottom 20% reserved for controls (3 rows: heatmap slider, ep slider, step slider)
     ax3d    = fig.add_subplot(111, projection="3d")
-    ax3d.set_position([0.0, 0.15, 0.78, 0.83])
+    ax3d.set_position([0.0, 0.20, 0.78, 0.78])
 
-    info_ax = fig.add_axes([0.80, 0.15, 0.18, 0.83])
+    info_ax = fig.add_axes([0.80, 0.20, 0.18, 0.78])
     ax3d.set_facecolor(t["bg"])
     info_ax.set_facecolor(t["panel_bg"])
     info_ax.axis("off")
@@ -246,12 +329,18 @@ def _run_replay(run_data, run_name, args):
     # --- Sliders ---
     start_ep = args.episode if (args.episode and args.episode in episodes) else sorted_eps[0]
 
-    ax_ep   = fig.add_axes([0.08, 0.08, 0.70, 0.03])
-    ax_step = fig.add_axes([0.08, 0.03, 0.70, 0.03])
+    ax_hm_sl = fig.add_axes([0.08, 0.14, 0.60, 0.03])   # heatmap accumulation slider (row 1)
+    ax_ep    = fig.add_axes([0.08, 0.09, 0.60, 0.03])   # episode slider              (row 2)
+    ax_step  = fig.add_axes([0.08, 0.04, 0.60, 0.03])   # step slider                 (row 3)
+    ax_play  = fig.add_axes([0.70, 0.04, 0.08, 0.08])   # play/pause button
+    ax_chk   = fig.add_axes([0.80, 0.03, 0.18, 0.15])   # all checkboxes (3 labels)
 
     init_steps = len(episodes[start_ep]["steps"])
     max_steps  = max(init_steps - 1, 0)
 
+    hm_slider   = Slider(ax_hm_sl, "Heatmap up to ep", sorted_eps[0], sorted_eps[-1],
+                         valinit=sorted_eps[-1], valstep=1,
+                         color=t["slider_ep"])
     ep_slider   = Slider(ax_ep,   "Episode", sorted_eps[0], sorted_eps[-1],
                          valinit=start_ep, valstep=1,
                          color=t["slider_ep"])
@@ -259,13 +348,29 @@ def _run_replay(run_data, run_name, args):
                          valinit=0,         valstep=1,
                          color=t["slider_step"])
 
-    for sl_ax in (ax_ep, ax_step):
+    for sl_ax in (ax_hm_sl, ax_ep, ax_step):
         sl_ax.set_facecolor(t["panel_bg"])
         for spine in sl_ax.spines.values():
             spine.set_edgecolor(t["text"])
         sl_ax.tick_params(colors=t["text"])
         sl_ax.yaxis.label.set_color(t["text"])
         sl_ax.xaxis.label.set_color(t["text"])
+
+    # --- Play/pause button ---
+    play_btn = Button(ax_play, "Play", color=t["panel_bg"], hovercolor="#334466")
+    play_btn.label.set_color(t["text"])
+    play_btn.label.set_fontsize(9)
+
+    # --- Checkboxes: Repeat ep / Toggle Heatmap / Show Final Heatmap Only ---
+    chk = CheckButtons(
+        ax_chk,
+        ["Repeat ep", "Toggle Heatmap", "Show Final Heatmap Only"],
+        [True,        False,            False],
+    )
+    for lbl in chk.labels:
+        lbl.set_color(t["text"])
+        lbl.set_fontsize(8)
+    ax_chk.set_facecolor(t["panel_bg"])
 
     # --- Shared state ---
     state = {
@@ -275,7 +380,44 @@ def _run_replay(run_data, run_name, args):
         "trajectory_line": None,
         "dot":             None,
         "step_idx":        0,
+        "playing":         False,
+        "repeat":          True,
     }
+
+    # Heatmap overlay state
+    hm_state = {
+        "on":      False,
+        "final":   False,
+        "scatter": None,
+    }
+
+    def _render_heatmap_overlay():
+        """Remove any existing heatmap scatter and re-render if heatmap is on."""
+        if hm_state["scatter"] is not None:
+            try:
+                hm_state["scatter"].remove()
+            except Exception:
+                pass
+            hm_state["scatter"] = None
+
+        if not hm_state["on"]:
+            fig.canvas.draw_idle()
+            return
+
+        max_ep = (None if hm_state["final"]
+                  else min(sorted_eps, key=lambda e: abs(e - int(round(hm_slider.val)))))
+        filtered = episodes if max_ep is None else {
+            ep: data for ep, data in episodes.items() if ep <= max_ep
+        }
+        density_grid, grid_meta = accumulate_density(filtered, resolution=0.25)
+        sc, _ = render_heatmap(
+            ax3d, fig, density_grid, grid_meta, run_data.blocks,
+            colormap=args.colormap,
+            render_world_geom=False,
+            show_colorbar=False,
+        )
+        hm_state["scatter"] = sc
+        fig.canvas.draw_idle()
 
     def _draw_episode(ep):
         clear_trajectory(ax3d, state)
@@ -305,7 +447,60 @@ def _run_replay(run_data, run_name, args):
         _update_info_panel(info_ax, state, run_data, run_name, theme_name, total_eps)
         fig.canvas.draw_idle()
 
+    # --- Playback timer and helpers ---
+    timer = fig.canvas.new_timer(interval=args.interval)
+
+    def _set_playing(playing):
+        state["playing"] = playing
+        play_btn.label.set_text("Pause" if playing else "Play")
+        if playing:
+            timer.start()
+        else:
+            timer.stop()
+        fig.canvas.draw_idle()
+
+    def _playback_tick():
+        steps = state["current_steps"]
+        n     = max(len(steps) - 1, 0)
+        sidx  = state["step_idx"]
+        if sidx < n:
+            step_slider.set_val(sidx + 1)
+        else:
+            if state["repeat"]:
+                step_slider.set_val(0)
+            else:
+                ei = ep_to_idx.get(state["current_ep"], 0)
+                if ei + 1 < total_eps:
+                    ep_slider.set_val(sorted_eps[ei + 1])
+                else:
+                    _set_playing(False)
+
+    timer.add_callback(_playback_tick)
+
+    def on_play(event):
+        _set_playing(not state["playing"])
+
+    def on_chk_click(label):
+        if label == "Repeat ep":
+            state["repeat"] = not state["repeat"]
+        elif label == "Toggle Heatmap":
+            hm_state["on"] = not hm_state["on"]
+            _render_heatmap_overlay()
+        elif label == "Show Final Heatmap Only":
+            hm_state["final"] = not hm_state["final"]
+            if hm_state["on"]:
+                _render_heatmap_overlay()
+
+    def on_hm_slider(val):
+        if hm_state["on"] and not hm_state["final"]:
+            _render_heatmap_overlay()
+
+    play_btn.on_clicked(on_play)
+    chk.on_clicked(on_chk_click)
+    hm_slider.on_changed(on_hm_slider)
+
     def on_episode_change(val):
+        _set_playing(False)
         # Snap val to the nearest actual episode key
         requested = int(round(val))
         # Find closest available episode
@@ -349,6 +544,8 @@ def _run_replay(run_data, run_name, args):
         elif key == "r":
             ax3d.view_init(elev=25, azim=-60)
             fig.canvas.draw_idle()
+        elif key == " ":
+            _set_playing(not state["playing"])
 
     fig.canvas.mpl_connect("key_press_event", on_key)
 
@@ -428,6 +625,8 @@ def build_parser():
     p.add_argument("--theme", type=str, default="dark",
                    choices=["dark", "light"],
                    help="Colour theme (default: dark).")
+    p.add_argument("--interval", type=int, default=150,
+                   help="Playback ms per step (default: 150, matches STEP_DURATION).")
     return p
 
 

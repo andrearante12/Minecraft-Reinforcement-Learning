@@ -81,7 +81,8 @@ def accumulate_density(episodes, outcome_filter=None, resolution=0.25):
 # Heatmap rendering
 # ---------------------------------------------------------------------------
 
-def render_heatmap(ax, fig, density_grid, grid_meta, blocks, colormap="hot"):
+def render_heatmap(ax, fig, density_grid, grid_meta, blocks, colormap="hot",
+                   render_world_geom=True, show_colorbar=True):
     """
     Render a heatmap scatter overlay on the platform plane.
 
@@ -91,20 +92,25 @@ def render_heatmap(ax, fig, density_grid, grid_meta, blocks, colormap="hot"):
 
     Parameters
     ----------
-    ax           : Axes3D
-    fig          : Figure  (for colorbar)
-    density_grid : np.ndarray
-    grid_meta    : dict
-    blocks       : list[Block]  (for axis calibration if needed)
-    colormap     : str
+    ax               : Axes3D
+    fig              : Figure  (for colorbar)
+    density_grid     : np.ndarray
+    grid_meta        : dict
+    blocks           : list[Block]
+    colormap         : str
+    render_world_geom: bool — if False, skip wireframe world rendering (use when
+                       world is already drawn on the axes, e.g. the replay overlay)
+    show_colorbar    : bool — if False, skip colorbar (avoids layout disruption
+                       when used as an overlay on the replay view)
 
     Returns
     -------
-    scatter PathCollection
+    (scatter, colorbar) — either may be None
     """
     from visualization.world_renderer import render_world, configure_axes
 
-    render_world(ax, blocks, wireframe_only=True)
+    if render_world_geom:
+        render_world(ax, blocks, wireframe_only=True)
 
     nx, ny, nz = density_grid.shape
     res  = grid_meta["resolution"]
@@ -114,12 +120,15 @@ def render_heatmap(ax, fig, density_grid, grid_meta, blocks, colormap="hot"):
 
     max_count = density_grid.max()
     if max_count == 0:
-        return None
+        return None, None
 
     xs_plot, ys_plot, zs_plot, cs_plot, ss_plot = [], [], [], [], []
 
-    # Project to the minimum-Y slice of the grid (platform surface)
-    y_flat = ym  # flat projection plane
+    # Project to the Y level with the highest total visit count (the standing
+    # surface), rather than the minimum Y which is pulled down by fall positions.
+    y_counts = density_grid.sum(axis=(0, 2))  # sum over x and z → shape (ny,)
+    yi_peak  = int(np.argmax(y_counts))
+    y_flat   = ym + yi_peak * res + res / 2
 
     for xi in range(nx):
         for zi in range(nz):
@@ -147,5 +156,7 @@ def render_heatmap(ax, fig, density_grid, grid_meta, blocks, colormap="hot"):
         vmin=0, vmax=1,
     )
 
-    fig.colorbar(sc, ax=ax, shrink=0.5, pad=0.1, label="Relative visit density")
-    return sc
+    cb = None
+    if show_colorbar:
+        cb = fig.colorbar(sc, ax=ax, shrink=0.5, pad=0.1, label="Relative visit density")
+    return sc, cb
