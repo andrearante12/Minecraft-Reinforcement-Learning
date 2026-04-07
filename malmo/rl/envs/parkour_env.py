@@ -140,12 +140,15 @@ class ParkourEnv:
                 pass
 
         info = {
-            "outcome": outcome,
-            "steps":   self._steps,
-            "pos":     (obs_dict.get("XPos", 0),
-                        obs_dict.get("YPos", 0),
-                        obs_dict.get("ZPos", 0)),
-            "action":  self.actions[action][0],
+            "outcome":   outcome,
+            "steps":     self._steps,
+            "pos":       (obs_dict.get("XPos", 0),
+                          obs_dict.get("YPos", 0),
+                          obs_dict.get("ZPos", 0)),
+            "yaw":       obs_dict.get("Yaw",      0.0),
+            "pitch":     obs_dict.get("Pitch",    0.0),
+            "on_ground": int(obs_dict.get("OnGround", True)),
+            "action":    self.actions[action][0],
         }
         return obs, reward, done, info
 
