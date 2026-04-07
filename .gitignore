@@ -1,8 +1,6 @@
-# Minecraft / Gradle build artifacts
-malmo/Minecraft/.gradle/
-malmo/Minecraft/build/
-malmo/Minecraft/run/
-malmo/Minecraft/*.lock
+# Minecraft client (large binary, not needed in repo)
+malmo/Minecraft/
+Malmo/Minecraft/
 
 # Python
 __pycache__/
@@ -12,10 +10,19 @@ __pycache__/
 
 # Training outputs
 Malmo/rl/checkpoints/
-Malmo/rl/logs/*.csv
+Malmo/rl/logs/
+
+# Demo recordings
+Malmo/demos/
+
+# SB3 checkpoints
+*.zip
 
 # Conda
 *.egg-info/
+
+# Claude Code
+.claude/
 
 # OS
 .DS_Store
