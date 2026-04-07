@@ -1,10 +1,6 @@
-# Minecraft / Gradle build artifacts
-malmo/Minecraft/.gradle/
-malmo/Minecraft/build/
-malmo/Minecraft/run/
-malmo/Minecraft/*.lock
-malmo/Minecraft/.minecraft/
-malmo/Minecraft/.minecraftserver/
+# Minecraft client (large binary, not needed in repo)
+malmo/Minecraft/
+Malmo/Minecraft/
 
 # Python
 __pycache__/
