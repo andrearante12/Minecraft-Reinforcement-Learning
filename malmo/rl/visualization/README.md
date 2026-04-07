@@ -1,6 +1,6 @@
 # Visualization — Replay & Heatmap Tool
 
-Interactive 3D viewer for post-training analysis of agent trajectories. Supports two modes: **Replay** (per-episode step-through with playback) and **Heatmap** (aggregate visit density across episodes).
+Interactive 3D viewer for post-training analysis of agent trajectories. Supports **Replay** (per-episode step-through with playback) with a **Heatmap** (aggregate visit density across episodes) feature.
 
 ---
 
@@ -11,9 +11,6 @@ conda activate train_env
 
 # Replay mode (default)
 python malmo/rl/visualization/replay.py --run malmo/rl/logs/<run_prefix>
-
-# Heatmap mode
-python malmo/rl/visualization/replay.py --run malmo/rl/logs/<run_prefix> --heatmap
 
 # Use sample data to test without a training run
 python malmo/rl/visualization/replay.py --run malmo/rl/logs/sample_simple_jump_ppo_20260401_143022
@@ -28,7 +25,6 @@ If `--run` points to a directory containing multiple runs, a numbered selection 
 | Argument | Default | Description |
 |---|---|---|
 | `--run` | *(required)* | Path to a run prefix, a `_trajectories.csv` file, or a directory of runs |
-| `--heatmap` | off | Launch in heatmap mode instead of replay mode |
 | `--episode N` | first ep | Episode to start the replay at |
 | `--episodes 1,5,10-20` | all | Episode filter for heatmap mode |
 | `--outcome landed` | all | Outcome filter for heatmap mode (`landed`, `fell`, `timeout`, `near_miss`) |
