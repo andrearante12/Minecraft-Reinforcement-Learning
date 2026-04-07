@@ -226,6 +226,8 @@ def parse_args():
                         help="Output JSON path (default: demos/<env>.json)")
     parser.add_argument("--tick-rate", type=float, default=0.05,
                         help="Seconds between ticks (default: 0.05 = 20Hz)")
+    parser.add_argument("--max-steps", type=int, default=600,
+                        help="Max steps per episode (default: 600 = 30s at 20Hz)")
     return parser.parse_args()
 
 
@@ -265,6 +267,8 @@ def record():
     print("Output:      ", output_path)
     print("Tick rate:   ", "{0}s ({1}Hz)".format(args.tick_rate,
                                                    int(1 / args.tick_rate)))
+    print("Max steps:   ", "{0} (~{1}s)".format(args.max_steps,
+                                                   int(args.max_steps * args.tick_rate)))
     print()
     if args.env == "bridging":
         print("Controls (bridging):")
@@ -289,7 +293,7 @@ def record():
 
     try:
         while running:
-            print("Episode {0} — press any action key to start...".format(episode_num))
+            print("Episode {0} — recording...".format(episode_num))
             obs = env.reset()
             steps = []
             done = False
@@ -305,7 +309,14 @@ def record():
                     running = False
                     break
 
-                # Auto-reset on done (success or failure) — no manual reset needed
+                # Check for manual episode reset
+                if keyboard.is_pressed("enter"):
+                    break
+
+                # Enforce max steps per episode
+                if step_count >= args.max_steps:
+                    print("  (max steps reached)")
+                    break
 
                 action = key_translator()
 

@@ -82,6 +82,39 @@ Demos are saved as JSON in `demos/`:
 
 The recorder appends to existing files, so you can record across multiple sessions.
 
+### Clearing Demos
+
+To start fresh and delete all recorded demos for an environment:
+
+```powershell
+rm demos/bridging.json
+```
+
+### Replaying Demos
+
+To watch recorded demos play back in Minecraft (useful for verifying demo quality before training):
+
+```powershell
+# Terminal 1: Minecraft client
+cd .\Malmo\Minecraft && .\launchClient.bat
+
+# Terminal 2: env server
+conda activate malmo
+python Malmo/rl/envs/env_server.py --env bridging --port 10002 --malmo-port 10000
+
+# Terminal 3: replay
+conda activate train_env
+python Malmo/rl/utils/replay_demos.py --env bridging --port 10002
+
+# Replay a single episode (0-indexed):
+python Malmo/rl/utils/replay_demos.py --env bridging --port 10002 --episode 0
+
+# Half-speed for closer inspection:
+python Malmo/rl/utils/replay_demos.py --env bridging --port 10002 --speed 0.5
+```
+
+The replay script prints each step's action name and reward, warns if the replay outcome differs from the recorded one, and pauses between episodes waiting for Enter.
+
 ### Tips for Good Demos
 
 - Record 20+ successful episodes for reliable BC training
