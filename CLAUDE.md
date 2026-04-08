@@ -82,6 +82,13 @@ python Malmo/rl/training/train.py --env one_block_gap --algo bc --demo-path demo
 
 # PPO fine-tuning from BC checkpoint:
 python Malmo/rl/training/train.py --env one_block_gap --algo ppo --checkpoint checkpoints/ppo_one_block_gap_bc_ep500.pt --base-port 10002
+
+# Replay recorded demos in Minecraft (env server must be running):
+python Malmo/rl/utils/replay_demos.py --env one_block_gap --port 10002
+python Malmo/rl/utils/replay_demos.py --env one_block_gap --port 10002 --episode 0 --speed 0.5
+
+# Clear demos for an environment:
+rm demos/one_block_gap.json
 ```
 See `Malmo/docs/behavioral_cloning.md` for full guide.
 

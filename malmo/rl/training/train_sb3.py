@@ -212,9 +212,13 @@ def main():
     checkpoint_dir = os.path.join(PARKOUR_ROOT, "checkpoints")
     os.makedirs(checkpoint_dir, exist_ok=True)
 
+    tb_log_dir = os.path.join(PARKOUR_ROOT, "tb_logs")
+    os.makedirs(tb_log_dir, exist_ok=True)
+
     if args.checkpoint:
         print("Loading checkpoint: {0}".format(args.checkpoint))
-        model = PPO.load(args.checkpoint, env=vec_env)
+        model = PPO.load(args.checkpoint, env=vec_env,
+                         tensorboard_log=tb_log_dir)
     else:
         model = PPO(
             "MlpPolicy",
@@ -230,6 +234,7 @@ def main():
             gae_lambda=cfg.GAE_LAMBDA,
             max_grad_norm=cfg.MAX_GRAD_NORM,
             verbose=1,
+            tensorboard_log=tb_log_dir,
         )
 
     # ── BC pre-training (optional) ────────────────────────────────────────
@@ -276,6 +281,7 @@ def main():
             total_timesteps=total_timesteps,
             callback=callbacks,
             reset_num_timesteps=args.checkpoint is None,
+            tb_log_name="ppo_{0}".format(args.env),
         )
     except KeyboardInterrupt:
         print("\nTraining interrupted. Saving checkpoint...")

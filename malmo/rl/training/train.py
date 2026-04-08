@@ -53,6 +53,7 @@ from training.configs.diagonal_small_cfg    import DiagonalSmallCFG
 from training.configs.diagonal_medium_cfg   import DiagonalMediumCFG
 from training.configs.vertical_small_cfg      import VerticalSmallCFG
 from training.configs.multi_jump_course_cfg   import MultiJumpCourseCFG
+from training.configs.bridging_cfg            import BridgingCFG
 
 ENV_REGISTRY = {
     "one_block_gap":       (None, OneBlockGapCFG),
@@ -62,6 +63,7 @@ ENV_REGISTRY = {
     "diagonal_medium":     (None, DiagonalMediumCFG),
     "vertical_small":      (None, VerticalSmallCFG),
     "multi_jump_course":   (None, MultiJumpCourseCFG),
+    "bridging":            (None, BridgingCFG),
 }
 
 

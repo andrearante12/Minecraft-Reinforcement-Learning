@@ -31,9 +31,14 @@ import os
 import json
 import argparse
 import time
+import functools
+
+# Force unbuffered stdout so logs appear in real time
+print = functools.partial(print, flush=True)
 
 PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PARKOUR_ROOT)
+
 
 from envs.env_client import EnvClient
 
@@ -44,15 +49,23 @@ except ImportError:
     print("ERROR: 'keyboard' package required. Install with: pip install keyboard")
     sys.exit(1)
 
+# Import mouse library for right-click detection (bridging env)
+try:
+    import mouse
+except ImportError:
+    mouse = None  # only required for bridging env
+
 # Environment registry (mirrors train.py) — only need configs for INPUT_SIZE
 from training.configs.simple_jump_cfg     import SimpleJumpCFG
 from training.configs.one_block_gap_cfg   import OneBlockGapCFG
 from training.configs.three_block_gap_cfg import ThreeBlockGapCFG
+from training.configs.bridging_cfg        import BridgingCFG
 
 ENV_CONFIGS = {
     "simple_jump":     SimpleJumpCFG,
     "one_block_gap":   OneBlockGapCFG,
     "three_block_gap": ThreeBlockGapCFG,
+    "bridging":        BridgingCFG,
 }
 
 # Action indices matching base_cfg.py DEFAULT_ACTIONS
@@ -76,7 +89,7 @@ ACTION_NAMES = [
 
 
 def translate_keys_to_action():
-    """Read held keys and translate to the best-matching action index.
+    """Read held keys and translate to the best-matching parkour action index.
 
     Uses standard Minecraft controls. Combinations are checked from most
     specific (4 keys) to least specific (1 key) so the richest matching
@@ -135,6 +148,84 @@ def translate_keys_to_action():
     return None
 
 
+def translate_keys_to_action_bridging():
+    """Read held keys and translate to bridging action index.
+
+    Bridging action space (14 actions):
+        0: move_forward       1: move_backward
+        2: strafe_left        3: strafe_right
+        4: look_down          5: look_up
+        6: turn_left          7: turn_right
+        8: sneak              9: place_block
+       10: sneak_forward     11: sneak_backward
+       12: sneak_place       13: no_op
+
+    Keyboard mapping:
+        W/S/A/D         = movement
+        Arrows          = camera (look/turn)
+        Shift           = sneak (hold/release)
+        Right-click     = place block
+        Shift+W         = sneak_forward
+        Shift+S         = sneak_backward
+        Shift+Rclick    = sneak_place
+
+    Returns:
+        Action index (int) or None if no keys are held.
+    """
+    w     = keyboard.is_pressed("w")
+    s     = keyboard.is_pressed("s")
+    a     = keyboard.is_pressed("a")
+    d     = keyboard.is_pressed("d")
+    shift = keyboard.is_pressed("shift")
+    up    = keyboard.is_pressed("up")
+    down  = keyboard.is_pressed("down")
+    left  = keyboard.is_pressed("left")
+    right = keyboard.is_pressed("right")
+    place = mouse.is_pressed("right") if mouse else False
+
+    # ── 2-key combos (most specific first) ─────────────────────────────────
+    if shift and place:
+        return 12  # sneak_place
+    if shift and w:
+        return 10  # sneak_forward
+    if shift and s:
+        return 11  # sneak_backward
+    # Camera while sneaking — arrow takes priority over bare sneak since the
+    # action space has no sneak+camera combo and camera intent is more valuable
+    if shift and down:
+        return 4   # look_down
+    if shift and up:
+        return 5   # look_up
+    if shift and left:
+        return 6   # turn_left
+    if shift and right:
+        return 7   # turn_right
+
+    # ── 1-key actions ──────────────────────────────────────────────────────
+    if place:
+        return 9   # place_block
+    if shift:
+        return 8   # sneak (no other key held)
+    if w:
+        return 0   # move_forward
+    if s:
+        return 1   # move_backward
+    if a:
+        return 2   # strafe_left
+    if d:
+        return 3   # strafe_right
+    if down:
+        return 4   # look_down
+    if up:
+        return 5   # look_up
+    if left:
+        return 6   # turn_left
+    if right:
+        return 7   # turn_right
+
+    return None
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Record human demonstrations")
     parser.add_argument("--env", type=str, required=True,
@@ -146,12 +237,24 @@ def parse_args():
                         help="Output JSON path (default: demos/<env>.json)")
     parser.add_argument("--tick-rate", type=float, default=0.05,
                         help="Seconds between ticks (default: 0.05 = 20Hz)")
+    parser.add_argument("--max-steps", type=int, default=300,
+                        help="Max steps per episode (default: 300 = 15s at 20Hz)")
     return parser.parse_args()
 
 
 def record():
     args = parse_args()
     cfg = ENV_CONFIGS[args.env]
+
+    # Select the correct key translator and action names for this env
+    if args.env == "bridging":
+        if mouse is None:
+            print("ERROR: 'mouse' package required for bridging. Install with: pip install mouse")
+            sys.exit(1)
+        key_translator = translate_keys_to_action_bridging
+    else:
+        key_translator = translate_keys_to_action
+    action_names = [a[0] for a in cfg.ACTIONS]
 
     output_path = args.output or os.path.join(PARKOUR_ROOT, "..", "demos",
                                                "{0}.json".format(args.env))
@@ -175,14 +278,24 @@ def record():
     print("Output:      ", output_path)
     print("Tick rate:   ", "{0}s ({1}Hz)".format(args.tick_rate,
                                                    int(1 / args.tick_rate)))
+    print("Max steps:   ", "{0} (~{1}s)".format(args.max_steps,
+                                                   int(args.max_steps * args.tick_rate)))
     print()
-    print("Controls (standard Minecraft):")
-    print("  W=forward  S=back  A=strafe_L  D=strafe_R")
-    print("  Space=jump  Ctrl=sprint (hold with W)")
-    print("  Ctrl+W+Space=sprint_jump  W+Space=jump_fwd")
-    print("  Ctrl+W+A+Space=sprint_jump_L  Ctrl+W+D+Space=sprint_jump_R")
-    print("  Arrows=look/turn")
-    print("  Enter=finish episode  Esc=save & quit")
+    if args.env == "bridging":
+        print("Controls (bridging):")
+        print("  W=forward  S=back  A=strafe_L  D=strafe_R")
+        print("  Shift=sneak (hold)  Right-click=place_block")
+        print("  Shift+W=sneak_forward  Shift+S=sneak_backward")
+        print("  Shift+Rclick=sneak_place  Mouse=look/turn")
+        print("  Enter=finish episode  Esc=save & quit")
+    else:
+        print("Controls (standard Minecraft):")
+        print("  W=forward  S=back  A=strafe_L  D=strafe_R")
+        print("  Space=jump  Ctrl=sprint (hold with W)")
+        print("  Ctrl+W+Space=sprint_jump  W+Space=jump_fwd")
+        print("  Ctrl+W+A+Space=sprint_jump_L  Ctrl+W+D+Space=sprint_jump_R")
+        print("  Arrows=look/turn")
+        print("  Enter=finish episode  Esc=save & quit")
     print("=" * 60)
     print()
 
@@ -191,13 +304,15 @@ def record():
 
     try:
         while running:
-            print("Episode {0} — press any action key to start...".format(episode_num))
-            obs = env.reset()
+            print("Episode {0} — recording...".format(episode_num))
+            obs = env.reset(force_reset=True)
             steps = []
             done = False
             total_reward = 0.0
             step_count = 0
             info = None
+
+            prev_blocks_placed = 0
 
             while not done and running:
                 # Check for quit
@@ -205,29 +320,74 @@ def record():
                     running = False
                     break
 
-                # Check for manual episode end
+                # Check for manual episode reset
                 if keyboard.is_pressed("enter"):
-                    print("  (manual reset)")
-                    time.sleep(0.3)  # debounce
                     break
 
-                action = translate_keys_to_action()
+                # Enforce max steps per episode
+                if step_count >= args.max_steps:
+                    print("  (max steps reached)")
+                    break
 
-                if action is not None:
-                    # Record and execute
-                    steps.append({
-                        "obs": obs.tolist(),
-                        "action": int(action),
-                    })
+                keyboard_action = key_translator()
 
-                    obs, reward, done, info = env.step(action)
-                    total_reward += reward
-                    step_count += 1
+                # Always step the env each tick (no_op if no key held) so we
+                # can detect camera movement via obs pitch/yaw delta.
+                step_action = keyboard_action if keyboard_action is not None else 13  # 13=no_op
+                obs_prev = obs.copy()
+                obs, reward, done, info = env.step(step_action)
+                total_reward += reward
+                step_count += 1
 
-                    # Real-time feedback
-                    if step_count % 5 == 0:
-                        print("  step:{0:>3} | action:{1:<18} | reward:{2:>6.2f}".format(
-                            step_count, ACTION_NAMES[action], total_reward), end="\r")
+                actions_to_record = []
+
+                # Bridging: blocks-placed override on keyboard action
+                if args.env == "bridging" and info:
+                    new_placed = info.get("blocks_placed", 0)
+                    if new_placed > prev_blocks_placed:
+                        if keyboard_action not in (9, 12):
+                            keyboard_action = 12  # sneak_place
+                        prev_blocks_placed = new_placed
+
+                if keyboard_action is not None:
+                    actions_to_record.append(keyboard_action)
+
+                # Bridging: detect camera movement from obs pitch/yaw delta and
+                # append as an additional action. Mouse controls camera so
+                # keyboard polling alone misses all camera input.
+                # Store the exact target angle so replay can drive closed-loop
+                # to the correct angle rather than guessing action counts.
+                if args.env == "bridging":
+                    pitch_delta = obs[2] - obs_prev[2]  # positive = look down
+                    yaw_delta   = obs[1] - obs_prev[1]  # positive = turn right
+                    if yaw_delta > 1.0:
+                        yaw_delta -= 2.0
+                    elif yaw_delta < -1.0:
+                        yaw_delta += 2.0
+                    CAMERA_THRESH = 0.01  # ~0.9° pitch or ~1.8° yaw
+                    if abs(pitch_delta) > CAMERA_THRESH or abs(yaw_delta) > CAMERA_THRESH:
+                        if abs(pitch_delta) >= abs(yaw_delta):
+                            camera_action = 4 if pitch_delta > 0 else 5  # look_down / look_up
+                            camera_target = {"pitch_delta": float(abs(pitch_delta) * 90.0)}
+                        else:
+                            camera_action = 7 if yaw_delta > 0 else 6    # turn_right / turn_left
+                            camera_target = {"yaw_delta": float(abs(yaw_delta) * 180.0)}
+                        if camera_action not in actions_to_record:
+                            actions_to_record.append((camera_action, camera_target))
+
+                # Record all actions sequentially, all using obs_prev.
+                # Camera steps carry a target_yaw or target_pitch for closed-loop replay.
+                for item in actions_to_record:
+                    if isinstance(item, tuple):
+                        rec_action, extra = item
+                    else:
+                        rec_action, extra = item, {}
+                    step_record = {"obs": obs_prev.tolist(), "action": int(rec_action)}
+                    step_record.update(extra)
+                    steps.append(step_record)
+                    placed = " [PLACED #{0}]".format(prev_blocks_placed) if rec_action in (9, 12) and prev_blocks_placed > 0 else ""
+                    print("  step:{0:>4} | action:{1:<18} | reward:{2:>7.2f} | total:{3:>7.2f}{4}".format(
+                        step_count, action_names[rec_action], reward, total_reward, placed))
 
                 time.sleep(args.tick_rate)
 

@@ -56,6 +56,10 @@ class ActorCritic(nn.Module):
         self.actor  = _make_head(merge_dim, head_h, n_actions)
         self.critic = _make_head(merge_dim, head_h, 1)
 
+        # Store split indices for config-driven observation slicing
+        self._proprio_size = proprio_size
+        self._goal_end     = proprio_size + goal_size
+
         self._init_weights()
 
     def _init_weights(self):
@@ -71,9 +75,9 @@ class ActorCritic(nn.Module):
         nn.init.zeros_(self.critic[-1].bias)
 
     def forward(self, obs):
-        proprio = obs[:, :6]
-        goal    = obs[:, 6:9]
-        voxel   = obs[:, 9:]
+        proprio = obs[:, :self._proprio_size]
+        goal    = obs[:, self._proprio_size:self._goal_end]
+        voxel   = obs[:, self._goal_end:]
 
         p = self.proprio_stream(proprio)
         g = self.goal_stream(goal)

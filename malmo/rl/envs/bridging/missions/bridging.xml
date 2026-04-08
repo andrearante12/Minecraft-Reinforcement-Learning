@@ -14,22 +14,20 @@
 
       <DrawingDecorator>
         <!-- Clear the area above the platforms (remove default terrain) -->
-        <DrawCuboid x1="-3" y1="45" z1="-1" x2="3" y2="50" z2="12" type="air"/>
+        <DrawCuboid x1="-2" y1="45" z1="-1" x2="2" y2="50" z2="9" type="air"/>
 
-        <!-- Starting platform: 3-wide at Z=0..2 -->
-        <DrawCuboid x1="-1" y1="45" z1="0" x2="1" y2="45" z2="2" type="stone"/>
+        <!-- Starting platform: single block at Z=1 -->
+        <DrawCuboid x1="0" y1="45" z1="1" x2="0" y2="45" z2="1" type="stone"/>
 
-        <!-- Gap: Z=3..7 is air (5-block gap) — already air from the clear above -->
+        <!-- Gap: Z=2..6 is air (5-block gap) — already air from the clear above -->
 
-        <!-- End platform: 3-wide at Z=8..10 -->
-        <DrawCuboid x1="-1" y1="45" z1="8" x2="1" y2="45" z2="10" type="stone"/>
+        <!-- End platform: single block at Z=7 -->
+        <DrawCuboid x1="0" y1="45" z1="7" x2="0" y2="45" z2="7" type="stone"/>
 
-        <!-- Walls on sides — start above bridge level so agent can't build against them -->
-        <DrawCuboid x1="-2" y1="47" z1="-1" x2="-2" y2="48" z2="11" type="stone"/>
-        <DrawCuboid x1="2"  y1="47" z1="-1" x2="2"  y2="48" z2="11" type="stone"/>
+
       </DrawingDecorator>
 
-      <ServerQuitFromTimeUp timeLimitMs="30000"/>
+      <ServerQuitFromTimeUp timeLimitMs="15000"/>
       <ServerQuitWhenAnyAgentFinishes/>
     </ServerHandlers>
   </ServerSection>
