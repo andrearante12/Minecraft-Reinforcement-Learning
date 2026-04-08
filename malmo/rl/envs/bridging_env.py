@@ -79,10 +79,7 @@ class BridgingEnv:
         self.observation_shape = (cfg.INPUT_SIZE,)
 
         with open(cfg.MISSION_FILE, "r") as f:
-            xml = f.read()
-        self._mission_xml_force = xml
-        self._mission_xml_fast  = xml.replace('forceReset="true"', 'forceReset="false"')
-        self._next_force_reset  = force_reset
+            self._mission_xml = f.read()
 
         self._agent_host = MalmoPython.AgentHost()
         try:
@@ -101,14 +98,9 @@ class BridgingEnv:
         self._max_z           = self.cfg.SPAWN[2]
         self._landing_counter = 0
         self._landing_active  = False
-        self._prev_obs_dict   = {}
 
         time.sleep(0.5)
-        if self._next_force_reset:
-            self._start_mission(self._mission_xml_force)
-            self._next_force_reset = False
-        else:
-            self._start_mission(self._mission_xml_fast)
+        self._start_mission(self._mission_xml)
         return self._get_observation()
 
     def step(self, action):
@@ -131,12 +123,7 @@ class BridgingEnv:
         if inv_count < self._prev_inv_count:
             blocks_used = self._prev_inv_count - inv_count
             self._blocks_placed += blocks_used
-            # Use previous step's raycast to determine if placement was in the bridge zone
-            prev_los = self._prev_obs_dict.get("LineOfSight", {})
-            if self._is_valid_bridge_placement(prev_los):
-                placement_reward = self.cfg.REWARD_BLOCK_PLACED * blocks_used
-            else:
-                placement_reward = self.cfg.REWARD_WASTEFUL_PLACE * blocks_used
+            placement_reward = self.cfg.REWARD_BLOCK_PLACED * blocks_used
         self._prev_inv_count = inv_count
 
         reward, done, outcome = self._get_reward(obs_dict, prev_pos)
@@ -172,8 +159,6 @@ class BridgingEnv:
                 self._agent_host.sendCommand("quit")
             except Exception:
                 pass
-
-        self._prev_obs_dict = obs_dict
 
         info = {
             "outcome":       outcome,
@@ -359,38 +344,6 @@ class BridgingEnv:
         return encoded
 
     # ── Reward function ───────────────────────────────────────────────────────
-
-    def _is_valid_bridge_placement(self, los):
-        """Return True if the raycast target would result in a block placed in the bridge zone.
-
-        Handles two placement styles:
-        - Side-face (south): agent crouches off edge, looks at south face of block they
-          stand on; new block goes at lz+1. Target z can be one behind the gap.
-        - Top-face: agent looks down at top of gap block; new block goes at ly+1.
-        """
-        if not los or los.get("hitType") != "block":
-            return False
-        lx   = int(round(float(los.get("x", -999))))
-        ly   = int(round(float(los.get("y", -999))))
-        lz   = int(round(float(los.get("z", -999))))
-        face = los.get("face", "")
-
-        x_ok = self.cfg.BRIDGE_X_MIN <= lx <= self.cfg.BRIDGE_X_MAX
-
-        if face == "south":
-            # New block lands at lz+1 — allow targeting block just before gap start
-            new_z = lz + 1
-            return (x_ok
-                    and ly == self.cfg.BRIDGE_Y
-                    and self.cfg.BRIDGE_Z_START <= new_z <= self.cfg.BRIDGE_Z_END + 1)
-
-        if face == "top":
-            # New block lands at ly+1 — agent looks down into gap
-            return (x_ok
-                    and ly == self.cfg.BRIDGE_Y - 1
-                    and self.cfg.BRIDGE_Z_START <= lz <= self.cfg.BRIDGE_Z_END)
-
-        return False
 
     def _current_pos(self, obs_dict):
         return np.array([

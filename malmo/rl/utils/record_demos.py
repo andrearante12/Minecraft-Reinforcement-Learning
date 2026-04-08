@@ -386,8 +386,8 @@ def record():
                     step_record.update(extra)
                     steps.append(step_record)
                     placed = " [PLACED #{0}]".format(prev_blocks_placed) if rec_action in (9, 12) and prev_blocks_placed > 0 else ""
-                    print("  step:{0:>4} | action:{1:<18} | reward:{2:>7.2f}{3}".format(
-                        step_count, action_names[rec_action], total_reward, placed))
+                    print("  step:{0:>4} | action:{1:<18} | reward:{2:>7.2f} | total:{3:>7.2f}{4}".format(
+                        step_count, action_names[rec_action], reward, total_reward, placed))
 
                 time.sleep(args.tick_rate)
 

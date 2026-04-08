@@ -78,8 +78,8 @@ class BridgingCFG(BaseCFG):
     N_ACTIONS = len(ACTIONS)  # 14
 
     # ── Bridging-specific rewards ─────────────────────────────────────────────
-    REWARD_BLOCK_PLACED   = +2.0   # block placed extending the bridge
-    REWARD_WASTEFUL_PLACE = -1.0   # block placed in wrong location
+    REWARD_BLOCK_PLACED   = +0.5   # any block placed (unconditional; Malmo obs lag makes spatial check unreliable)
+    REWARD_WASTEFUL_PLACE = -1.0   # reserved for future use
     REWARD_STEP_PENALTY   = -0.02  # slightly higher than parkour
     REWARD_PROGRESS_COEF  = +0.5   # per new z-level reached
 

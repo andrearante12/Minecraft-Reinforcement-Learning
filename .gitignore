@@ -11,9 +11,8 @@ __pycache__/
 # Training outputs
 Malmo/rl/checkpoints/
 Malmo/rl/logs/
+Malmo/rl/tb_logs/
 
-# Demo recordings
-Malmo/demos/
 
 # SB3 checkpoints
 *.zip
