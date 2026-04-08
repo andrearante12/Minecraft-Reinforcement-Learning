@@ -86,6 +86,44 @@ class EpisodeLoggerCallback(BaseCallback):
         return True
 
 
+class TrajectoryLoggerCallback(BaseCallback):
+    """Logs per-step trajectory data to _trajectories.csv for the visualizer."""
+
+    def __init__(self, logger_obj, env_name, cfg, n_envs=1, verbose=0):
+        super().__init__(verbose)
+        self.logger_obj  = logger_obj
+        self.env_name    = env_name
+        self.cfg         = cfg
+        self.n_envs      = n_envs
+        self._ep_nums    = [0] * n_envs
+        self._step_nums  = [0] * n_envs
+        self._ep_counter = 0
+
+    def _on_training_start(self):
+        self.logger_obj.init_trajectory(self.env_name, self.cfg)
+
+    def _on_step(self):
+        infos   = self.locals.get("infos",   [])
+        dones   = self.locals.get("dones",   [])
+        rewards = self.locals.get("rewards", [])
+
+        for i, (info, done, reward) in enumerate(zip(infos, dones, rewards)):
+            self._step_nums[i] += 1
+            self.logger_obj.log_step(
+                episode  = self._ep_nums[i],
+                step     = self._step_nums[i],
+                info     = info,
+                reward   = float(reward),
+                done     = bool(done),
+                env_name = self.env_name,
+            )
+            if done:
+                self._ep_counter   += 1
+                self._ep_nums[i]    = self._ep_counter
+                self._step_nums[i]  = 0
+        return True
+
+
 class InterruptSaveCallback(BaseCallback):
     """Saves model on KeyboardInterrupt."""
 
@@ -260,7 +298,14 @@ def main():
         print_every=cfg.LOG_EVERY,
     )
 
-    callbacks = CallbackList([checkpoint_callback, episode_callback])
+    trajectory_callback = TrajectoryLoggerCallback(
+        logger_obj = logger,
+        env_name   = args.env,
+        cfg        = cfg,
+        n_envs     = n_envs,
+    )
+
+    callbacks = CallbackList([checkpoint_callback, episode_callback, trajectory_callback])
 
     # ── Train ─────────────────────────────────────────────────────────────
     print("\n" + "=" * 60)

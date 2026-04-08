@@ -64,18 +64,14 @@ class BridgingCFG(BaseCFG):
         ("turn_left",         ["turn -1"],             ["turn 0"]),              # 6
         ("turn_right",        ["turn 1"],              ["turn 0"]),              # 7
         # Sneak/crouch (ContinuousMovementCommands uses "crouch", not "sneak")
-        ("sneak",             ["crouch 1"],             ["crouch 0"]),             # 8
+        ("toggle_sneak",      [],                        []),                      # 8
         # Block placement
         ("place_block",       ["use 1"],                ["use 0"]),               # 9
-        # Combined actions (self-contained: crouch included in on/off commands)
-        ("sneak_forward",     ["crouch 1", "move 1"],   ["crouch 0", "move 0"]),  # 10
-        ("sneak_backward",    ["crouch 1", "move -1"],  ["crouch 0", "move 0"]),  # 11
-        ("sneak_place",       ["crouch 1", "use 1"],    ["crouch 0", "use 0"]),   # 12
         # Idle
-        ("no_op",             [],                      []),                      # 13
+        ("no_op",             [],                      []),                      # 10
     ]
     ACTIONS   = BRIDGING_ACTIONS
-    N_ACTIONS = len(ACTIONS)  # 14
+    N_ACTIONS = len(ACTIONS)  # 11
 
     # ── Bridging-specific rewards ─────────────────────────────────────────────
     REWARD_BLOCK_PLACED   = +0.5   # any block placed (unconditional; Malmo obs lag makes spatial check unreliable)

@@ -74,6 +74,7 @@ class BridgingEnv:
         self._blocks_placed  = 0           # total blocks placed this episode
         self._max_z          = cfg.SPAWN[2]  # furthest Z the agent has reached
         self._landing_counter = 0
+        self._sneaking       = False       # persistent sneak toggle state
         self._landing_active  = False
 
         self.observation_shape = (cfg.INPUT_SIZE,)
@@ -98,6 +99,11 @@ class BridgingEnv:
         self._max_z           = self.cfg.SPAWN[2]
         self._landing_counter = 0
         self._landing_active  = False
+        self._sneaking        = False
+        try:
+            self._agent_host.sendCommand("crouch 0")
+        except Exception:
+            pass
 
         time.sleep(0.5)
         self._start_mission(self._mission_xml)
@@ -166,6 +172,9 @@ class BridgingEnv:
             "pos":           (obs_dict.get("XPos", 0),
                               obs_dict.get("YPos", 0),
                               obs_dict.get("ZPos", 0)),
+            "yaw":           float(obs_dict.get("Yaw",      0.0)),
+            "pitch":         float(obs_dict.get("Pitch",    0.0)),
+            "on_ground":     int(obs_dict.get("OnGround",   False)),
             "action":        self.actions[action][0],
             "blocks_placed": self._blocks_placed,
         }
@@ -180,16 +189,27 @@ class BridgingEnv:
     # ── Action execution ──────────────────────────────────────────────────────
 
     def _take_action(self, action_idx):
-        _, cmds_on, cmds_off = self.actions[action_idx]
+        name, cmds_on, cmds_off = self.actions[action_idx]
         # Cancel any residual camera velocity from Minecraft's native mouse look
         # which is active during the gap between env steps.
         self._agent_host.sendCommand("pitch 0")
         self._agent_host.sendCommand("turn 0")
+
+        if name == "toggle_sneak":
+            self._sneaking = not self._sneaking
+            self._agent_host.sendCommand("crouch 1" if self._sneaking else "crouch 0")
+            time.sleep(self.cfg.STEP_DURATION)
+            return
+
         for cmd in cmds_on:
             self._agent_host.sendCommand(cmd)
         time.sleep(self.cfg.STEP_DURATION)
         for cmd in cmds_off:
             self._agent_host.sendCommand(cmd)
+
+        # Re-apply persistent sneak after any action that may have sent crouch 0
+        if self._sneaking:
+            self._agent_host.sendCommand("crouch 1")
 
     # ── Malmo interaction (copied from ParkourEnv) ────────────────────────────
 
