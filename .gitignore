@@ -10,7 +10,7 @@ __pycache__/
 
 # Training outputs
 Malmo/rl/checkpoints/
-Malmo/rl/logs/
+Malmo/rl/logs/*.csv
 
 # Demo recordings
 Malmo/demos/
