@@ -1,37 +1,30 @@
 # launch_training.ps1
-# Opens 3 terminal windows from the project root, each pre-configured for its role.
-# Run this script from anywhere — it resolves the project root automatically.
+# Opens 3 terminal tabs in one Admin window, each pre-configured for its role.
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
 
-# Terminal 1: Minecraft client
-# Encode the command to prevent wt from splitting on semicolons
+# --- Command Definitions ---
+
+# Tab 1: Minecraft client
 $mc_cmd = "Set-Location '$projectRoot'; Set-Location '.\Malmo\Minecraft'; .\launchClient.bat"
-$mc_encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($mc_cmd))
-Start-Process wt -ArgumentList @(
-    "new-tab",
-    "--title", "MC-Client",
-    "--",
-    "powershell.exe", "-NoExit", "-EncodedCommand", $mc_encoded
-)
+$mc_enc = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($mc_cmd))
 
-Start-Sleep -Milliseconds 500
+# Tab 2: Environment server (Conda malmo)
+# Note: Ensure 'conda init powershell' has been run once on your system
+$env_cmd = "Set-Location '$projectRoot'; conda activate malmo"
+$env_enc = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($env_cmd))
 
-# Terminal 2: Environment server (malmo env, Python 3.7)
-# Uses cmd.exe so conda activate works without needing the PowerShell shell hook
-Start-Process wt -ArgumentList @(
-    "new-tab",
-    "--title", "EnvServer",
-    "--",
-    "cmd.exe", "/K", "cd /d `"$projectRoot`" && conda activate malmo"
-)
+# Tab 3: Training (Conda train_env)
+$train_cmd = "Set-Location '$projectRoot'; conda activate train_env"
+$train_enc = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($train_cmd))
 
-Start-Sleep -Milliseconds 500
+# --- Launch Execution ---
 
-# Terminal 3: Training (train_env, Python 3.10)
-Start-Process wt -ArgumentList @(
-    "new-tab",
-    "--title", "Training",
-    "--",
-    "cmd.exe", "/K", "cd /d `"$projectRoot`" && conda activate train_env"
-)
+# We chain the commands using ';' so Windows Terminal opens them as tabs in one window.
+# -Verb RunAs is the secret sauce that forces the Administrator prompt.
+
+Start-Process wt -ArgumentList (
+    "new-tab --title `"MC-Client`" powershell.exe -NoExit -EncodedCommand $mc_enc",
+    "; new-tab --title `"EnvServer`" powershell.exe -NoExit -EncodedCommand $env_enc",
+    "; new-tab --title `"Training`" powershell.exe -NoExit -EncodedCommand $train_enc"
+) -Verb RunAs
