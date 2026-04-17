@@ -121,12 +121,12 @@ python Malmo/rl/training/train_sb3.py --env bridging --num-envs 2 --base-port 10
 
 ## Documentation
 
-- [Bridging Agent Full Guide](./Malmo/docs/bridging_quickstart.md) — world layout, action space, reward structure, key files
-- [Behavioral Cloning](./Malmo/docs/behavioral_cloning.md) — demo recording, replay, BC + PPO pipeline
-- [Setup & Installation](./Malmo/docs/setup.md) — conda environments, Malmo installation, env vars
-- [New Environments](./Malmo/docs/new_environment.md) — how to add a new Malmo environment
-- [New RL Algorithms](./Malmo/docs/new_algorithm.md) — how to add a new training algorithm
-- [New Model Architectures](./Malmo/docs/new_model.md) — how to swap in a different network
-- [Observation Vector](./Malmo/docs/observation_vector.md) — what the agent perceives on each step
-- [Action Space](./Malmo/docs/action_space.md) — available actions and how to modify them
-- [Architecture Report](./Malmo/docs/parkour_bot_report.md) — full system design and decisions
+- [Bridging Agent Full Guide](./malmo/docs/bridging_quickstart.md) — world layout, action space, reward structure, key files
+- [Behavioral Cloning](./malmo/docs/behavioral_cloning.md) — demo recording, replay, BC + PPO pipeline
+- [Setup & Installation](./malmo/docs/setup.md) — conda environments, Malmo installation, env vars
+- [New Environments](./malmo/docs/new_environment.md) — how to add a new Malmo environment
+- [New RL Algorithms](./malmo/docs/new_algorithm.md) — how to add a new training algorithm
+- [New Model Architectures](./malmo/docs/new_model.md) — how to swap in a different network
+- [Observation Vector](./malmo/docs/observation_vector.md) — what the agent perceives on each step
+- [Action Space](./malmo/docs/action_space.md) — available actions and how to modify them
+- [Architecture Report](./malmo/docs/parkour_bot_report.md) — full system design and decisions
