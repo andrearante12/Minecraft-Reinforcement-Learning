@@ -36,6 +36,7 @@ Observation vector layout (INPUT_SIZE = 214):
 
 import sys
 import os
+import math
 import time
 import json
 import numpy as np
@@ -77,6 +78,12 @@ class BridgingEnv:
         self._sneaking       = False       # persistent sneak toggle state
         self._landing_active  = False
 
+        # Shaping reward state
+        self._steps_since_z_progress  = 0      # stall counter; reset whenever max_z increases
+        self._entered_gap              = False  # first-gap-entry milestone fired this episode
+        self._aligned_to_south_face    = False  # crosshair currently on a goal-facing bridge block face
+        self._placed_while_aligned     = False  # block placed since current alignment began
+
         self.observation_shape = (cfg.INPUT_SIZE,)
 
         with open(cfg.MISSION_FILE, "r") as f:
@@ -100,6 +107,11 @@ class BridgingEnv:
         self._landing_counter = 0
         self._landing_active  = False
         self._sneaking        = False
+
+        self._steps_since_z_progress = 0
+        self._entered_gap            = False
+        self._aligned_to_south_face  = False
+        self._placed_while_aligned   = False
         try:
             self._agent_host.sendCommand("crouch 0")
         except Exception:
@@ -123,20 +135,33 @@ class BridgingEnv:
             hotbar_keys = [k for k in obs_dict if "otbar" in k or "nventory" in k or "lot" in k.lower()]
             print("DEBUG bridging obs keys (hotbar/inv): {0}".format(hotbar_keys))
 
-        # Detect block placement via inventory count drop
-        inv_count = int(obs_dict.get("Hotbar_0_size", self._prev_inv_count))
+        # Detect block placement via inventory count drop.
+        # Placement validity is judged by agent z-coordinate (Malmo obs lag
+        # makes the placed-block voxel unreliable on the same step).
+        inv_count   = int(obs_dict.get("Hotbar_0_size", self._prev_inv_count))
+        blocks_used = 0
         placement_reward = 0.0
         if inv_count < self._prev_inv_count:
             blocks_used = self._prev_inv_count - inv_count
             self._blocks_placed += blocks_used
-            placement_reward = self.cfg.REWARD_BLOCK_PLACED * blocks_used
+            z_now = float(obs_dict.get("ZPos", self.cfg.SPAWN[2]))
+            in_gap_range = ((self.cfg.BRIDGE_Z_START - 1.0)
+                            <= z_now
+                            <= (self.cfg.BRIDGE_Z_END + 1.0))
+            if in_gap_range:
+                placement_reward = self.cfg.REWARD_BLOCK_PLACED_VALID * blocks_used
+                if self._sneaking:
+                    placement_reward += self.cfg.REWARD_SNEAK_PLACE * blocks_used
+            else:
+                placement_reward = self.cfg.REWARD_BLOCK_PLACED_WASTED * blocks_used
         self._prev_inv_count = inv_count
 
         reward, done, outcome = self._get_reward(obs_dict, prev_pos)
 
-        # Add block placement reward (only if episode is still alive)
+        # Add placement and behavioural shaping rewards (only while alive)
         if not done:
             reward += placement_reward
+            reward += self._get_shaping_reward(obs_dict, blocks_used)
 
         # Mission ended unexpectedly
         if not world_state.is_mission_running and not done:
@@ -195,11 +220,11 @@ class BridgingEnv:
         self._agent_host.sendCommand("pitch 0")
         self._agent_host.sendCommand("turn 0")
 
-        if name == "toggle_sneak":
-            self._sneaking = not self._sneaking
-            self._agent_host.sendCommand("crouch 1" if self._sneaking else "crouch 0")
-            time.sleep(self.cfg.STEP_DURATION)
-            return
+        # Update persistent sneak state for explicit sneak actions.
+        if name == "sneak_down":
+            self._sneaking = True
+        elif name == "sneak_up":
+            self._sneaking = False
 
         for cmd in cmds_on:
             self._agent_host.sendCommand(cmd)
@@ -207,8 +232,10 @@ class BridgingEnv:
         for cmd in cmds_off:
             self._agent_host.sendCommand(cmd)
 
-        # Re-apply persistent sneak after any action that may have sent crouch 0
-        if self._sneaking:
+        # Re-apply persistent sneak after movement/placement actions that may
+        # implicitly reset crouch state in some Malmo builds. Skip for sneak
+        # actions themselves — they already set crouch explicitly via cmds_on.
+        if self._sneaking and name not in ("sneak_down", "sneak_up"):
             self._agent_host.sendCommand("crouch 1")
 
     # ── Malmo interaction (copied from ParkourEnv) ────────────────────────────
@@ -365,6 +392,111 @@ class BridgingEnv:
 
     # ── Reward function ───────────────────────────────────────────────────────
 
+    def _get_shaping_reward(self, obs_dict, blocks_placed_this_step):
+        """Behavioural shaping rewards that sit on top of the base step/placement/progress signals.
+
+        Called from step() only when the episode is still alive (not done).
+
+        Rewards computed here:
+          - First-gap-entry milestone (one-time)
+          - Sneak-in-gap / sneak-at-edge (per step)
+          - Stall penalty (per step, once stall counter exceeds threshold)
+          - Crosshair alignment break (one-time per look-away-without-placing event)
+
+        State managed across steps (initialised/reset in __init__ and reset()):
+          self._entered_gap            -- milestone has fired this episode
+          self._aligned_to_south_face  -- crosshair currently on a goal-facing bridge face
+          self._placed_while_aligned   -- block placed since the current alignment began
+          self._steps_since_z_progress -- stall counter, updated in _get_reward()
+        """
+        reward = 0.0
+        z = float(obs_dict.get("ZPos", self.cfg.SPAWN[2]))
+
+        in_gap  = self.cfg.BRIDGE_Z_START <= z <= self.cfg.BRIDGE_Z_END + 1.0
+        at_edge = (self.cfg.BRIDGE_Z_START - 1.0) <= z < self.cfg.BRIDGE_Z_START
+
+        # ── First-gap-entry milestone ──────────────────────────────────────
+        if in_gap and not self._entered_gap:
+            self._entered_gap = True
+            reward += self.cfg.REWARD_ENTERED_GAP
+
+        # ── Sneak bonuses ──────────────────────────────────────────────────
+        # Only reward sneak when the agent is at the +Z (goal-facing) side of
+        # their current block — i.e. at the leading edge of the bridge.
+        # For gap blocks:         z >= self._max_z - 0.5  (front half of furthest block)
+        # For the spawn platform: z >= BRIDGE_Z_START - 0.5 (front half of last solid block)
+        if self._sneaking:
+            at_leading_edge = (
+                (in_gap  and z >= self._max_z - 0.5) or
+                (at_edge and z >= self.cfg.BRIDGE_Z_START - 0.5)
+            )
+            if at_leading_edge:
+                if in_gap:
+                    reward += self.cfg.REWARD_SNEAK_IN_GAP
+                elif at_edge:
+                    reward += self.cfg.REWARD_SNEAK_AT_EDGE
+
+        # ── Camera shaping (look-down + look-back) ─────────────────────────
+        # Encourages the crosshair to land on the south face of the last bridge
+        # block, where the next block should be placed.
+        # Only active while in placement-relevant zone (gap or just before it).
+        if in_gap or at_edge:
+            pitch = float(obs_dict.get("Pitch", 0.0))  # 0=horizontal, 90=straight down
+            yaw   = float(obs_dict.get("Yaw",   0.0))  # 0=south(+Z), 180=north(-Z/back)
+
+            # Look-down: sin(π·pitch/90) peaks at 45°, falls to 0 at both 0°
+            # and 90°, so the policy is pushed toward an intermediate angle.
+            if 0.0 < pitch < 90.0:
+                reward += self.cfg.REWARD_LOOK_DOWN * math.sin(math.pi * pitch / 90.0)
+
+            # Look-back: (-cos(yaw)+1)/2 is 0 when facing south (+Z/goal),
+            # 1 when facing north (-Z/backward).  Handles ±180 wraparound cleanly.
+            look_back_factor = (-math.cos(math.radians(yaw)) + 1.0) / 2.0
+            reward += self.cfg.REWARD_LOOK_BACK * look_back_factor
+
+        # ── Stall penalty ──────────────────────────────────────────────────
+        if self._steps_since_z_progress > self.cfg.STALL_THRESHOLD:
+            reward += self.cfg.REWARD_STALL
+
+        # ── Crosshair alignment ────────────────────────────────────────────
+        # "Correct face" = the face of a bridge-zone block that points toward
+        # the goal (+Z direction = Malmo face name "south").  Once the agent
+        # begins looking at such a face, looking away without first placing a
+        # block incurs REWARD_ALIGNMENT_BREAK.  A successful placement resets
+        # the state cleanly so the immediately following look-away (caused by
+        # the block appearing) is never penalised.
+        los = obs_dict.get("LineOfSight", {})
+        curr_aligned = False
+        if los and los.get("hitType") == "block" and los.get("face") == "south":
+            target_x = float(los.get("x", 0))
+            target_y = float(los.get("y", 0))
+            target_z = float(los.get("z", 0))
+            if (self.cfg.BRIDGE_Z_START - 1 <= target_z <= self.cfg.BRIDGE_Z_END and
+                    abs(target_y - self.cfg.BRIDGE_Y) < 1.5 and
+                    abs(target_x) < 1.5):
+                curr_aligned = True
+
+        prev_aligned = self._aligned_to_south_face
+
+        # A block placed while previously aligned protects the look-away that
+        # follows (the block appearing causes the crosshair to shift off the face).
+        if blocks_placed_this_step > 0 and prev_aligned:
+            self._placed_while_aligned = True
+
+        # Look-away transition
+        if prev_aligned and not curr_aligned:
+            if not self._placed_while_aligned:
+                reward += self.cfg.REWARD_ALIGNMENT_BREAK   # negative constant
+            self._placed_while_aligned = False
+
+        # New alignment: reset placed flag so a fresh look-then-place cycle begins
+        if not prev_aligned and curr_aligned:
+            self._placed_while_aligned = False
+
+        self._aligned_to_south_face = curr_aligned
+
+        return reward
+
     def _current_pos(self, obs_dict):
         return np.array([
             float(obs_dict.get("XPos", self.cfg.SPAWN[0])),
@@ -427,11 +559,15 @@ class BridgingEnv:
             else:
                 return self.cfg.REWARD_SUCCESS, True, "landed"
 
-        # Z-progress reward: bonus for advancing to new Z positions
+        # Z-progress reward: bonus for advancing to new Z positions.
+        # Also drives the stall counter used by _get_shaping_reward.
         z_progress_reward = 0.0
         if z > self._max_z:
             z_progress_reward = self.cfg.REWARD_PROGRESS_COEF * (z - self._max_z)
             self._max_z = z
+            self._steps_since_z_progress = 0
+        else:
+            self._steps_since_z_progress += 1
 
         reward = self.cfg.REWARD_STEP_PENALTY + z_progress_reward
         return reward, False, "alive"

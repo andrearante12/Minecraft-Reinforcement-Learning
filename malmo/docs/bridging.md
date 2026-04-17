@@ -33,7 +33,7 @@ Z:  0  1  2  3  4  5  6  7  8  9  10
 
 The voxel grid is larger than parkour (5x5x8 vs 5x5x6) to give the agent visibility over the full bridge area as it advances.
 
-## Action Space (14 discrete)
+## Action Space (12 discrete)
 
 | Index | Action | Key Binding | Description |
 |-------|--------|-------------|-------------|
@@ -45,14 +45,12 @@ The voxel grid is larger than parkour (5x5x8 vs 5x5x6) to give the agent visibil
 | 5 | look_up | Up arrow | Look up |
 | 6 | turn_left | Left arrow | Turn left |
 | 7 | turn_right | Right arrow | Turn right |
-| 8 | sneak | Shift | Sneak (hold/release) |
-| 9 | place_block | Right-click | Place block at crosshair |
-| 10 | sneak_forward | Shift+W | Walk forward while sneaking |
-| 11 | sneak_backward | Shift+S | Walk backward while sneaking |
-| 12 | sneak_place | Shift+Right-click | Place block while sneaking |
-| 13 | no_op | (none) | Do nothing |
+| 8 | sneak_down | Shift (press) | Begin crouching — persistent until sneak_up |
+| 9 | sneak_up | Shift (release) | Stop crouching |
+| 10 | place_block | Right-click | Place block at crosshair |
+| 11 | no_op | (none) | Do nothing |
 
-All actions follow the same hold/release pattern — commands are sent for `STEP_DURATION`, then released. Combined actions like `sneak_forward` bundle sneak + movement into a single step.
+Sneak is edge-triggered: `sneak_down` fires once on press and `sneak_up` fires once on release. The environment maintains the crouch state internally between these two actions — any movement action issued while sneaking will re-apply `crouch 1` after it completes to preserve the persistent state.
 
 ## Reward Shaping
 
@@ -87,13 +85,13 @@ python Malmo/rl/utils/record_demos.py --env bridging --port 10002
 ```
 
 Record 50+ successful bridging demonstrations. The typical bridging sequence is:
-1. Toggle sneak on (Shift)
-2. Walk forward to edge (Shift+W)
-3. Look down at edge (Down arrow)
-4. Place block (R)
-5. Walk forward onto placed block (Shift+W)
-6. Repeat steps 4-5 until across
-7. Walk onto end platform
+1. Press Shift to begin sneaking (sneak_down) — prevents falling off edges
+2. Walk forward to the gap edge (W)
+3. Look down at the edge (Down arrow) so the crosshair targets the block face
+4. Right-click to place a block (place_block)
+5. Walk forward onto the placed block (W)
+6. Repeat steps 3-5 until across
+7. Release Shift (sneak_up) and walk onto the end platform
 
 ### Phase 2: BC Pre-training
 

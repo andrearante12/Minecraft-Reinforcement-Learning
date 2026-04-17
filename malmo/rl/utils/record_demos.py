@@ -151,61 +151,34 @@ def translate_keys_to_action():
 def translate_keys_to_action_bridging():
     """Read held keys and translate to bridging action index.
 
-    Bridging action space (14 actions):
-        0: move_forward       1: move_backward
-        2: strafe_left        3: strafe_right
-        4: look_down          5: look_up
-        6: turn_left          7: turn_right
-        8: sneak              9: place_block
-       10: sneak_forward     11: sneak_backward
-       12: sneak_place       13: no_op
+    Bridging action space (12 actions):
+        0: move_forward    1: move_backward
+        2: strafe_left     3: strafe_right
+        4: look_down       5: look_up
+        6: turn_left       7: turn_right
+        8: sneak_down      9: sneak_up
+       10: place_block    11: no_op
 
-    Keyboard mapping:
-        W/S/A/D         = movement
-        Arrows          = camera (look/turn)
-        Shift           = sneak (hold/release)
-        Right-click     = place block
-        Shift+W         = sneak_forward
-        Shift+S         = sneak_backward
-        Shift+Rclick    = sneak_place
+    Note: sneak_down (8) and sneak_up (9) are NOT returned here.
+    They are edge-detected in record() by comparing prev_shift_held to
+    the current shift state, so each press/release fires exactly once.
 
     Returns:
-        Action index (int) or None if no keys are held.
+        Action index (int) or None if no relevant keys are held.
     """
     w     = keyboard.is_pressed("w")
     s     = keyboard.is_pressed("s")
     a     = keyboard.is_pressed("a")
     d     = keyboard.is_pressed("d")
-    shift = keyboard.is_pressed("shift")
     up    = keyboard.is_pressed("up")
     down  = keyboard.is_pressed("down")
     left  = keyboard.is_pressed("left")
     right = keyboard.is_pressed("right")
     place = mouse.is_pressed("right") if mouse else False
 
-    # ── 2-key combos (most specific first) ─────────────────────────────────
-    if shift and place:
-        return 12  # sneak_place
-    if shift and w:
-        return 10  # sneak_forward
-    if shift and s:
-        return 11  # sneak_backward
-    # Camera while sneaking — arrow takes priority over bare sneak since the
-    # action space has no sneak+camera combo and camera intent is more valuable
-    if shift and down:
-        return 4   # look_down
-    if shift and up:
-        return 5   # look_up
-    if shift and left:
-        return 6   # turn_left
-    if shift and right:
-        return 7   # turn_right
-
     # ── 1-key actions ──────────────────────────────────────────────────────
     if place:
-        return 9   # place_block
-    if shift:
-        return 8   # sneak (no other key held)
+        return 10  # place_block
     if w:
         return 0   # move_forward
     if s:
@@ -284,9 +257,8 @@ def record():
     if args.env == "bridging":
         print("Controls (bridging):")
         print("  W=forward  S=back  A=strafe_L  D=strafe_R")
-        print("  Shift=sneak (hold)  Right-click=place_block")
-        print("  Shift+W=sneak_forward  Shift+S=sneak_backward")
-        print("  Shift+Rclick=sneak_place  Mouse=look/turn")
+        print("  Shift=sneak (press=sneak_down, release=sneak_up)")
+        print("  Right-click=place_block  Arrows=look/turn")
         print("  Enter=finish episode  Esc=save & quit")
     else:
         print("Controls (standard Minecraft):")
@@ -299,8 +271,9 @@ def record():
     print("=" * 60)
     print()
 
-    episode_num = len(data["episodes"]) + 1
-    running = True
+    episode_num  = len(data["episodes"]) + 1
+    running      = True
+    no_op_action = cfg.N_ACTIONS - 1   # last action is always no_op
 
     try:
         while running:
@@ -313,6 +286,7 @@ def record():
             info = None
 
             prev_blocks_placed = 0
+            prev_shift_held    = False   # for sneak edge-detection (bridging only)
 
             while not done and running:
                 # Check for quit
@@ -329,11 +303,31 @@ def record():
                     print("  (max steps reached)")
                     break
 
+                # Bridging: detect shift press/release as sneak_down/sneak_up transitions.
+                # Done before key_translator() so sneak can take priority as step_action.
+                if args.env == "bridging":
+                    shift_held = keyboard.is_pressed("shift")
+                    if shift_held and not prev_shift_held:
+                        sneak_transition = 8   # sneak_down
+                    elif not shift_held and prev_shift_held:
+                        sneak_transition = 9   # sneak_up
+                    else:
+                        sneak_transition = None
+                    prev_shift_held = shift_held
+                else:
+                    sneak_transition = None
+
                 keyboard_action = key_translator()
 
-                # Always step the env each tick (no_op if no key held) so we
-                # can detect camera movement via obs pitch/yaw delta.
-                step_action = keyboard_action if keyboard_action is not None else 13  # 13=no_op
+                # Sneak transitions take priority as step_action so the env executes
+                # them; otherwise step with the keyboard action or no_op.
+                if sneak_transition is not None:
+                    step_action = sneak_transition
+                else:
+                    step_action = keyboard_action if keyboard_action is not None else no_op_action
+
+                # Always step the env each tick so we can detect camera movement
+                # via obs pitch/yaw delta.
                 obs_prev = obs.copy()
                 obs, reward, done, info = env.step(step_action)
                 total_reward += reward
@@ -341,16 +335,21 @@ def record():
 
                 actions_to_record = []
 
-                # Bridging: blocks-placed override on keyboard action
-                if args.env == "bridging" and info:
-                    new_placed = info.get("blocks_placed", 0)
-                    if new_placed > prev_blocks_placed:
-                        if keyboard_action not in (9, 12):
-                            keyboard_action = 12  # sneak_place
-                        prev_blocks_placed = new_placed
+                if sneak_transition is not None:
+                    # Record sneak transition; any simultaneous movement key is
+                    # deferred to the next tick naturally.
+                    actions_to_record.append(sneak_transition)
+                else:
+                    # Bridging: blocks-placed override on keyboard action
+                    if args.env == "bridging" and info:
+                        new_placed = info.get("blocks_placed", 0)
+                        if new_placed > prev_blocks_placed:
+                            if keyboard_action != 10:
+                                keyboard_action = 10   # force place_block
+                            prev_blocks_placed = new_placed
 
-                if keyboard_action is not None:
-                    actions_to_record.append(keyboard_action)
+                    if keyboard_action is not None:
+                        actions_to_record.append(keyboard_action)
 
                 # Bridging: detect camera movement from obs pitch/yaw delta and
                 # append as an additional action. Mouse controls camera so
@@ -385,7 +384,7 @@ def record():
                     step_record = {"obs": obs_prev.tolist(), "action": int(rec_action)}
                     step_record.update(extra)
                     steps.append(step_record)
-                    placed = " [PLACED #{0}]".format(prev_blocks_placed) if rec_action in (9, 12) and prev_blocks_placed > 0 else ""
+                    placed = " [PLACED #{0}]".format(prev_blocks_placed) if rec_action == 10 and prev_blocks_placed > 0 else ""
                     print("  step:{0:>4} | action:{1:<18} | reward:{2:>7.2f} | total:{3:>7.2f}{4}".format(
                         step_count, action_names[rec_action], reward, total_reward, placed))
 

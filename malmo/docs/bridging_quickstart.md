@@ -39,20 +39,20 @@ python Malmo/rl/utils/record_demos.py --env bridging --port 10002
 |-----|--------|
 | W / S | Forward / backward |
 | A / D | Strafe left / right |
-| Shift | Sneak (hold) |
+| Shift (press) | sneak_down — begin crouching |
+| Shift (release) | sneak_up — stop crouching |
 | Right-click | Place block |
-| Shift+W | Sneak forward |
-| Shift+Right-click | Sneak + place |
 | Arrow keys | Look / turn |
 | Esc | Save & quit |
 
 **Bridging technique:**
-1. Hold Shift (sneak) — prevents falling off edges
-2. Walk forward to the edge (Shift+W)
-3. Look down (Down arrow) so crosshair targets the block edge
+1. Press Shift (sneak_down) — prevents falling off edges while building
+2. Walk forward to the gap edge (W)
+3. Look down (Down arrow) so the crosshair targets the block face below
 4. Right-click to place a block
-5. Walk forward onto the placed block (Shift+W)
+5. Walk forward onto the placed block (W)
 6. Repeat until you reach the end platform
+7. Release Shift (sneak_up) and walk onto the platform
 
 > Block placement is detected via inventory count — even if a right-click isn't captured by polling, the recorder auto-corrects using the env's inventory tracking. You'll see `[PLACED #N]` in the logs.
 
@@ -134,17 +134,16 @@ Z:               0  1  2    3  4  5  6  7        8  9  10
 - Agent spawns at (0.5, 46, 1.5) looking down (pitch=70)
 - 64 stone blocks in inventory
 
-## Action Space (14 discrete)
+## Action Space (12 discrete)
 
 | Idx | Action | Idx | Action |
 |-----|--------|-----|--------|
-| 0 | move_forward | 7 | turn_right |
-| 1 | move_backward | 8 | sneak |
-| 2 | strafe_left | 9 | place_block |
-| 3 | strafe_right | 10 | sneak_forward |
-| 4 | look_down | 11 | sneak_backward |
-| 5 | look_up | 12 | sneak_place |
-| 6 | turn_left | 13 | no_op |
+| 0 | move_forward | 6 | turn_left |
+| 1 | move_backward | 7 | turn_right |
+| 2 | strafe_left | 8 | sneak_down |
+| 3 | strafe_right | 9 | sneak_up |
+| 4 | look_down | 10 | place_block |
+| 5 | look_up | 11 | no_op |
 
 ## Reward Structure
 

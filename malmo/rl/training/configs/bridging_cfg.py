@@ -51,33 +51,59 @@ class BridgingCFG(BaseCFG):
     GOAL_DELTA_SIZE     = 3
     INPUT_SIZE          = PROPRIOCEPTION_SIZE + GOAL_DELTA_SIZE + GRID_SIZE  # 220
 
-    # ── Actions (14 discrete) ────────────────────────────────────────────────
+    # ── Actions (12 discrete) ────────────────────────────────────────────────
     BRIDGING_ACTIONS = [
         # Movement
-        ("move_forward",      ["move 1"],              ["move 0"]),              # 0
-        ("move_backward",     ["move -1"],             ["move 0"]),              # 1
-        ("strafe_left",       ["strafe -1"],           ["strafe 0"]),            # 2
-        ("strafe_right",      ["strafe 1"],            ["strafe 0"]),            # 3
+        ("move_forward",  ["move 1"],    ["move 0"]),    # 0
+        ("move_backward", ["move -1"],   ["move 0"]),    # 1
+        ("strafe_left",   ["strafe -1"], ["strafe 0"]),  # 2
+        ("strafe_right",  ["strafe 1"],  ["strafe 0"]),  # 3
         # Camera
-        ("look_down",         ["pitch 1"],             ["pitch 0"]),             # 4
-        ("look_up",           ["pitch -1"],            ["pitch 0"]),             # 5
-        ("turn_left",         ["turn -1"],             ["turn 0"]),              # 6
-        ("turn_right",        ["turn 1"],              ["turn 0"]),              # 7
-        # Sneak/crouch (ContinuousMovementCommands uses "crouch", not "sneak")
-        ("toggle_sneak",      [],                        []),                      # 8
+        ("look_down",     ["pitch 1"],   ["pitch 0"]),   # 4
+        ("look_up",       ["pitch -1"],  ["pitch 0"]),   # 5
+        ("turn_left",     ["turn -1"],   ["turn 0"]),    # 6
+        ("turn_right",    ["turn 1"],    ["turn 0"]),    # 7
+        # Sneak/crouch — explicit press and release (ContinuousMovementCommands uses "crouch")
+        ("sneak_down",    ["crouch 1"],  []),             # 8
+        ("sneak_up",      ["crouch 0"],  []),             # 9
         # Block placement
-        ("place_block",       ["use 1"],                ["use 0"]),               # 9
+        ("place_block",   ["use 1"],     ["use 0"]),     # 10
         # Idle
-        ("no_op",             [],                      []),                      # 10
+        ("no_op",         [],            []),             # 11
     ]
     ACTIONS   = BRIDGING_ACTIONS
-    N_ACTIONS = len(ACTIONS)  # 11
+    N_ACTIONS = len(ACTIONS)  # 12
 
     # ── Bridging-specific rewards ─────────────────────────────────────────────
-    REWARD_BLOCK_PLACED   = +0.5   # any block placed (unconditional; Malmo obs lag makes spatial check unreliable)
-    REWARD_WASTEFUL_PLACE = -1.0   # reserved for future use
-    REWARD_STEP_PENALTY   = -0.02  # slightly higher than parkour
-    REWARD_PROGRESS_COEF  = +0.5   # per new z-level reached
+    # Block placement — distinguished by position relative to the gap zone.
+    # Agent z-coordinate is used as a proxy for placement location because
+    # Malmo's observation lag makes the placed-block voxel unreliable on the
+    # same step as placement.
+    REWARD_BLOCK_PLACED_VALID   = +1.0   # block placed while in (or just before) the gap zone
+    REWARD_BLOCK_PLACED_WASTED  = -0.5   # block placed outside the gap zone
+    REWARD_SNEAK_PLACE          = +0.3   # bonus on valid placement when crouched (+1.3 total)
+
+    REWARD_STEP_PENALTY  = -0.01   # reduced from -0.02: setup actions (turn-around) are less penalised
+    REWARD_PROGRESS_COEF = +0.3    # reduced from +0.5: placement now carries the primary per-block signal
+
+    # ── Behavioural shaping ───────────────────────────────────────────────────
+    REWARD_ENTERED_GAP     = +1.0    # one-time: first step into the gap zone
+    REWARD_SNEAK_IN_GAP    = +0.005  # per step: crouching while inside the gap
+    REWARD_SNEAK_AT_EDGE   = +0.01   # per step: crouching on the platform block immediately before the gap
+
+    # Crosshair alignment: fires once (negatively) when the agent looks away
+    # from a goal-facing block face without having placed a block first.
+    REWARD_ALIGNMENT_BREAK = -0.3
+
+    # Camera shaping: small per-step rewards while in the gap / at the edge.
+    # sin-shaped look-down peaks at 45° pitch, preventing straight-down collapse.
+    # look-back factor is 0 when facing the goal, 1 when facing fully backward.
+    REWARD_LOOK_DOWN = +0.004   # max reward at 45° downward pitch
+    REWARD_LOOK_BACK = +0.002   # max reward when facing directly backward (-Z)
+
+    # Stall: additional per-step penalty when z-progress stalls beyond threshold
+    STALL_THRESHOLD = 15     # steps without z-progress before penalty begins
+    REWARD_STALL    = -0.02  # extra per-step cost during stall (stacks with step penalty)
 
     # ── Bridge geometry (gap zone) ────────────────────────────────────────────
     BRIDGE_Z_START = 2     # first Z of the gap
