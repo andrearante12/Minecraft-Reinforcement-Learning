@@ -53,7 +53,8 @@ class EnvClient:
         except Exception as e:
             raise ConnectionError("recv failed: {0}".format(e))
 
-    def reset(self, max_retries=3, force_reset=False):
+    def reset(self, max_retries=5, force_reset=False):
+        import time
         for attempt in range(max_retries):
             msg = {"cmd": "reset"}
             if force_reset:
@@ -66,8 +67,7 @@ class EnvClient:
                 if attempt == max_retries - 1:
                     raise RuntimeError("reset failed after {0} retries: {1}".format(
                         max_retries, resp["error"]))
-                import time
-                time.sleep(5)
+                time.sleep(10)
                 continue
             return np.array(resp["obs"], dtype=np.float32)
 

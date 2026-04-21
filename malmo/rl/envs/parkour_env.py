@@ -58,6 +58,8 @@ class ParkourEnv:
         self._steps    = 0
         self._landing_counter = 0
         self._landing_active  = False
+        self._jump_checkpoints    = list(getattr(cfg, 'JUMP_CHECKPOINTS', []))
+        self._next_checkpoint_idx = 0
 
         self.observation_shape = (cfg.INPUT_SIZE,)
 
@@ -83,6 +85,7 @@ class ParkourEnv:
         self._prev_pos = np.array(self.cfg.SPAWN, dtype=np.float32)
         self._landing_counter = 0
         self._landing_active  = False
+        self._next_checkpoint_idx = 0
         time.sleep(0.5)
         # Use forceReset only on first reset after an env switch, then fast resets
         if self._next_force_reset:
@@ -139,16 +142,28 @@ class ParkourEnv:
             except Exception:
                 pass
 
+        # Advance jump checkpoints: agent must be alive (above fall threshold) and past each z
+        if self._jump_checkpoints:
+            z_now = float(obs_dict.get("ZPos", self.cfg.SPAWN[2]))
+            y_now = float(obs_dict.get("YPos", self.cfg.SPAWN[1]))
+            while self._next_checkpoint_idx < len(self._jump_checkpoints):
+                if (y_now >= self.cfg.FALL_Y_THRESHOLD
+                        and z_now >= self._jump_checkpoints[self._next_checkpoint_idx]):
+                    self._next_checkpoint_idx += 1
+                else:
+                    break
+
         info = {
-            "outcome":   outcome,
-            "steps":     self._steps,
-            "pos":       (obs_dict.get("XPos", 0),
-                          obs_dict.get("YPos", 0),
-                          obs_dict.get("ZPos", 0)),
-            "yaw":       obs_dict.get("Yaw",      0.0),
-            "pitch":     obs_dict.get("Pitch",    0.0),
-            "on_ground": int(obs_dict.get("OnGround", True)),
-            "action":    self.actions[action][0],
+            "outcome":         outcome,
+            "steps":           self._steps,
+            "pos":             (obs_dict.get("XPos", 0),
+                                obs_dict.get("YPos", 0),
+                                obs_dict.get("ZPos", 0)),
+            "yaw":             obs_dict.get("Yaw",      0.0),
+            "pitch":           obs_dict.get("Pitch",    0.0),
+            "on_ground":       int(obs_dict.get("OnGround", True)),
+            "action":          self.actions[action][0],
+            "jumps_completed": self._next_checkpoint_idx,
         }
         return obs, reward, done, info
 
@@ -160,8 +175,8 @@ class ParkourEnv:
 
     # ── Malmo interaction ──────────────────────────────────────────────────────
 
-    def _start_mission(self, mission_xml=None, max_retries=3,
-                       begin_timeout=30.0, running_timeout=30.0):
+    def _start_mission(self, mission_xml=None, max_retries=5,
+                       begin_timeout=45.0, running_timeout=30.0):
         # Wait for any previous mission to finish
         t0 = time.time()
         ws = self._agent_host.getWorldState()
@@ -173,7 +188,7 @@ class ParkourEnv:
                     self._agent_host.sendCommand("quit")
                 except Exception:
                     pass
-                time.sleep(1)
+                time.sleep(3)
                 break
             time.sleep(0.1)
             ws = self._agent_host.getWorldState()
@@ -196,7 +211,7 @@ class ParkourEnv:
                         "Is Minecraft running on port {2}?".format(
                             max_retries, e, self._malmo_port))
                 print("  Retrying start ({0}/{1})...".format(attempt + 1, max_retries))
-                time.sleep(2)
+                time.sleep(5)
                 continue
 
             # Wait for the mission to actually begin (with timeout)
@@ -219,11 +234,16 @@ class ParkourEnv:
                 time.sleep(0.5)
                 return
 
-            # Mission begin timed out — retry
+            # Mission begin timed out — send quit to clean up Minecraft state before retrying
             print("\nWARNING: Mission did not begin within {0}s".format(begin_timeout))
+            try:
+                self._agent_host.sendCommand("quit")
+            except Exception:
+                pass
             if attempt < max_retries - 1:
-                print("  Retrying ({0}/{1})...".format(attempt + 1, max_retries))
-                time.sleep(2)
+                backoff = 5 * (attempt + 1)
+                print("  Retrying ({0}/{1}) after {2}s...".format(attempt + 1, max_retries, backoff))
+                time.sleep(backoff)
 
         raise RuntimeError(
             "Mission failed to begin after {0} attempts "
