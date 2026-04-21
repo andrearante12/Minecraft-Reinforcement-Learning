@@ -34,16 +34,26 @@ CAMERA_YAW_DEGS_PER_ACTION   = 27.0
 CAMERA_PITCH_DEGS_PER_ACTION = 13.5
 
 # Environment registry — only need configs for INPUT_SIZE and action names
-from training.configs.simple_jump_cfg     import SimpleJumpCFG
-from training.configs.one_block_gap_cfg   import OneBlockGapCFG
-from training.configs.three_block_gap_cfg import ThreeBlockGapCFG
-from training.configs.bridging_cfg        import BridgingCFG
+from training.configs.simple_jump_cfg       import SimpleJumpCFG
+from training.configs.one_block_gap_cfg     import OneBlockGapCFG
+from training.configs.three_block_gap_cfg   import ThreeBlockGapCFG
+from training.configs.diagonal_small_cfg    import DiagonalSmallCFG
+from training.configs.diagonal_medium_cfg   import DiagonalMediumCFG
+from training.configs.vertical_small_cfg    import VerticalSmallCFG
+from training.configs.multi_jump_course_cfg import MultiJumpCourseCFG
+from training.configs.multi_jump_branch_cfg import MultiJumpBranchCFG
+from training.configs.bridging_cfg          import BridgingCFG
 
 ENV_CONFIGS = {
-    "simple_jump":     SimpleJumpCFG,
-    "one_block_gap":   OneBlockGapCFG,
-    "three_block_gap": ThreeBlockGapCFG,
-    "bridging":        BridgingCFG,
+    "simple_jump":       SimpleJumpCFG,
+    "one_block_gap":     OneBlockGapCFG,
+    "three_block_gap":   ThreeBlockGapCFG,
+    "diagonal_small":    DiagonalSmallCFG,
+    "diagonal_medium":   DiagonalMediumCFG,
+    "vertical_small":    VerticalSmallCFG,
+    "multi_jump_course": MultiJumpCourseCFG,
+    "multi_jump_branch": MultiJumpBranchCFG,
+    "bridging":          BridgingCFG,
 }
 
 

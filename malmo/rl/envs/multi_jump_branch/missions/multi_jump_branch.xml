@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <About>
+    <Summary>Multi-Jump Branch - 3 asymmetric branches converging on one final block</Summary>
+  </About>
+
+  <ServerSection>
+    <ServerInitialConditions>
+      <Time><StartTime>1000</StartTime></Time>
+      <Weather>clear</Weather>
+    </ServerInitialConditions>
+    <ServerHandlers>
+      <FlatWorldGenerator generatorString="3;7,2*3,2;1;" forceReset="true"/>
+
+      <DrawingDecorator>
+        <!-- Start -->
+        <DrawCuboid x1="0"  y1="45" z1="3"  x2="0"  y2="45" z2="3"  type="stone"/>
+
+        <!-- Left branch (x=-2): diagonal from start, then 1-block straights -->
+        <DrawCuboid x1="-2" y1="45" z1="5"  x2="-2" y2="45" z2="5"  type="stone"/>
+        <DrawCuboid x1="-2" y1="45" z1="7"  x2="-2" y2="45" z2="7"  type="stone"/>
+        <DrawCuboid x1="-2" y1="45" z1="9"  x2="-2" y2="45" z2="9"  type="stone"/>
+        <DrawCuboid x1="-2" y1="45" z1="11" x2="-2" y2="45" z2="11" type="stone"/>
+
+        <!-- Center branch (x=0): straight from start, 1-block then 2-block gaps -->
+        <DrawCuboid x1="0"  y1="45" z1="5"  x2="0"  y2="45" z2="5"  type="stone"/>
+        <DrawCuboid x1="0"  y1="45" z1="8"  x2="0"  y2="45" z2="8"  type="stone"/>
+        <DrawCuboid x1="0"  y1="45" z1="10" x2="0"  y2="45" z2="10" type="stone"/>
+
+        <!-- Right branch (x=2): diagonal from start, then 2-block gaps -->
+        <DrawCuboid x1="2"  y1="45" z1="5"  x2="2"  y2="45" z2="5"  type="stone"/>
+        <DrawCuboid x1="2"  y1="45" z1="8"  x2="2"  y2="45" z2="8"  type="stone"/>
+        <DrawCuboid x1="2"  y1="45" z1="11" x2="2"  y2="45" z2="11" type="stone"/>
+
+        <!-- Final goal: all branches converge here -->
+        <DrawCuboid x1="0"  y1="45" z1="13" x2="0"  y2="45" z2="13" type="stone"/>
+      </DrawingDecorator>
+
+      <ServerQuitFromTimeUp timeLimitMs="25000"/>
+      <ServerQuitWhenAnyAgentFinishes/>
+    </ServerHandlers>
+  </ServerSection>
+
+  <AgentSection mode="Survival">
+    <Name>Parkour Agent</Name>
+    <AgentStart>
+      <Placement x="0.5" y="46" z="3.5" yaw="0"/>
+    </AgentStart>
+    <AgentHandlers>
+      <ContinuousMovementCommands/>
+      <ObservationFromFullStats/>
+
+      <ObservationFromGrid>
+        <Grid name="floor3x3">
+          <min x="-2" y="-1" z="-2"/>
+          <max x="2"  y="3"  z="3"/>
+        </Grid>
+      </ObservationFromGrid>
+
+      <AgentQuitFromTouchingBlockType>
+          <Block type="gold_block" />
+      </AgentQuitFromTouchingBlockType>
+    </AgentHandlers>
+  </AgentSection>
+</Mission>

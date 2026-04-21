@@ -55,10 +55,9 @@ class ThreeBlockGapCFG(BaseCFG):
     REWARD_ON_MISSION_ENDED    = False
 
     # ── Three-block-gap tuning ───────────────────────────────────────────
-    # Longer training with slower decay — the agent needs more time to
-    # discover precise sprint-jump timing than easier envs
+    # Resumed training: start with lower LR/entropy since policy is already trained
     TOTAL_EPISODES   = 10000
-    ENTROPY_COEF     = 0.05
-    ENTROPY_COEF_END = 0.01    # floor higher than default to maintain exploration
-    LR               = 3e-4
-    LR_END           = 5e-5    # don't decay to zero — keep learning capacity
+    ENTROPY_COEF     = 0.02    # lowered from 0.05 for resume
+    ENTROPY_COEF_END = 0.005   # keep a higher floor than default — 3-block still needs exploration
+    LR               = 1e-4    # lowered from 3e-4 for resume
+    LR_END           = 1e-5    # don't decay to zero

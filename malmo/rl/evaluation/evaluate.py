@@ -11,6 +11,7 @@ Requires env_server.py to be running first:
 
 import sys
 import os
+import json
 import argparse
 
 PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,6 +24,7 @@ from training.configs.diagonal_small_cfg      import DiagonalSmallCFG
 from training.configs.diagonal_medium_cfg     import DiagonalMediumCFG
 from training.configs.vertical_small_cfg      import VerticalSmallCFG
 from training.configs.multi_jump_course_cfg   import MultiJumpCourseCFG
+from training.configs.multi_jump_branch_cfg   import MultiJumpBranchCFG
 
 from models.actor_critic import ActorCritic
 from algos.ppo           import PPO
@@ -36,6 +38,7 @@ ENV_REGISTRY = {
     "diagonal_medium":     DiagonalMediumCFG,
     "vertical_small":      VerticalSmallCFG,
     "multi_jump_course":   MultiJumpCourseCFG,
+    "multi_jump_branch":   MultiJumpBranchCFG,
 }
 
 
@@ -50,6 +53,9 @@ def parse_args():
                         help="Number of evaluation episodes (default: 20)")
     parser.add_argument("--port", type=int, default=9999,
                         help="TCP port of the env server (default: 9999)")
+    parser.add_argument("--save-successes", type=str, default=None,
+                        metavar="PATH",
+                        help="Save successful episodes as a replayable JSON (e.g. demos/eval_successes.json)")
     return parser.parse_args()
 
 
@@ -71,32 +77,43 @@ def evaluate():
     agent = PPO(model, cfg)
     agent.load(args.checkpoint)
 
-    results = []
+    results          = []
+    success_episodes = []
 
     for ep in range(1, args.episodes + 1):
         obs    = env.reset()
         done   = False
-        total_reward = 0.0
-        steps  = 0
-        outcome = "timeout"
+        total_reward   = 0.0
+        n_steps        = 0
+        outcome        = "timeout"
+        episode_actions = []
 
         while not done:
             action = agent.select_action(obs, greedy=True)
+            episode_actions.append(int(action))
             obs, reward, done, info = env.step(action)
             total_reward += reward
-            steps        += 1
+            n_steps      += 1
             if done:
                 outcome = info["outcome"]
 
-        results.append((ep, total_reward, steps, outcome))
-        print("  Ep {0:>3} | steps:{1:>3} | reward:{2:>7.2f} | {3}".format(
-            ep, steps, total_reward, outcome))
+        jumps = info.get("jumps_completed", 0)
+        results.append((ep, total_reward, n_steps, outcome, jumps))
+        print("  Ep {0:>3} | steps:{1:>3} | reward:{2:>7.2f} | jumps:{3} | {4}".format(
+            ep, n_steps, total_reward, jumps, outcome))
+
+        if outcome == "landed" and args.save_successes:
+            success_episodes.append({
+                "outcome": outcome,
+                "steps":   [{"action": a} for a in episode_actions],
+            })
 
     # ── Summary ───────────────────────────────────────────────────────────────
     n        = len(results)
     rewards  = [r[1] for r in results]
     steps    = [r[2] for r in results]
     outcomes = [r[3] for r in results]
+    jumps    = [r[4] for r in results]
 
     n_landed  = outcomes.count("landed")
     n_fell    = outcomes.count("fell")
@@ -114,6 +131,23 @@ def evaluate():
     print("  Mean steps:   {0:.1f}".format(sum(steps) / n))
     print("  Min reward:   {0:.2f}".format(min(rewards)))
     print("  Max reward:   {0:.2f}".format(max(rewards)))
+
+    max_jumps = max(jumps) if jumps else 0
+    if max_jumps > 0:
+        print("\n  Jumps completed:")
+        for j in range(max_jumps + 1):
+            count = jumps.count(j)
+            print("    {0}: {1:>3}  ({2:.1f}%)".format(j, count, 100 * count / n))
+
+    if args.save_successes and success_episodes:
+        save_path = args.save_successes
+        os.makedirs(os.path.dirname(os.path.abspath(save_path)), exist_ok=True)
+        with open(save_path, "w") as f:
+            json.dump({"env": args.env, "episodes": success_episodes}, f)
+        print("\n  Saved {0} successful episode(s) to {1}".format(
+            len(success_episodes), save_path))
+    elif args.save_successes:
+        print("\n  No successful episodes to save.")
 
     env.close()
 
