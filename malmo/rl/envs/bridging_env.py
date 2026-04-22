@@ -87,7 +87,10 @@ class BridgingEnv:
         self.observation_shape = (cfg.INPUT_SIZE,)
 
         with open(cfg.MISSION_FILE, "r") as f:
-            self._mission_xml = f.read()
+            xml = f.read()
+        self._mission_xml_force = xml
+        self._mission_xml_fast  = xml.replace('forceReset="true"', 'forceReset="false"')
+        self._next_force_reset  = force_reset
 
         self._agent_host = MalmoPython.AgentHost()
         try:
@@ -118,7 +121,11 @@ class BridgingEnv:
             pass
 
         time.sleep(0.5)
-        self._start_mission(self._mission_xml)
+        if self._next_force_reset:
+            self._start_mission(self._mission_xml_force)
+            self._next_force_reset = False
+        else:
+            self._start_mission(self._mission_xml_fast)
         return self._get_observation()
 
     def step(self, action):

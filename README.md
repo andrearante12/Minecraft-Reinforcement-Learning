@@ -59,10 +59,43 @@ python Malmo/rl/utils/replay_demos.py --env bridging --port 10002 --episode 0 --
 
 ### 3. Train
 
+Two training styles are available: **single-env** (simple, uses SB3) and **curriculum** (recommended, uses custom PPO).
+
+#### Option A — Curriculum training (recommended)
+
+Starts on a 1-block gap and auto-promotes to larger gaps once 90% success rate is reached over a 50-episode window. Uses BC pre-training first, then PPO fine-tuning.
+
+**Step 1 — BC pre-train on demos** (offline, no Minecraft needed):
+```powershell
+# Terminal 3
+conda activate train_env
+python Malmo/rl/training/train.py --env bridging_1block --algo bc --demo-path Malmo/demos/bridging.json --base-port 10002
+```
+This runs quickly (minutes). A checkpoint is saved to `checkpoints/bc_bridging_1block_ep<N>.pt`.
+
+**Step 2 — PPO curriculum from BC checkpoint** (env server must be running on `bridging_1block`):
+```powershell
+# Terminal 2: restart env server on bridging_1block
+conda activate malmo
+python Malmo/rl/envs/env_server.py --env bridging_1block --port 10002 --malmo-port 10000
+
+# Terminal 3
+conda activate train_env
+python Malmo/rl/training/train.py --algo ppo --curriculum Malmo/rl/training/curricula/adaptive_bridging.json --checkpoint Malmo/rl/checkpoints/bc_bridging_1block_ep<N>.pt --base-port 10002
+```
+The curriculum handles env switching automatically (1→2→3→4→5 block gaps). The env server only needs to start on the first env; `train.py` sends `switch_env` commands as the agent promotes.
+
+**Resume curriculum from a PPO checkpoint:**
+```powershell
+python Malmo/rl/training/train.py --algo ppo --curriculum Malmo/rl/training/curricula/adaptive_bridging.json --checkpoint Malmo/rl/checkpoints/ppo_curriculum_ppo_ep<N>.pt --base-port 10002
+```
+
+#### Option B — Single-env SB3 training
+
 ```powershell
 # Terminal 3
 
-# BC pre-training on demos, then PPO fine-tuning (recommended):
+# BC pre-training on demos, then PPO fine-tuning:
 conda activate train_env
 python Malmo/rl/training/train_sb3.py --env bridging --base-port 10002 --demo-path demos/bridging.json
 

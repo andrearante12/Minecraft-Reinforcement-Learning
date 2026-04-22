@@ -37,6 +37,10 @@ from training.configs.diagonal_medium_cfg   import DiagonalMediumCFG
 from training.configs.vertical_small_cfg      import VerticalSmallCFG
 from training.configs.multi_jump_course_cfg   import MultiJumpCourseCFG
 from training.configs.bridging_cfg            import BridgingCFG
+from training.configs.bridging_1block_cfg     import Bridging1BlockCFG
+from training.configs.bridging_2block_cfg     import Bridging2BlockCFG
+from training.configs.bridging_3block_cfg     import Bridging3BlockCFG
+from training.configs.bridging_4block_cfg     import Bridging4BlockCFG
 
 from envs.bridging_env import BridgingEnv
 
@@ -49,6 +53,11 @@ ENV_REGISTRY = {
     "vertical_small":      (ParkourEnv, VerticalSmallCFG),
     "multi_jump_course":   (ParkourEnv, MultiJumpCourseCFG),
     "bridging":            (BridgingEnv, BridgingCFG),
+    "bridging_1block":     (BridgingEnv, Bridging1BlockCFG),
+    "bridging_2block":     (BridgingEnv, Bridging2BlockCFG),
+    "bridging_3block":     (BridgingEnv, Bridging3BlockCFG),
+    "bridging_4block":     (BridgingEnv, Bridging4BlockCFG),
+    "bridging_5block":     (BridgingEnv, BridgingCFG),
 }
 
 HOST = "127.0.0.1"

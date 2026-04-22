@@ -1,0 +1,10 @@
+{
+  "mode": "adaptive",
+  "stages": [
+    {"env": "bridging_1block", "target_success_rate": 0.9, "window": 50, "min_episodes": 100, "max_episodes": 1000},
+    {"env": "bridging_2block", "target_success_rate": 0.9, "window": 50, "min_episodes": 100, "max_episodes": 1500},
+    {"env": "bridging_3block", "target_success_rate": 0.9, "window": 50, "min_episodes": 100, "max_episodes": 2000},
+    {"env": "bridging_4block", "target_success_rate": 0.9, "window": 50, "min_episodes": 100, "max_episodes": 2500},
+    {"env": "bridging_5block", "max_episodes": 3000}
+  ]
+}
