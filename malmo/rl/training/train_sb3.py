@@ -71,17 +71,18 @@ class EpisodeLoggerCallback(BaseCallback):
                 reward = info.get("episode", {}).get("r", 0.0)
                 steps = info.get("episode", {}).get("l", 0)
                 outcome = info.get("outcome", "unknown")
+                blocks_placed = info.get("blocks_placed", 0)
 
-                # SB3 Monitor wrapper provides episode stats in info["episode"]
-                # but our env provides outcome directly
                 if "episode" not in info:
                     reward = 0.0
                     steps = 0
 
                 self.logger_obj.log_episode(
                     self.episode_count, reward, steps,
-                    outcome, self.env_name,
+                    outcome, self.env_name, blocks_placed,
                 )
+                print("  ep {0:>4} | reward: {1:>7.2f} | steps: {2:>3} | {3:<8} | blocks: {4}".format(
+                    self.episode_count, reward, steps, outcome, blocks_placed))
                 self.logger_obj.print_summary(every=self.print_every)
         return True
 

@@ -27,7 +27,7 @@
 
       </DrawingDecorator>
 
-      <ServerQuitFromTimeUp timeLimitMs="15000"/>
+      <ServerQuitFromTimeUp timeLimitMs="30000"/>
       <ServerQuitWhenAnyAgentFinishes/>
     </ServerHandlers>
   </ServerSection>
@@ -35,7 +35,7 @@
   <AgentSection mode="Survival">
     <Name>Bridging Agent</Name>
     <AgentStart>
-      <Placement x="0.5" y="46" z="1.5" yaw="0" pitch="70"/>
+      <Placement x="0.5" y="46" z="1.95" yaw="180" pitch="70"/>
       <Inventory>
         <InventoryBlock slot="0" type="stone" quantity="64"/>
       </Inventory>

@@ -8,13 +8,14 @@ __pycache__/
 *.pyd
 *.pyo
 
-# Training outputs
+# Training outputs (ignored — use Malmo/rl/baselines/ for shared checkpoints/logs)
 Malmo/rl/checkpoints/
 Malmo/rl/logs/*.csv
 Malmo/rl/tb_logs/
 
-# SB3 checkpoints
+# SB3 checkpoints (ignored except those explicitly in baselines/)
 *.zip
+!Malmo/rl/baselines/**/*.zip
 
 # Conda
 *.egg-info/

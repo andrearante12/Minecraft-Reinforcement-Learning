@@ -109,14 +109,14 @@ class BridgingEnv:
         self._max_z           = self.cfg.SPAWN[2]
         self._landing_counter = 0
         self._landing_active  = False
-        self._sneaking        = False
+        self._sneaking        = True   # start each episode already crouching
 
         self._steps_since_z_progress = 0
         self._entered_gap            = False
         self._aligned_to_south_face  = False
         self._placed_while_aligned   = False
         try:
-            self._agent_host.sendCommand("crouch 0")
+            self._agent_host.sendCommand("crouch 0")  # release any lingering crouch first
         except Exception:
             pass
 
@@ -126,6 +126,12 @@ class BridgingEnv:
             self._next_force_reset = False
         else:
             self._start_mission(self._mission_xml_fast)
+
+        try:
+            self._agent_host.sendCommand("crouch 1")  # begin episode crouching
+        except Exception:
+            pass
+
         return self._get_observation()
 
     def step(self, action):
@@ -152,10 +158,12 @@ class BridgingEnv:
             blocks_used = self._prev_inv_count - inv_count
             self._blocks_placed += blocks_used
             z_now = float(obs_dict.get("ZPos", self.cfg.SPAWN[2]))
+            y_now = float(obs_dict.get("YPos", self.cfg.SPAWN[1]))
             in_gap_range = ((self.cfg.BRIDGE_Z_START - 1.0)
                             <= z_now
                             <= (self.cfg.BRIDGE_Z_END + 1.0))
-            if in_gap_range:
+            at_bridge_level = abs(y_now - (self.cfg.BRIDGE_Y + 1.0)) < 0.5
+            if in_gap_range and at_bridge_level:
                 placement_reward = self.cfg.REWARD_BLOCK_PLACED_VALID * blocks_used
                 if self._sneaking:
                     placement_reward += self.cfg.REWARD_SNEAK_PLACE * blocks_used

@@ -20,7 +20,7 @@ class Logger:
         self.ep_path   = base + "_episodes.csv"
         self.ep_file   = open(self.ep_path, "w", newline="")
         self.ep_writer = csv.writer(self.ep_file)
-        self.ep_writer.writerow(["episode", "reward", "steps", "outcome", "env", "timestamp"])
+        self.ep_writer.writerow(["episode", "reward", "steps", "outcome", "env", "blocks_placed", "timestamp"])
 
         # Update log — columns written dynamically on first call
         self.upd_path    = base + "_updates.csv"
@@ -40,6 +40,7 @@ class Logger:
         self.ep_steps      = deque(maxlen=self.window)
         self.ep_outcomes   = deque(maxlen=self.window)
         self.ep_envs       = deque(maxlen=self.window)
+        self.ep_blocks     = deque(maxlen=self.window)
         self.episode_count = 0
         self.update_count  = 0
         self.start_time    = time.time()
@@ -95,14 +96,15 @@ class Logger:
         ])
         self.traj_file.flush()
 
-    def log_episode(self, episode, reward, steps, outcome, env_name=""):
+    def log_episode(self, episode, reward, steps, outcome, env_name="", blocks_placed=0):
         self.ep_writer.writerow([episode, round(reward, 4), steps, outcome,
-                                  env_name, time.strftime("%H:%M:%S")])
+                                  env_name, blocks_placed, time.strftime("%H:%M:%S")])
         self.ep_file.flush()
         self.ep_rewards.append(reward)
         self.ep_steps.append(steps)
         self.ep_outcomes.append(outcome)
         self.ep_envs.append(env_name)
+        self.ep_blocks.append(blocks_placed)
         self.episode_count = episode
 
     def log_update(self, **losses):
@@ -139,6 +141,11 @@ class Logger:
         print("  Outcomes: landed={0}  fell={1}  timeout={2}".format(
             n_landed, n_fell, n_timeout))
         print("  Success rate: {0:.1f}%".format(100 * n_landed / n))
+        if self.ep_blocks:
+            mean_blocks = sum(self.ep_blocks) / len(self.ep_blocks)
+            max_blocks  = max(self.ep_blocks)
+            print("  Blocks placed (last {0}): mean={1:.1f}  max={2}".format(
+                n, mean_blocks, max_blocks))
 
         # Per-env breakdown (only if multiple envs seen)
         unique_envs = set(self.ep_envs)

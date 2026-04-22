@@ -26,7 +26,7 @@ class BridgingCFG(BaseCFG):
     Z_SUCCESS        = 7.0
     Z_SUCCESS_MAX    = 9.0
     LANDING_TICKS    = 0      # instant success on reaching end platform
-    MAX_STEPS        = 300
+    MAX_STEPS        = 600
     STEP_DURATION    = 0.15
 
     # ── Voxel grid: x[-2:+2]=5, y[-2:+2]=5, z[-2:+5]=8 ─────────────────────
@@ -79,21 +79,21 @@ class BridgingCFG(BaseCFG):
     # Agent z-coordinate is used as a proxy for placement location because
     # Malmo's observation lag makes the placed-block voxel unreliable on the
     # same step as placement.
-    REWARD_BLOCK_PLACED_VALID   = +1.0   # block placed while in (or just before) the gap zone
-    REWARD_BLOCK_PLACED_WASTED  = -0.5   # block placed outside the gap zone
+    REWARD_BLOCK_PLACED_VALID   = +5.0   # block placed while in (or just before) the gap zone
+    REWARD_BLOCK_PLACED_WASTED  =  0.0   # no penalty for off-target placement — any placement is exploration
     REWARD_SNEAK_PLACE          = +0.3   # bonus on valid placement when crouched (+1.3 total)
 
     REWARD_STEP_PENALTY  = -0.01   # reduced from -0.02: setup actions (turn-around) are less penalised
-    REWARD_PROGRESS_COEF = +0.3    # reduced from +0.5: placement now carries the primary per-block signal
+    REWARD_PROGRESS_COEF = +20.0   # per new Z-block reached — primary signal, must dominate placement
 
     # ── Behavioural shaping ───────────────────────────────────────────────────
-    REWARD_ENTERED_GAP     = +1.0    # one-time: first step into the gap zone
+    REWARD_ENTERED_GAP     = +5.0    # one-time: strong signal to leave the platform
     REWARD_SNEAK_IN_GAP    = +0.005  # per step: crouching while inside the gap
     REWARD_SNEAK_AT_EDGE   = +0.01   # per step: crouching on the platform block immediately before the gap
 
     # Crosshair alignment: fires once (negatively) when the agent looks away
     # from a goal-facing block face without having placed a block first.
-    REWARD_ALIGNMENT_BREAK = -0.3
+    REWARD_ALIGNMENT_BREAK =  0.0   # removed: was suppressing camera exploration near blocks
 
     # Camera shaping: small per-step rewards while in the gap / at the edge.
     # sin-shaped look-down peaks at 45° pitch, preventing straight-down collapse.
@@ -113,6 +113,8 @@ class BridgingCFG(BaseCFG):
     BRIDGE_X_MAX   = 0
 
     # ── Hyperparameter overrides for bridging ─────────────────────────────────
-    ENTROPY_COEF     = 0.1     # more exploration for sequential dependencies
-    N_STEPS          = 1024    # longer rollouts for longer episodes
+    ENTROPY_COEF     = 0.2     # high entropy to keep exploring placement
+    N_STEPS          = 256     # short rollouts so each placement is ~33% of update data
+    N_EPOCHS         = 8       # more gradient passes per rollout
+    SAVE_EVERY       = 7       # ~50 episodes at ~85 steps/ep (7 * 600 = 4200 timesteps)
     TOTAL_EPISODES   = 10000   # harder task needs more episodes
