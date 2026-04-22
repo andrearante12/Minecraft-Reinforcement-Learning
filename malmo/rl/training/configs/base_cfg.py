@@ -25,7 +25,7 @@ class BaseCFG:
 
     # ── Shared hyperparameters ────────────────────────────────────────────────
     GAMMA         = 0.99
-    LR            = 3e-4
+    LR            = 1e-4   # lowered from 3e-4 for resumed training (policy already learned)
     BATCH_SIZE    = 64
     MAX_GRAD_NORM = 0.5
 
@@ -35,7 +35,7 @@ class BaseCFG:
     GAE_LAMBDA   = 0.95
     CLIP_EPS     = 0.2
     VALUE_COEF   = 0.5
-    ENTROPY_COEF = 0.05
+    ENTROPY_COEF = 0.02    # lowered from 0.05 — enough to re-explore without destroying learned policy
 
     # ── PPO improvements ───────────────────────────────────────────────────
     # Normalization
@@ -45,7 +45,7 @@ class BaseCFG:
 
     # LR scheduling
     LR_DECAY         = True
-    LR_END           = 0.0
+    LR_END           = 1e-5  # don't decay to zero — keep a small residual learning capacity
 
     # Entropy scheduling
     ENTROPY_DECAY    = True
@@ -65,7 +65,7 @@ class BaseCFG:
 
     # ── Training loop ─────────────────────────────────────────────────────────
     TOTAL_EPISODES = 5000
-    SAVE_EVERY     = 100
+    SAVE_EVERY     = 50
     LOG_EVERY      = 10
     EVAL_EVERY     = 200
     EVAL_EPISODES  = 20

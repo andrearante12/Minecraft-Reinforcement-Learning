@@ -53,6 +53,7 @@ from training.configs.diagonal_small_cfg    import DiagonalSmallCFG
 from training.configs.diagonal_medium_cfg   import DiagonalMediumCFG
 from training.configs.vertical_small_cfg      import VerticalSmallCFG
 from training.configs.multi_jump_course_cfg   import MultiJumpCourseCFG
+from training.configs.multi_jump_branch_cfg   import MultiJumpBranchCFG
 from training.configs.bridging_cfg            import BridgingCFG
 from training.configs.bridging_1block_cfg     import Bridging1BlockCFG
 from training.configs.bridging_2block_cfg     import Bridging2BlockCFG
@@ -67,6 +68,7 @@ ENV_REGISTRY = {
     "diagonal_medium":     (None, DiagonalMediumCFG),
     "vertical_small":      (None, VerticalSmallCFG),
     "multi_jump_course":   (None, MultiJumpCourseCFG),
+    "multi_jump_branch":   (None, MultiJumpBranchCFG),
     "bridging":            (None, BridgingCFG),
     "bridging_1block":     (None, Bridging1BlockCFG),
     "bridging_2block":     (None, Bridging2BlockCFG),
@@ -277,7 +279,17 @@ def train():
                         current_envs[i] = next_env
 
                     # Reset this env
-                    next_obs_all[i] = envs[i].reset()
+                    try:
+                        next_obs_all[i] = envs[i].reset()
+                    except RuntimeError as e:
+                        print("\nMalmo reset failed — saving checkpoint and exiting: {0}".format(e))
+                        path = os.path.join(cfg.CHECKPOINT_DIR,
+                                            "{0}_{1}_ep{2}_interrupted.pt".format(args.algo, run_name, episode))
+                        agent.save(path)
+                        curriculum_state = scheduler.state_dict()
+                        if curriculum_state is not None:
+                            torch.save(curriculum_state, path.replace(".pt", "_curriculum.pt"))
+                        raise
                     ep_rewards[i]   = 0.0
                     ep_steps[i]     = 0
                     ep_outcome[i]   = "timeout"

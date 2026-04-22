@@ -36,6 +36,7 @@ from training.configs.diagonal_small_cfg    import DiagonalSmallCFG
 from training.configs.diagonal_medium_cfg   import DiagonalMediumCFG
 from training.configs.vertical_small_cfg      import VerticalSmallCFG
 from training.configs.multi_jump_course_cfg   import MultiJumpCourseCFG
+from training.configs.multi_jump_branch_cfg   import MultiJumpBranchCFG
 from training.configs.bridging_cfg            import BridgingCFG
 from training.configs.bridging_1block_cfg     import Bridging1BlockCFG
 from training.configs.bridging_2block_cfg     import Bridging2BlockCFG
@@ -52,6 +53,7 @@ ENV_REGISTRY = {
     "diagonal_medium":     (ParkourEnv, DiagonalMediumCFG),
     "vertical_small":      (ParkourEnv, VerticalSmallCFG),
     "multi_jump_course":   (ParkourEnv, MultiJumpCourseCFG),
+    "multi_jump_branch":   (ParkourEnv, MultiJumpBranchCFG),
     "bridging":            (BridgingEnv, BridgingCFG),
     "bridging_1block":     (BridgingEnv, Bridging1BlockCFG),
     "bridging_2block":     (BridgingEnv, Bridging2BlockCFG),
@@ -92,7 +94,7 @@ def main():
     args = parser.parse_args()
 
     EnvClass, cfg = ENV_REGISTRY[args.env]
-    env = EnvClass(cfg, malmo_port=args.malmo_port)
+    env = EnvClass(cfg, malmo_port=args.malmo_port, force_reset=True)
     print("Env server starting — env:{0}  address:{1}:{2}".format(args.env, HOST, args.port))
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
