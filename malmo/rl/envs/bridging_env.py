@@ -537,7 +537,7 @@ class BridgingEnv:
             return False
         if y < self.cfg.FALL_Y_THRESHOLD:
             return False
-        if x < self.cfg.BRIDGE_X_MIN - 1.0 or x > self.cfg.BRIDGE_X_MAX + 1.0:
+        if x < self.cfg.BRIDGE_X_MIN - 1.5 or x > self.cfg.BRIDGE_X_MAX + 1.5:
             return False
         return True
 
