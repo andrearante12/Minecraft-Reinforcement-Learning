@@ -26,7 +26,7 @@ class BridgingCFG(BaseCFG):
     Z_SUCCESS        = 7.0
     Z_SUCCESS_MAX    = 9.0
     LANDING_TICKS    = 0      # instant success on reaching end platform
-    MAX_STEPS        = 600
+    MAX_STEPS        = 1200
     STEP_DURATION    = 0.15
 
     # ── Voxel grid: x[-2:+2]=5, y[-2:+2]=5, z[-2:+5]=8 ─────────────────────

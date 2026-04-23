@@ -530,12 +530,15 @@ class BridgingEnv:
             return 1.0
         return max(1.0 - current_dist / initial_dist, 0.0)
 
-    def _in_landing_zone(self, x, y, z):
+    def _in_landing_zone(self, x, y, z, on_ground=False):
         if z < self.cfg.Z_SUCCESS:
             return False
         if self.cfg.Z_SUCCESS_MAX is not None and z > self.cfg.Z_SUCCESS_MAX:
             return False
         if y < self.cfg.FALL_Y_THRESHOLD:
+            return False
+        # Must be standing on the end platform, not just passing through the Z range
+        if not on_ground or y < self.cfg.BRIDGE_Y + 0.9:
             return False
         return True
 
@@ -553,9 +556,11 @@ class BridgingEnv:
             self._landing_counter = 0
             return reward, True, "fell"
 
+        on_ground = bool(obs.get("OnGround", False))
+
         # Landing phase (must stay on end platform)
         if self._landing_active:
-            if self._in_landing_zone(x, y, z):
+            if self._in_landing_zone(x, y, z, on_ground):
                 self._landing_counter += 1
                 if self._landing_counter >= self.cfg.LANDING_TICKS:
                     return self.cfg.REWARD_SUCCESS, True, "landed"
@@ -566,7 +571,7 @@ class BridgingEnv:
                 return self.cfg.REWARD_FELL, True, "fell"
 
         # Success check — reached the end platform
-        if self._in_landing_zone(x, y, z):
+        if self._in_landing_zone(x, y, z, on_ground):
             if self.cfg.LANDING_TICKS > 0:
                 self._landing_active = True
                 self._landing_counter = 0
@@ -578,7 +583,10 @@ class BridgingEnv:
         # Also drives the stall counter used by _get_shaping_reward.
         z_progress_reward = 0.0
         if z > self._max_z:
-            z_progress_reward = self.cfg.REWARD_PROGRESS_COEF * (z - self._max_z)
+            # Cap reward at Z_SUCCESS — no incentive to bridge past the goal
+            z_capped = min(z, self.cfg.Z_SUCCESS)
+            if z_capped > self._max_z:
+                z_progress_reward = self.cfg.REWARD_PROGRESS_COEF * (z_capped - self._max_z)
             self._max_z = z
             self._steps_since_z_progress = 0
         else:
