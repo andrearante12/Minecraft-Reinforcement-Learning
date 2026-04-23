@@ -537,8 +537,7 @@ class BridgingEnv:
             return False
         if y < self.cfg.FALL_Y_THRESHOLD:
             return False
-        # Must be standing on the end platform, not just passing through the Z range
-        if not on_ground or y < self.cfg.BRIDGE_Y + 0.9:
+        if x < self.cfg.BRIDGE_X_MIN - 1.0 or x > self.cfg.BRIDGE_X_MAX + 1.0:
             return False
         return True
 
