@@ -259,7 +259,7 @@ def record():
         print("  W=forward  S=back  A=strafe_L  D=strafe_R")
         print("  Shift=sneak (press=sneak_down, release=sneak_up)")
         print("  Right-click=place_block  Arrows=look/turn")
-        print("  Enter=finish episode  Esc=save & quit")
+        print("  R=finish episode  Esc=save & quit")
     else:
         print("Controls (standard Minecraft):")
         print("  W=forward  S=back  A=strafe_L  D=strafe_R")
@@ -295,7 +295,9 @@ def record():
                     break
 
                 # Check for manual episode reset
-                if keyboard.is_pressed("enter"):
+                if keyboard.is_pressed("r"):
+                    while keyboard.is_pressed("r"):
+                        time.sleep(0.01)
                     break
 
                 # Enforce max steps per episode
