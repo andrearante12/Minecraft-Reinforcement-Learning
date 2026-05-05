@@ -87,7 +87,7 @@ class BridgingCFG(BaseCFG):
     REWARD_PROGRESS_COEF = +20.0   # per new Z-block reached — primary signal, must dominate placement
 
     # ── Behavioural shaping ───────────────────────────────────────────────────
-    REWARD_ENTERED_GAP     = +5.0    # one-time: strong signal to leave the platform
+    REWARD_ENTERED_GAP     =  0.0    # removed: agent exploited this by falling into gap without placing blocks
     REWARD_SNEAK_IN_GAP    = +0.005  # per step: crouching while inside the gap
     REWARD_SNEAK_AT_EDGE   = +0.01   # per step: crouching on the platform block immediately before the gap
 
