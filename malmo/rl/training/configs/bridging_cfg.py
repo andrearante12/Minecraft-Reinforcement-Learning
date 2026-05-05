@@ -81,9 +81,9 @@ class BridgingCFG(BaseCFG):
     # same step as placement.
     REWARD_BLOCK_PLACED_VALID   = +5.0   # block placed while in (or just before) the gap zone
     REWARD_BLOCK_PLACED_WASTED  =  0.0   # no penalty for off-target placement — any placement is exploration
-    REWARD_SNEAK_PLACE          = +0.3   # bonus on valid placement when crouched (+1.3 total)
+    REWARD_SNEAK_PLACE          = +2.0   # bonus on valid placement when crouched — core speed bridge mechanic
 
-    REWARD_STEP_PENALTY  = -0.01   # reduced from -0.02: setup actions (turn-around) are less penalised
+    REWARD_STEP_PENALTY  = -0.05   # stronger time pressure to incentivise speed bridging
     REWARD_PROGRESS_COEF = +20.0   # per new Z-block reached — primary signal, must dominate placement
 
     # ── Behavioural shaping ───────────────────────────────────────────────────
@@ -102,8 +102,8 @@ class BridgingCFG(BaseCFG):
     REWARD_LOOK_BACK = +0.002   # max reward when facing directly backward (-Z)
 
     # Stall: additional per-step penalty when z-progress stalls beyond threshold
-    STALL_THRESHOLD = 15     # steps without z-progress before penalty begins
-    REWARD_STALL    = -0.02  # extra per-step cost during stall (stacks with step penalty)
+    STALL_THRESHOLD = 10     # steps without z-progress before penalty begins
+    REWARD_STALL    = -0.05  # extra per-step cost during stall (stacks with step penalty)
 
     # ── Bridge geometry (gap zone) ────────────────────────────────────────────
     BRIDGE_Z_START = 2     # first Z of the gap
