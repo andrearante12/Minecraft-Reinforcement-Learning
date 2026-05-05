@@ -579,12 +579,12 @@ class BridgingEnv:
                 return self.cfg.REWARD_SUCCESS, True, "landed"
 
         # Z-progress reward: bonus for advancing to new Z positions.
+        # Requires on_ground so falling forward through the gap doesn't count.
         # Also drives the stall counter used by _get_shaping_reward.
         z_progress_reward = 0.0
         if z > self._max_z:
-            # Cap reward at Z_SUCCESS — no incentive to bridge past the goal
-            z_capped = min(z, self.cfg.Z_SUCCESS)
-            if z_capped > self._max_z:
+            if on_ground:
+                z_capped = min(z, self.cfg.Z_SUCCESS)
                 z_progress_reward = self.cfg.REWARD_PROGRESS_COEF * (z_capped - self._max_z)
             self._max_z = z
             self._steps_since_z_progress = 0
