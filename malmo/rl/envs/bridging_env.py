@@ -77,6 +77,7 @@ class BridgingEnv:
         self._landing_counter = 0
         self._sneaking       = False       # persistent sneak toggle state
         self._landing_active  = False
+        self._steps_crouching = 0          # steps spent crouching this episode
 
         # Shaping reward state
         self._steps_since_z_progress  = 0      # stall counter; reset whenever max_z increases
@@ -115,6 +116,7 @@ class BridgingEnv:
         self._entered_gap            = False
         self._aligned_to_south_face  = False
         self._placed_while_aligned   = False
+        self._steps_crouching        = 0
         try:
             self._agent_host.sendCommand("crouch 0")  # release any lingering crouch first
         except Exception:
@@ -213,16 +215,17 @@ class BridgingEnv:
                 pass
 
         info = {
-            "outcome":       outcome,
-            "steps":         self._steps,
-            "pos":           (obs_dict.get("XPos", 0),
-                              obs_dict.get("YPos", 0),
-                              obs_dict.get("ZPos", 0)),
-            "yaw":           float(obs_dict.get("Yaw",      0.0)),
-            "pitch":         float(obs_dict.get("Pitch",    0.0)),
-            "on_ground":     int(obs_dict.get("OnGround",   False)),
-            "action":        self.actions[action][0],
-            "blocks_placed": self._blocks_placed,
+            "outcome":        outcome,
+            "steps":          self._steps,
+            "pos":            (obs_dict.get("XPos", 0),
+                               obs_dict.get("YPos", 0),
+                               obs_dict.get("ZPos", 0)),
+            "yaw":            float(obs_dict.get("Yaw",      0.0)),
+            "pitch":          float(obs_dict.get("Pitch",    0.0)),
+            "on_ground":      int(obs_dict.get("OnGround",   False)),
+            "action":         self.actions[action][0],
+            "blocks_placed":  self._blocks_placed,
+            "steps_crouching": self._steps_crouching,
         }
         return obs, reward, done, info
 
@@ -258,6 +261,9 @@ class BridgingEnv:
         # actions themselves — they already set crouch explicitly via cmds_on.
         if self._sneaking and name not in ("sneak_down", "sneak_up"):
             self._agent_host.sendCommand("crouch 1")
+
+        if self._sneaking:
+            self._steps_crouching += 1
 
     # ── Malmo interaction (copied from ParkourEnv) ────────────────────────────
 

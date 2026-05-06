@@ -77,12 +77,15 @@ class EpisodeLoggerCallback(BaseCallback):
                     reward = 0.0
                     steps = 0
 
+                steps_crouching = info.get("steps_crouching", 0)
+                crouch_pct = int(100 * steps_crouching / max(steps, 1))
+
                 self.logger_obj.log_episode(
                     self.episode_count, reward, steps,
                     outcome, self.env_name, blocks_placed,
                 )
-                print("  ep {0:>4} | reward: {1:>7.2f} | steps: {2:>3} | {3:<8} | blocks: {4}".format(
-                    self.episode_count, reward, steps, outcome, blocks_placed))
+                print("  ep {0:>4} | reward: {1:>7.2f} | steps: {2:>3} | {3:<8} | blocks: {4} | crouch: {5}%".format(
+                    self.episode_count, reward, steps, outcome, blocks_placed, crouch_pct))
                 self.logger_obj.print_summary(every=self.print_every)
         return True
 
