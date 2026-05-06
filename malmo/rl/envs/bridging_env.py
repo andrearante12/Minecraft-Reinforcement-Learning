@@ -484,11 +484,14 @@ class BridgingEnv:
             reward += self.cfg.REWARD_LOOK_BACK * look_back_factor
 
         # ── Crouch penalty ─────────────────────────────────────────────────
-        # Fires every step the agent is crouching without having placed a block
-        # this step — discourages holding crouch the whole time (sneak bridging)
-        # and pushes toward brief crouch only at placement moment.
         if self._sneaking and blocks_placed_this_step == 0:
             reward += self.cfg.REWARD_CROUCH_PENALTY
+
+        # ── X-drift penalty ────────────────────────────────────────────────
+        # Penalises moving left/right off the straight-line bridge path.
+        x = float(obs_dict.get("XPos", self.cfg.SPAWN[0]))
+        if abs(x - self.cfg.SPAWN[0]) > 0.5:
+            reward += self.cfg.REWARD_X_DRIFT_PENALTY
 
         # ── Stall penalty ──────────────────────────────────────────────────
         if self._steps_since_z_progress > self.cfg.STALL_THRESHOLD:
