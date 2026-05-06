@@ -91,7 +91,7 @@ class BridgingCFG(BaseCFG):
     REWARD_SNEAK_IN_GAP    = 0.0    # disabled: was rewarding holding crouch, not speed bridging
     REWARD_SNEAK_AT_EDGE   = 0.0    # disabled: was rewarding holding crouch, not speed bridging
     REWARD_CROUCH_PENALTY  = -0.01  # per step crouching without placing — forces brief crouch timing
-    REWARD_X_DRIFT_PENALTY = -0.05  # per step agent is more than 0.5 blocks off center X
+    REWARD_X_DRIFT_PENALTY = -0.15  # per step agent is more than 0.5 blocks off center X
 
     # Crosshair alignment: fires once (negatively) when the agent looks away
     # from a goal-facing block face without having placed a block first.
@@ -113,7 +113,8 @@ class BridgingCFG(BaseCFG):
     BRIDGE_Y          = 45    # Y level where bridge blocks should go
     BRIDGE_X_MIN      = 0     # X range for valid bridge placement (single block wide)
     BRIDGE_X_MAX      = 0
-    MAX_BRIDGE_BLOCKS = 5     # gap is 5 blocks wide — no reward for placing more
+    MAX_BRIDGE_BLOCKS       = 5      # gap is 5 blocks wide — no reward for placing more
+    REWARD_WASTED_BLOCK     = -1.0   # penalty per block placed beyond MAX_BRIDGE_BLOCKS
 
     # ── Hyperparameter overrides for bridging ─────────────────────────────────
     ENTROPY_COEF     = 0.2     # high entropy to keep exploring placement

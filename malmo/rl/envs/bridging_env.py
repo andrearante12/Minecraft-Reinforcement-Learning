@@ -171,10 +171,12 @@ class BridgingEnv:
                 blocks_used,
                 max(0, self.cfg.MAX_BRIDGE_BLOCKS - (self._blocks_placed - blocks_used))
             )
+            wasted_blocks = blocks_used - rewarded_blocks
             if in_gap_range and at_bridge_level:
                 placement_reward = self.cfg.REWARD_BLOCK_PLACED_VALID * rewarded_blocks
                 if self._sneaking:
                     placement_reward += self.cfg.REWARD_SNEAK_PLACE * rewarded_blocks
+                placement_reward += self.cfg.REWARD_WASTED_BLOCK * wasted_blocks
             else:
                 placement_reward = self.cfg.REWARD_BLOCK_PLACED_WASTED * blocks_used
         self._prev_inv_count = inv_count
