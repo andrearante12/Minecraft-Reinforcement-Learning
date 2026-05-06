@@ -87,9 +87,9 @@ class BridgingCFG(BaseCFG):
     REWARD_PROGRESS_COEF = +20.0   # per new Z-block reached — primary signal, must dominate placement
 
     # ── Behavioural shaping ───────────────────────────────────────────────────
-    REWARD_ENTERED_GAP     =  0.0    # removed: agent exploited this by falling into gap without placing blocks
-    REWARD_SNEAK_IN_GAP    = +0.005  # per step: crouching while inside the gap
-    REWARD_SNEAK_AT_EDGE   = +0.01   # per step: crouching on the platform block immediately before the gap
+    REWARD_ENTERED_GAP     = +10.0   # first time on_ground inside the gap — requires block placement
+    REWARD_SNEAK_IN_GAP    = 0.0   # disabled: was rewarding holding crouch, not speed bridging
+    REWARD_SNEAK_AT_EDGE   = 0.0   # disabled: was rewarding holding crouch, not speed bridging
 
     # Crosshair alignment: fires once (negatively) when the agent looks away
     # from a goal-facing block face without having placed a block first.
@@ -106,11 +106,12 @@ class BridgingCFG(BaseCFG):
     REWARD_STALL    = -0.05  # extra per-step cost during stall (stacks with step penalty)
 
     # ── Bridge geometry (gap zone) ────────────────────────────────────────────
-    BRIDGE_Z_START = 2     # first Z of the gap
-    BRIDGE_Z_END   = 6     # last Z of the gap (inclusive)
-    BRIDGE_Y       = 45    # Y level where bridge blocks should go
-    BRIDGE_X_MIN   = 0     # X range for valid bridge placement (single block wide)
-    BRIDGE_X_MAX   = 0
+    BRIDGE_Z_START    = 2     # first Z of the gap
+    BRIDGE_Z_END      = 6     # last Z of the gap (inclusive)
+    BRIDGE_Y          = 45    # Y level where bridge blocks should go
+    BRIDGE_X_MIN      = 0     # X range for valid bridge placement (single block wide)
+    BRIDGE_X_MAX      = 0
+    MAX_BRIDGE_BLOCKS = 5     # gap is 5 blocks wide — no reward for placing more
 
     # ── Hyperparameter overrides for bridging ─────────────────────────────────
     ENTROPY_COEF     = 0.2     # high entropy to keep exploring placement

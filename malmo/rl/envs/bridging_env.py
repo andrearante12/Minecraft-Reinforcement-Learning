@@ -163,10 +163,16 @@ class BridgingEnv:
                             <= z_now
                             <= (self.cfg.BRIDGE_Z_END + 1.0))
             at_bridge_level = abs(y_now - (self.cfg.BRIDGE_Y + 1.0)) < 0.5
+            # Only reward up to MAX_BRIDGE_BLOCKS valid placements — anything
+            # beyond the gap width is redundant and should not accumulate reward.
+            rewarded_blocks = min(
+                blocks_used,
+                max(0, self.cfg.MAX_BRIDGE_BLOCKS - (self._blocks_placed - blocks_used))
+            )
             if in_gap_range and at_bridge_level:
-                placement_reward = self.cfg.REWARD_BLOCK_PLACED_VALID * blocks_used
+                placement_reward = self.cfg.REWARD_BLOCK_PLACED_VALID * rewarded_blocks
                 if self._sneaking:
-                    placement_reward += self.cfg.REWARD_SNEAK_PLACE * blocks_used
+                    placement_reward += self.cfg.REWARD_SNEAK_PLACE * rewarded_blocks
             else:
                 placement_reward = self.cfg.REWARD_BLOCK_PLACED_WASTED * blocks_used
         self._prev_inv_count = inv_count
@@ -431,7 +437,9 @@ class BridgingEnv:
         at_edge = (self.cfg.BRIDGE_Z_START - 1.0) <= z < self.cfg.BRIDGE_Z_START
 
         # ── First-gap-entry milestone ──────────────────────────────────────
-        if in_gap and not self._entered_gap:
+        # Requires on_ground so the agent can't earn this by falling into the gap
+        on_ground_val = bool(obs_dict.get("OnGround", False))
+        if in_gap and on_ground_val and not self._entered_gap:
             self._entered_gap = True
             reward += self.cfg.REWARD_ENTERED_GAP
 
