@@ -477,6 +477,13 @@ class BridgingEnv:
             look_back_factor = (-math.cos(math.radians(yaw)) + 1.0) / 2.0
             reward += self.cfg.REWARD_LOOK_BACK * look_back_factor
 
+        # ── Crouch penalty ─────────────────────────────────────────────────
+        # Fires every step the agent is crouching without having placed a block
+        # this step — discourages holding crouch the whole time (sneak bridging)
+        # and pushes toward brief crouch only at placement moment.
+        if self._sneaking and blocks_placed_this_step == 0:
+            reward += self.cfg.REWARD_CROUCH_PENALTY
+
         # ── Stall penalty ──────────────────────────────────────────────────
         if self._steps_since_z_progress > self.cfg.STALL_THRESHOLD:
             reward += self.cfg.REWARD_STALL

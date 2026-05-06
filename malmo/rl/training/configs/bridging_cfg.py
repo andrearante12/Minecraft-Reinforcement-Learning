@@ -88,8 +88,9 @@ class BridgingCFG(BaseCFG):
 
     # ── Behavioural shaping ───────────────────────────────────────────────────
     REWARD_ENTERED_GAP     = +10.0   # first time on_ground inside the gap — requires block placement
-    REWARD_SNEAK_IN_GAP    = 0.0   # disabled: was rewarding holding crouch, not speed bridging
-    REWARD_SNEAK_AT_EDGE   = 0.0   # disabled: was rewarding holding crouch, not speed bridging
+    REWARD_SNEAK_IN_GAP    = 0.0    # disabled: was rewarding holding crouch, not speed bridging
+    REWARD_SNEAK_AT_EDGE   = 0.0    # disabled: was rewarding holding crouch, not speed bridging
+    REWARD_CROUCH_PENALTY  = -0.01  # per step crouching without placing — forces brief crouch timing
 
     # Crosshair alignment: fires once (negatively) when the agent looks away
     # from a goal-facing block face without having placed a block first.
