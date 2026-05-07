@@ -102,7 +102,7 @@ class BridgingCFG(BaseCFG):
     # sin-shaped look-down peaks at 45° pitch, preventing straight-down collapse.
     # look-back factor is 0 when facing the goal, 1 when facing fully backward.
     REWARD_LOOK_DOWN = +0.004   # max reward at 45° downward pitch
-    REWARD_LOOK_BACK = +0.002   # max reward when facing directly backward (-Z)
+    REWARD_LOOK_BACK = 0.0      # disabled: was causing agent to turn around and stack blocks
 
     # Stall: additional per-step penalty when z-progress stalls beyond threshold
     STALL_THRESHOLD = 10     # steps without z-progress before penalty begins
