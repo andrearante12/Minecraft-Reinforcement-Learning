@@ -493,6 +493,13 @@ class BridgingEnv:
         if self._sneaking and blocks_placed_this_step == 0:
             reward += self.cfg.REWARD_CROUCH_PENALTY
 
+        # ── X-center reward ────────────────────────────────────────────────
+        # Small reward for staying near center X while in the gap.
+        if in_gap:
+            x = float(obs_dict.get("XPos", self.cfg.SPAWN[0]))
+            if abs(x - self.cfg.SPAWN[0]) <= 0.5:
+                reward += self.cfg.REWARD_X_CENTER
+
         # ── X-drift penalty ────────────────────────────────────────────────
         # Penalises moving left/right off the straight-line bridge path.
         x = float(obs_dict.get("XPos", self.cfg.SPAWN[0]))
