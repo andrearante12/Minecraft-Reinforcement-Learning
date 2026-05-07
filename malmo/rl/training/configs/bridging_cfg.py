@@ -90,7 +90,7 @@ class BridgingCFG(BaseCFG):
     REWARD_ENTERED_GAP     = +10.0   # first time on_ground inside the gap — requires block placement
     REWARD_SNEAK_IN_GAP    = 0.0    # disabled: was rewarding holding crouch, not speed bridging
     REWARD_SNEAK_AT_EDGE   = 0.0    # disabled: was rewarding holding crouch, not speed bridging
-    REWARD_CROUCH_PENALTY  = -0.01  # per step crouching without placing — forces brief crouch timing
+    REWARD_CROUCH_PENALTY  = 0.0   # disabled: agent was exploiting this to fall early
     REWARD_X_DRIFT_PENALTY = 0.0   # disabled: was causing agent to stop placing blocks
     REWARD_X_CENTER        = +0.02 # per step reward for staying near center X while in the gap
 
