@@ -24,9 +24,6 @@
         <!-- End platform: single block at Z=7 -->
         <DrawCuboid x1="0" y1="45" z1="7" x2="0" y2="45" z2="7" type="stone"/>
 
-        <!-- Side walls: prevent agent from bridging left or right -->
-        <DrawCuboid x1="-1" y1="44" z1="1" x2="-1" y2="48" z2="7" type="stone"/>
-        <DrawCuboid x1="1"  y1="44" z1="1" x2="1"  y2="48" z2="7" type="stone"/>
 
 
       </DrawingDecorator>
