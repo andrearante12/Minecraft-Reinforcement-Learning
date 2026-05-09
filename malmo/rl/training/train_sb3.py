@@ -257,7 +257,13 @@ def main():
     if args.checkpoint:
         print("Loading checkpoint: {0}".format(args.checkpoint))
         model = PPO.load(args.checkpoint, env=vec_env,
-                         tensorboard_log=None)
+                         tensorboard_log=None,
+                         custom_objects={
+                             "learning_rate": cfg.LR,
+                             "n_epochs":      cfg.N_EPOCHS,
+                             "ent_coef":      cfg.ENTROPY_COEF,
+                             "n_steps":       cfg.N_STEPS // n_envs,
+                         })
     else:
         model = PPO(
             "MlpPolicy",
