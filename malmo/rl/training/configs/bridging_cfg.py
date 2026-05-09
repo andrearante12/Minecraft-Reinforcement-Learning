@@ -119,8 +119,9 @@ class BridgingCFG(BaseCFG):
     REWARD_OFFCENTER_PLACE_PENALTY = 0.0   # disabled: was causing agent to stop placing blocks
 
     # ── Hyperparameter overrides for bridging ─────────────────────────────────
-    ENTROPY_COEF     = 0.2     # high entropy to keep exploring placement
+    ENTROPY_COEF     = 0.05    # reduced: high entropy was causing policy drift away from baseline
+    LR               = 5e-5   # slower updates to preserve baseline bridging knowledge
     N_STEPS          = 256     # short rollouts so each placement is ~33% of update data
-    N_EPOCHS         = 8       # more gradient passes per rollout
+    N_EPOCHS         = 4       # reduced from 8 — fewer passes to slow policy drift
     SAVE_EVERY       = 7       # ~50 episodes at ~85 steps/ep (7 * 600 = 4200 timesteps)
     TOTAL_EPISODES   = 10000   # harder task needs more episodes
