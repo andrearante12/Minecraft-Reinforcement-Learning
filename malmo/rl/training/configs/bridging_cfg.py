@@ -120,7 +120,7 @@ class BridgingCFG(BaseCFG):
 
     # ── Hyperparameter overrides for bridging ─────────────────────────────────
     ENTROPY_COEF     = 0.05    # reduced: high entropy was causing policy drift away from baseline
-    LR               = 5e-5   # slower updates to preserve baseline bridging knowledge
+    LR               = 1e-4   # balanced: slow enough to preserve baseline, fast enough to keep learning
     N_STEPS          = 256     # short rollouts so each placement is ~33% of update data
     N_EPOCHS         = 4       # reduced from 8 — fewer passes to slow policy drift
     SAVE_EVERY       = 7       # ~50 episodes at ~85 steps/ep (7 * 600 = 4200 timesteps)
