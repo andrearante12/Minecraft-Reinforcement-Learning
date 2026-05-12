@@ -16,18 +16,16 @@
         <!-- Clear the area above the platforms (remove default terrain and any agent-placed blocks) -->
         <DrawCuboid x1="-5" y1="44" z1="-3" x2="5" y2="52" z2="12" type="air"/>
 
-        <!-- Starting platform: single block at Z=1 -->
-        <DrawCuboid x1="0" y1="45" z1="1" x2="0" y2="45" z2="1" type="stone"/>
+        <!-- Start: single gold block placed dynamically per episode in reset() -->
 
         <!-- Gap: Z=2..6 is air (5-block gap) — already air from the clear above -->
 
-        <!-- End platform: single block at Z=7 -->
-        <DrawCuboid x1="0" y1="45" z1="7" x2="0" y2="45" z2="7" type="stone"/>
+        <!-- End goal: single gold block placed dynamically per episode in reset() -->
 
 
       </DrawingDecorator>
 
-      <ServerQuitFromTimeUp timeLimitMs="60000"/>
+      <ServerQuitFromTimeUp timeLimitMs="30000"/>
       <ServerQuitWhenAnyAgentFinishes/>
     </ServerHandlers>
   </ServerSection>
@@ -57,7 +55,7 @@
       <ObservationFromHotBar/>
 
       <AgentQuitFromTouchingBlockType>
-        <Block type="gold_block"/>
+        <Block type="emerald_block"/>
       </AgentQuitFromTouchingBlockType>
     </AgentHandlers>
   </AgentSection>

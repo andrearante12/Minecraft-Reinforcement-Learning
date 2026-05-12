@@ -39,6 +39,8 @@ import os
 import math
 import time
 import json
+import random
+import re
 import numpy as np
 
 # ── Add parkour/ root to path so training.configs is importable ───────────────
@@ -66,8 +68,9 @@ class BridgingEnv:
         self.n_actions = cfg.N_ACTIONS
         self._malmo_port = malmo_port if malmo_port is not None else cfg.MALMO_PORT
 
-        self._prev_pos = np.array(cfg.SPAWN, dtype=np.float32)
-        self._goal_pos = np.array(cfg.GOAL_POS, dtype=np.float32)
+        self._prev_pos   = np.array(cfg.SPAWN, dtype=np.float32)
+        self._goal_pos   = np.array(cfg.GOAL_POS, dtype=np.float32)
+        self._min_x_dist = abs(cfg.SPAWN[0] - cfg.GOAL_POS[0])
         self._steps    = 0
 
         # Bridging-specific state
@@ -88,8 +91,8 @@ class BridgingEnv:
 
         with open(cfg.MISSION_FILE, "r") as f:
             xml = f.read()
-        self._mission_xml_force = xml
-        self._mission_xml_fast  = xml.replace('forceReset="true"', 'forceReset="false"')
+        self._mission_xml_base_force = xml
+        self._mission_xml_base_fast  = xml.replace('forceReset="true"', 'forceReset="false"')
         self._next_force_reset  = force_reset
 
         self._agent_host = MalmoPython.AgentHost()
@@ -109,28 +112,70 @@ class BridgingEnv:
         self._max_z           = self.cfg.SPAWN[2]
         self._landing_counter = 0
         self._landing_active  = False
-        self._sneaking        = True   # start each episode already crouching
 
         self._steps_since_z_progress = 0
         self._entered_gap            = False
         self._aligned_to_south_face  = False
         self._placed_while_aligned   = False
+
+        # ── Per-episode goal X (diagonal bridging) ────────────────────────────
+        goal_x_offsets = getattr(self.cfg, 'GOAL_X_OFFSETS', [0])
+        self._episode_goal_x = float(random.choice(goal_x_offsets))
+        self._goal_pos = np.array(
+            [self.cfg.SPAWN[0] + self._episode_goal_x,
+             self.cfg.GOAL_POS[1],
+             self.cfg.GOAL_POS[2]], dtype=np.float32
+        )
+        self._min_x_dist = abs(self.cfg.SPAWN[0] - self._goal_pos[0])
+
+        # ── Per-episode spawn randomization ───────────────────────────────────
+        yaw_noise   = getattr(self.cfg, 'SPAWN_YAW_NOISE',   0.0)
+        pitch_noise = getattr(self.cfg, 'SPAWN_PITCH_NOISE', 0.0)
+        x_noise     = getattr(self.cfg, 'SPAWN_X_NOISE',     0.0)
+        rand_yaw    = 180.0 + random.uniform(-yaw_noise, yaw_noise)
+        rand_pitch  = 70.0  + random.uniform(-pitch_noise, pitch_noise)
+        rand_x      = self.cfg.SPAWN[0] + random.uniform(-x_noise, x_noise)
+
+        placement = (
+            '<Placement x="{x:.3f}" y="{y}" z="{z}" yaw="{yaw:.1f}" pitch="{pitch:.1f}"/>'.format(
+                x=rand_x, y=self.cfg.SPAWN[1], z=self.cfg.SPAWN[2],
+                yaw=rand_yaw, pitch=rand_pitch,
+            )
+        )
+        # Always force-reset so the world is regenerated clean each episode —
+        # fast resets skip DrawingDecorator, leaving agent-placed blocks in the world.
+        self._next_force_reset = False
+        mission_xml = re.sub(r'<Placement[^/]*/>', placement, self._mission_xml_base_force)
+
+        # Inject gold block markers so start/goal positions are visible in-game.
+        # Gold is treated as solid (encoding default=1) so the model sees no difference.
+        spawn_block_x = int(math.floor(rand_x))
+        goal_block_x  = int(self._episode_goal_x)
+        markers = (
+            '    <DrawBlock x="{s}" y="45" z="1" type="gold_block"/>\n'
+            '    <DrawBlock x="{g}" y="45" z="7" type="gold_block"/>\n'
+        ).format(s=spawn_block_x, g=goal_block_x)
+        mission_xml = mission_xml.replace('</DrawingDecorator>', markers + '      </DrawingDecorator>')
+
+        # ── Crouch starting state ─────────────────────────────────────────────
+        randomize_crouch = getattr(self.cfg, 'RANDOMIZE_CROUCH_START', False)
+        self._sneaking = random.random() < 0.5 if randomize_crouch else True
+
         try:
             self._agent_host.sendCommand("crouch 0")  # release any lingering crouch first
         except Exception:
             pass
 
         time.sleep(0.5)
-        if self._next_force_reset:
-            self._start_mission(self._mission_xml_force)
-            self._next_force_reset = False
-        else:
-            self._start_mission(self._mission_xml_fast)
+        self._start_mission(mission_xml)
 
         try:
-            self._agent_host.sendCommand("crouch 1")  # begin episode crouching
+            self._agent_host.sendCommand("crouch 1" if self._sneaking else "crouch 0")
         except Exception:
             pass
+
+        print("  [reset] goal_x={:.1f}  spawn_x={:.2f}  yaw={:.1f}  pitch={:.1f}  crouch={}".format(
+            self._episode_goal_x, rand_x, rand_yaw, rand_pitch, self._sneaking))
 
         return self._get_observation()
 
@@ -169,6 +214,7 @@ class BridgingEnv:
                     placement_reward += self.cfg.REWARD_SNEAK_PLACE * blocks_used
             else:
                 placement_reward = self.cfg.REWARD_BLOCK_PLACED_WASTED * blocks_used
+            placement_reward += self.cfg.REWARD_BLOCK_PENALTY * blocks_used
         self._prev_inv_count = inv_count
 
         reward, done, outcome = self._get_reward(obs_dict, prev_pos)
@@ -435,21 +481,11 @@ class BridgingEnv:
             self._entered_gap = True
             reward += self.cfg.REWARD_ENTERED_GAP
 
-        # ── Sneak bonuses ──────────────────────────────────────────────────
-        # Only reward sneak when the agent is at the +Z (goal-facing) side of
-        # their current block — i.e. at the leading edge of the bridge.
-        # For gap blocks:         z >= self._max_z - 0.5  (front half of furthest block)
-        # For the spawn platform: z >= BRIDGE_Z_START - 0.5 (front half of last solid block)
+        # ── Sneak penalty ──────────────────────────────────────────────────
+        # Penalize crouching every step — fall penalty handles the natural
+        # deterrent for uncrouching at edges, no positive signal needed.
         if self._sneaking:
-            at_leading_edge = (
-                (in_gap  and z >= self._max_z - 0.5) or
-                (at_edge and z >= self.cfg.BRIDGE_Z_START - 0.5)
-            )
-            if at_leading_edge:
-                if in_gap:
-                    reward += self.cfg.REWARD_SNEAK_IN_GAP
-                elif at_edge:
-                    reward += self.cfg.REWARD_SNEAK_AT_EDGE
+            reward += self.cfg.REWARD_SNEAK_STEP
 
         # ── Camera shaping (look-down + look-back) ─────────────────────────
         # Encourages the crosshair to land on the south face of the last bridge
@@ -465,7 +501,7 @@ class BridgingEnv:
                 reward += self.cfg.REWARD_LOOK_DOWN * math.sin(math.pi * pitch / 90.0)
 
             # Look-back: (-cos(yaw)+1)/2 is 0 when facing south (+Z/goal),
-            # 1 when facing north (-Z/backward).  Handles ±180 wraparound cleanly.
+            # 1 when facing north (-Z/backward). Handles ±180 wraparound cleanly.
             look_back_factor = (-math.cos(math.radians(yaw)) + 1.0) / 2.0
             reward += self.cfg.REWARD_LOOK_BACK * look_back_factor
 
@@ -488,7 +524,7 @@ class BridgingEnv:
             target_z = float(los.get("z", 0))
             if (self.cfg.BRIDGE_Z_START - 1 <= target_z <= self.cfg.BRIDGE_Z_END and
                     abs(target_y - self.cfg.BRIDGE_Y) < 1.5 and
-                    abs(target_x) < 1.5):
+                    self.cfg.BRIDGE_X_MIN - 0.5 <= target_x <= self.cfg.BRIDGE_X_MAX + 0.5):
                 curr_aligned = True
 
         prev_aligned = self._aligned_to_south_face
@@ -537,7 +573,8 @@ class BridgingEnv:
             return False
         if y < self.cfg.FALL_Y_THRESHOLD:
             return False
-        if x < self.cfg.BRIDGE_X_MIN - 1.5 or x > self.cfg.BRIDGE_X_MAX + 1.5:
+        goal_x = self._goal_pos[0]
+        if abs(x - goal_x) > 0.5:
             return False
         return True
 
@@ -576,7 +613,8 @@ class BridgingEnv:
                 self._landing_counter = 0
                 return 0.0, False, "alive"
             else:
-                return self.cfg.REWARD_SUCCESS, True, "landed"
+                efficiency_bonus = self.cfg.REWARD_EFFICIENCY_COEF * self._prev_inv_count
+                return self.cfg.REWARD_SUCCESS + efficiency_bonus, True, "landed"
 
         # Z-progress reward: bonus for advancing to new Z positions.
         # Also drives the stall counter used by _get_shaping_reward.
@@ -591,5 +629,12 @@ class BridgingEnv:
         else:
             self._steps_since_z_progress += 1
 
-        reward = self.cfg.REWARD_STEP_PENALTY + z_progress_reward
+        # X-progress: reward closing distance to goal X (mirrors Z-progress)
+        x_progress_reward = 0.0
+        x_dist = abs(x - self._goal_pos[0])
+        if x_dist < self._min_x_dist:
+            x_progress_reward = self.cfg.REWARD_X_PROGRESS_COEF * (self._min_x_dist - x_dist)
+            self._min_x_dist = x_dist
+
+        reward = self.cfg.REWARD_STEP_PENALTY + z_progress_reward + x_progress_reward
         return reward, False, "alive"

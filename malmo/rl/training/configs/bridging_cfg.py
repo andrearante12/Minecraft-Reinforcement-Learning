@@ -26,7 +26,7 @@ class BridgingCFG(BaseCFG):
     Z_SUCCESS        = 7.0
     Z_SUCCESS_MAX    = 9.0
     LANDING_TICKS    = 0      # instant success on reaching end platform
-    MAX_STEPS        = 1200
+    MAX_STEPS        = 200
     STEP_DURATION    = 0.15
 
     # ── Voxel grid: x[-2:+2]=5, y[-2:+2]=5, z[-2:+5]=8 ─────────────────────
@@ -59,10 +59,10 @@ class BridgingCFG(BaseCFG):
         ("strafe_left",   ["strafe -1"], ["strafe 0"]),  # 2
         ("strafe_right",  ["strafe 1"],  ["strafe 0"]),  # 3
         # Camera
-        ("look_down",     ["pitch 1"],   ["pitch 0"]),   # 4
-        ("look_up",       ["pitch -1"],  ["pitch 0"]),   # 5
-        ("turn_left",     ["turn -1"],   ["turn 0"]),    # 6
-        ("turn_right",    ["turn 1"],    ["turn 0"]),    # 7
+        ("look_down",     ["pitch 0.5"],  ["pitch 0"]),   # 4
+        ("look_up",       ["pitch -0.5"],["pitch 0"]),   # 5
+        ("turn_left",     ["turn -0.5"], ["turn 0"]),    # 6
+        ("turn_right",    ["turn 0.5"],  ["turn 0"]),    # 7
         # Sneak/crouch — explicit press and release (ContinuousMovementCommands uses "crouch")
         ("sneak_down",    ["crouch 1"],  []),             # 8
         ("sneak_up",      ["crouch 0"],  []),             # 9
@@ -79,17 +79,24 @@ class BridgingCFG(BaseCFG):
     # Agent z-coordinate is used as a proxy for placement location because
     # Malmo's observation lag makes the placed-block voxel unreliable on the
     # same step as placement.
-    REWARD_BLOCK_PLACED_VALID   = +5.0   # block placed while in (or just before) the gap zone
-    REWARD_BLOCK_PLACED_WASTED  =  0.0   # no penalty for off-target placement — any placement is exploration
-    REWARD_SNEAK_PLACE          = +0.3   # bonus on valid placement when crouched (+1.3 total)
+    REWARD_BLOCK_PLACED_VALID   = +5.0   # block placed in gap zone (any X) — reinforces backing-up behavior
+    REWARD_BLOCK_PLACED_WASTED  = -1.0   # block placed outside gap zone
+    REWARD_BLOCK_PENALTY        = -1.0   # per-block cost applied to every placement
+    REWARD_SNEAK_PLACE          = +1.0   # bonus for crouched placement
+    REWARD_EFFICIENCY_COEF      = +2.0   # multiplied by blocks remaining in inventory on success
 
-    REWARD_STEP_PENALTY  = -0.01   # reduced from -0.02: setup actions (turn-around) are less penalised
-    REWARD_PROGRESS_COEF = +20.0   # per new Z-block reached — primary signal, must dominate placement
+    REWARD_STEP_PENALTY      = -0.05   # heavy speed pressure — every wasted step costs more
+    REWARD_PROGRESS_COEF     = +30.0   # per new Z-block reached
+    REWARD_X_PROGRESS_COEF   = +15.0   # per new X-block reached toward goal
+    REWARD_SUCCESS           = +100.0  # dominant goal signal
 
     # ── Behavioural shaping ───────────────────────────────────────────────────
-    REWARD_ENTERED_GAP     = +5.0    # one-time: strong signal to leave the platform
-    REWARD_SNEAK_IN_GAP    = +0.005  # per step: crouching while inside the gap
-    REWARD_SNEAK_AT_EDGE   = +0.01   # per step: crouching on the platform block immediately before the gap
+    REWARD_ENTERED_GAP       = +5.0   # one-time: strong signal to leave the platform
+    REWARD_SNEAK_IN_GAP      =  0.0    # removed
+    REWARD_SNEAK_AT_EDGE     =  0.0    # removed
+    REWARD_SNEAK_NEAR_EDGE   =  0.0    # removed: fall penalty is sufficient deterrent for uncrouching at edges
+    REWARD_SNEAK_STEP        = -0.05   # per step while crouching — actively discourages always-crouch
+    SNEAK_EDGE_THRESHOLD     =  0.2   # z % 1.0 must be within this of 0.0 or 1.0
 
     # Crosshair alignment: fires once (negatively) when the agent looks away
     # from a goal-facing block face without having placed a block first.
@@ -98,19 +105,28 @@ class BridgingCFG(BaseCFG):
     # Camera shaping: small per-step rewards while in the gap / at the edge.
     # sin-shaped look-down peaks at 45° pitch, preventing straight-down collapse.
     # look-back factor is 0 when facing the goal, 1 when facing fully backward.
-    REWARD_LOOK_DOWN = +0.004   # max reward at 45° downward pitch
-    REWARD_LOOK_BACK = +0.002   # max reward when facing directly backward (-Z)
+    REWARD_LOOK_DOWN = +0.02   # max reward at 45° downward pitch
+    REWARD_LOOK_BACK = +0.01   # max reward when facing directly backward (-Z)
 
     # Stall: additional per-step penalty when z-progress stalls beyond threshold
     STALL_THRESHOLD = 15     # steps without z-progress before penalty begins
-    REWARD_STALL    = -0.02  # extra per-step cost during stall (stacks with step penalty)
+    REWARD_STALL    = -0.05  # extra per-step cost during stall (stacks with step penalty)
 
     # ── Bridge geometry (gap zone) ────────────────────────────────────────────
     BRIDGE_Z_START = 2     # first Z of the gap
     BRIDGE_Z_END   = 6     # last Z of the gap (inclusive)
     BRIDGE_Y       = 45    # Y level where bridge blocks should go
-    BRIDGE_X_MIN   = 0     # X range for valid bridge placement (single block wide)
-    BRIDGE_X_MAX   = 0
+    BRIDGE_X_MIN   =  0    # X range for valid bridge placement
+    BRIDGE_X_MAX   =  4
+
+    # ── Spawn (fixed position, fixed camera) ─────────────────────────────────
+    SPAWN_YAW_NOISE        = 0.0
+    SPAWN_PITCH_NOISE      = 0.0
+    SPAWN_X_NOISE          = 0.0
+    RANDOMIZE_CROUCH_START = False
+
+    # ── Fixed diagonal goal (X+4 from spawn) ─────────────────────────────────
+    GOAL_X_OFFSETS = [4]
 
     # ── Hyperparameter overrides for bridging ─────────────────────────────────
     ENTROPY_COEF     = 0.2     # high entropy to keep exploring placement
