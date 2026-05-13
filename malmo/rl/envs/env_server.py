@@ -38,6 +38,7 @@ from training.configs.vertical_small_cfg      import VerticalSmallCFG
 from training.configs.multi_jump_course_cfg   import MultiJumpCourseCFG
 from training.configs.multi_jump_branch_cfg   import MultiJumpBranchCFG
 from training.configs.bridging_cfg            import BridgingCFG
+from training.configs.bridging_straight_cfg   import BridgingStraightCFG
 from training.configs.bridging_1block_cfg     import Bridging1BlockCFG
 from training.configs.bridging_2block_cfg     import Bridging2BlockCFG
 from training.configs.bridging_3block_cfg     import Bridging3BlockCFG
@@ -55,6 +56,7 @@ ENV_REGISTRY = {
     "multi_jump_course":   (ParkourEnv, MultiJumpCourseCFG),
     "multi_jump_branch":   (ParkourEnv, MultiJumpBranchCFG),
     "bridging":            (BridgingEnv, BridgingCFG),
+    "bridging_straight":   (BridgingEnv, BridgingStraightCFG),
     "bridging_1block":     (BridgingEnv, Bridging1BlockCFG),
     "bridging_2block":     (BridgingEnv, Bridging2BlockCFG),
     "bridging_3block":     (BridgingEnv, Bridging3BlockCFG),

@@ -85,4 +85,4 @@ That's it — the training loop, PPO update, DQN update, logging, and checkpoint
 
 ## Observation Vector
 
-All models receive the same 129-dimensional input. See [Observation Vector](./observation_vector.md) for the full breakdown of what each index represents.
+Models receive a flat vector of size `cfg.INPUT_SIZE` — the dimension is set per-task in the config. See [Observation Vector](./observation_vector.md) for the full breakdown of what each index represents across the built-in tasks.

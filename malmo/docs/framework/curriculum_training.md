@@ -78,7 +78,7 @@ Total episodes = sum of all `max_episodes` (upper bound; training may finish ear
 ## Usage
 
 ```powershell
-# 1. Start Minecraft clients and env servers as usual (see CLAUDE.md)
+# 1. Start Minecraft clients and env servers as usual (see framework/setup.md)
 # 2. Run training with --curriculum instead of --env:
 conda activate train_env
 python Malmo/rl/training/train.py --curriculum path/to/curriculum.json --algo ppo --base-port 10002

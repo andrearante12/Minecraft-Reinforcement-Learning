@@ -1,18 +1,48 @@
-# Malmo RL — Bridging Agent
+# MalmoRL - Framework for Training RL Agents by extending Microsoft Malmo
 
-A modular framework for training RL agents to bridge in Minecraft using Microsoft Malmo. The main focus is a block-bridging agent that learns to place blocks across a 5-block gap using behavioral cloning from human demos followed by PPO fine-tuning.
+A framework for training reinforcement learning agents in Minecraft using Microsoft Malmo. Define a task, pick an algorithm, train, and evaluate.
 
-**First time setup?** See [Setup & Installation](./Malmo/docs/setup.md) before continuing.
+Built-in tasks include parkour (jumping across gaps) and block-bridging, but the framework is designed to support any Minecraft-based RL task.
+
+**First time setup?** See [Setup & Installation](./Malmo/docs/framework/setup.md) before continuing.
+
+## Documentation
+
+### Framework
+
+- [Setup & Installation](./Malmo/docs/framework/setup.md) — conda environments, Malmo installation, env vars
+- [Observation Vector](./Malmo/docs/framework/observation_vector.md) — what the agent perceives on each step
+- [Action Space](./Malmo/docs/framework/action_space.md) — available actions and how to modify them
+- [Behavioral Cloning](./Malmo/docs/framework/behavioral_cloning.md) — demo recording, replay, BC + PPO pipeline
+- [Curriculum Training](./Malmo/docs/framework/curriculum_training.md) — multi-env training with sequential, weighted, or adaptive progression
+- [New Environments](./Malmo/docs/framework/new_environment.md) — how to add a new Malmo environment
+- [New RL Algorithms](./Malmo/docs/framework/new_algorithm.md) — how to add a new training algorithm
+- [New Model Architectures](./Malmo/docs/framework/new_model.md) — how to swap in a different network
+
+### Parkour
+
+- [Parkour Guide](./Malmo/docs/parkour/report.md) — world layout, observation space, action space, reward shaping, training pipeline
+
+### Bridging
+
+- [Bridging Guide](./Malmo/docs/bridging/bridging.md) — world layout, observation space, action space, reward shaping, training pipeline
+
+
+## Extending the Framework to Custom Tasks
+
+| What to add | Guide |
+|-------------|-------|
+| New task / environment | [New Environments](./Malmo/docs/framework/new_environment.md) — XML + config for new parkour variants; full env class for new task types |
+| New RL algorithm | [New Algorithms](./Malmo/docs/framework/new_algorithm.md) — inherit from `BaseAgent`, implement 4 methods |
+| New model architecture | [New Models](./Malmo/docs/framework/new_model.md) — implement 3 interface methods, swap in one import line |
 
 ---
 
 ## Quick Start — Bridging Agent
 
-Training the bridging agent takes 4 steps. You need 2 terminals running at all times (Minecraft client + env server), with a 3rd for whichever task you're doing.
+The bridging agent (crossing a 5-block gap by placing blocks) has a pre-trained baseline checkpoint, making it the fastest way to get started.
 
 ### 1. Launch Minecraft + Env Server
-
-Keep these running throughout recording, training, and evaluation.
 
 ```powershell
 # Terminal 1: Minecraft client
@@ -23,115 +53,101 @@ conda activate malmo
 python Malmo/rl/envs/env_server.py --env bridging --port 10002 --malmo-port 10000
 ```
 
-Wait for `Waiting for training script to connect...` before proceeding.
+Wait for `Waiting for training script to connect...` before continuing.
 
-### 2. Record Human Demonstrations
+### 2. Train (from the shared baseline checkpoint)
 
-Record 50+ successful episodes for behavioral cloning.
+Start from scratch with demos → BC → PPO:
 
 ```powershell
-# Terminal 3
-conda activate train_env
+# Record demos first
 python Malmo/rl/utils/record_demos.py --env bridging --port 10002
+
+# Then train: BC pre-training on demos, then PPO fine-tuning
+python Malmo/rl/training/train_sb3.py --env bridging --base-port 10002 --demo-path Malmo/demos/bridging.json
 ```
 
-**Controls:**
-
-| Key | Action |
-|-----|--------|
-| W / S | Forward / backward |
-| A / D | Strafe left / right |
-| Shift | Sneak (hold) |
-| Right-click | Place block |
-| Shift+W | Sneak forward |
-| Shift+Right-click | Sneak + place |
-| Arrow keys | Look / turn |
-| Esc | Save & quit |
-
-Demos save to `Malmo/demos/bridging.json` and append across sessions. To start fresh: `rm demos/bridging.json`
-
-**Replay demos to verify quality** (env server must be running):
-
-```powershell
-python Malmo/rl/utils/replay_demos.py --env bridging --port 10002
-python Malmo/rl/utils/replay_demos.py --env bridging --port 10002 --episode 0 --speed 0.5
-```
-
-### 3. Train
-
+Start from an existing baseline checkpoint (make sure --env flag is set correctly)
 ```powershell
 # Terminal 3
-
-# Resume from the shared baseline checkpoint (recommended starting point):
 conda activate train_env
 python Malmo/rl/training/train_sb3.py --env bridging --base-port 10002 --checkpoint Malmo/rl/baselines/sb3_bridging_baseline.zip
-
-# BC pre-training on demos, then PPO fine-tuning:
-python Malmo/rl/training/train_sb3.py --env bridging --base-port 10002 --demo-path Malmo/demos/bridging.json
-
-# PPO from scratch (no demos):
-python Malmo/rl/training/train_sb3.py --env bridging --base-port 10002
-
-# Resume from any saved checkpoint:
-python Malmo/rl/training/train_sb3.py --env bridging --base-port 10002 --checkpoint Malmo/rl/checkpoints/sb3_bridging_<N>_steps.zip
 ```
 
-Checkpoints save to `Malmo/rl/checkpoints/` and logs to `Malmo/rl/logs/` automatically. The baseline checkpoint in `Malmo/rl/baselines/` is the shared starting point — it will be updated periodically as training progresses.
-
-### 4. Evaluate
+### 3. Evaluate
 
 ```powershell
 conda activate train_env
 python Malmo/rl/evaluation/evaluate.py --env bridging --checkpoint checkpoints/sb3_bridging_final.zip --episodes 50 --port 10002
 ```
 
+See the [Bridging Guide](./Malmo/docs/bridging/bridging.md) for full details.
+
+---
+
+## Built-in Environments
+
+### Parkour
+
+Jump across gaps of increasing difficulty. All parkour variants share the same env class — only the mission XML and config differ.
+
+| Environment | Description |
+|-------------|-------------|
+| `one_block_gap` | 1-block gap, easiest |
+| `simple_jump` | 2-block gap |
+| `three_block_gap` | 3-block gap, hardest single jump |
+| `vertical_small` | Forward + upward jump |
+| `diagonal_small` | Forward + lateral jump |
+| `diagonal_medium` | 3-block gap with lateral offset |
+| `multi_jump_course` | 4-jump chained course |
+
+### Bridging
+
+Place blocks to build a bridge across an open gap. Requires inventory management and sneaking.
+
+| Environment | Description |
+|-------------|-------------|
+| `bridging` | 5-block gap (main task) |
+| `bridging_1block` | 1-block gap, easiest |
+| `bridging_2block` | 2-block gap |
+| `bridging_3block` | 3-block gap |
+| `bridging_4block` | 4-block gap |
+
+---
+
+## Training Options
+
+### Curriculum Training
+
+Train across multiple environments in a single run with automatic progression:
+
+```powershell
+python Malmo/rl/training/train.py --curriculum path/to/curriculum.json --algo ppo --base-port 10002
+```
+
+See [Curriculum Training](./Malmo/docs/framework/curriculum_training.md) for the JSON format.
+
 ---
 
 ## Multi-Environment Training
 
-Run N Minecraft clients for faster data collection. Each needs its own client + env server.
+Run N Minecraft clients in parallel for faster data collection:
 
 ```powershell
-# Terminal 1: Minecraft client 1 (Malmo port 10000)
+# Two Minecraft clients
 cd .\Malmo\Minecraft && .\launchClient.bat
-# Terminal 2: Minecraft client 2 (Malmo port 10001)
 cd .\Malmo\Minecraft && .\launchClient.bat -port 10001
 
-# Terminal 3: env server 1
+# Two env servers
 conda activate malmo
 python Malmo/rl/envs/env_server.py --env bridging --port 10002 --malmo-port 10000
-# Terminal 4: env server 2
-conda activate malmo
 python Malmo/rl/envs/env_server.py --env bridging --port 10003 --malmo-port 10001
 
-# Terminal 5: training with 2 envs
+# Train with 2 envs
 conda activate train_env
 python Malmo/rl/training/train_sb3.py --env bridging --num-envs 2 --base-port 10002
 ```
-
-> **Windows note:** Some port ranges may be reserved by Hyper-V. If you get `WinError 10013`, pick a different `--port`. Check reserved ranges with `netsh interface ipv4 show excludedportrange protocol=tcp`.
-
 ---
 
-## Troubleshooting
 
-| Problem | Fix |
-|---------|-----|
-| `ConnectionRefusedError` | Start Minecraft + env server before running any script |
-| `WinError 10013` on env server | Port reserved by Hyper-V — pick a different `--port` |
-| Mission ends before success | Increase `timeLimitMs` in `bridging.xml` (currently 120000ms) |
-| Previous mission still running | Wait ~30s or restart Minecraft client |
 
----
-
-## Documentation
-
-- [Bridging Agent Full Guide](./malmo/docs/bridging_quickstart.md) — world layout, action space, reward structure, key files
-- [Behavioral Cloning](./malmo/docs/behavioral_cloning.md) — demo recording, replay, BC + PPO pipeline
-- [Setup & Installation](./malmo/docs/setup.md) — conda environments, Malmo installation, env vars
-- [New Environments](./malmo/docs/new_environment.md) — how to add a new Malmo environment
-- [New RL Algorithms](./malmo/docs/new_algorithm.md) — how to add a new training algorithm
-- [New Model Architectures](./malmo/docs/new_model.md) — how to swap in a different network
-- [Observation Vector](./malmo/docs/observation_vector.md) — what the agent perceives on each step
-- [Action Space](./malmo/docs/action_space.md) — available actions and how to modify them
-- [Architecture Report](./malmo/docs/parkour_bot_report.md) — full system design and decisions

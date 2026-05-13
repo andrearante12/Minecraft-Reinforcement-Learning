@@ -51,7 +51,7 @@ class MyAlgo(BaseAgent):
         pass
 ```
 
-**2. Add any algorithm-specific hyperparameters to `training/config.py`:**
+**2. Add any algorithm-specific hyperparameters to `training/configs/base_cfg.py`:**
 
 ```python
 # ── MyAlgo ───────────────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ MY_ALGO_PARAM_1 = 0.99
 MY_ALGO_PARAM_2 = 1000
 ```
 
-**3. Register the algorithm in `training/train_simple_jump.py`:**
+**3. Register the algorithm in `training/train.py`:**
 
 ```python
 from algos.my_algo import MyAlgo
@@ -74,7 +74,7 @@ ALGO_REGISTRY = {
 **4. Run training with the new algorithm:**
 
 ```powershell
-python Malmo/rl/training/train_simple_jump.py --algo my_algo
+python Malmo/rl/training/train.py --algo my_algo
 ```
 
 The training loop, environment, logging, and checkpointing all work automatically — the `update()` return dict keys are logged dynamically so no changes to `logger.py` are needed either.

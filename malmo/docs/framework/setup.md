@@ -64,7 +64,7 @@ echo $env:PYTHONPATH
 
 ## Malmo Installation (Windows)
 
-This doc contains the additional fixes required to get Malmo working on Windows. For the full original install instructions view [Official Install (Windows)](../../offical_install/install_windows.md).
+This doc contains the additional fixes required to get Malmo working on Windows. For the full original install instructions view [Official Install (Windows)](../../../offical_install/install_windows.md).
 
 ### Prerequisites
 
