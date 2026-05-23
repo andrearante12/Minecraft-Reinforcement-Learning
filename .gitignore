@@ -20,10 +20,6 @@ Malmo/rl/tb_logs/
 # Conda
 *.egg-info/
 
-# Claude Code
-.claude/
-CLAUDE.md
-
 # OS
 .DS_Store
 Thumbs.db

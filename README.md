@@ -38,6 +38,33 @@ Built-in tasks include parkour (jumping across gaps) and block-bridging, but the
 
 ---
 
+## Extending with Claude (Claude Code users)
+
+If you have a Claude subscription and are using [Claude Code](https://claude.com/claude-code), this repo ships with a set of specialized sub-agents that handle the extension work for you. Just describe what you want in plain English from the repo root — Claude routes the request to the right specialist automatically.
+
+**Two ways to drive it:**
+
+1. **Direct prompts** — say what you want, naturally:
+   - *"Add a new parkour env where the agent jumps over a 4-block gap."*
+   - *"Tune the bridging reward — the agent keeps stalling."*
+   - *"Implement SAC."*
+   - *"What's in the observation vector for simple_jump?"*
+   - *"How do I launch training for three_block_gap?"*
+
+2. **Form-driven (recommended for new users)** — describe a whole experiment in one shot:
+   ```bash
+   cp .claude/templates/EXPERIMENT_TEMPLATE.md my_experiment.md
+   # fill in the fields in plain English, then in Claude Code:
+   # > "run experiment-orchestrator on my_experiment.md"
+   ```
+   The orchestrator parses your form, asks any clarifying questions, and dispatches the specialist agents in order.
+
+**After every edit**, a built-in validator runs automatically (syntax, registry consistency, mission XML, model/algo smoke checks) and surfaces any issues immediately. You can also ask Claude to *"validate"* at any time for a deeper sweep.
+
+See [`CLAUDE.md`](./CLAUDE.md) for the agent roster and project context.
+
+---
+
 ## Quick Start — Bridging Agent
 
 The bridging agent (crossing a 5-block gap by placing blocks) has a pre-trained baseline checkpoint, making it the fastest way to get started.
