@@ -1,5 +1,7 @@
 # Bridging Agent
 
+> **Linux note:** commands below use Windows syntax. On Linux, use `cd malmo/Minecraft && ./launchClient.sh` instead of `cd .\Malmo\Minecraft && .\launchClient.bat`, and lowercase `malmo/rl/...` paths. See [setup_linux.md](../framework/setup_linux.md).
+
 The bridging environment teaches an RL agent to place blocks underneath itself to cross an open gap between two platforms. Unlike parkour (jumping), bridging requires inventory management, sneaking to avoid falling, and precise block placement.
 
 > **Prerequisites**: Both conda environments set up (`malmo` + `train_env`) and Malmo installed. See [setup.md](../framework/setup.md) if not.

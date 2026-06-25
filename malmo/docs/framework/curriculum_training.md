@@ -1,5 +1,7 @@
 # Curriculum Training
 
+> **Linux note:** commands below use Windows syntax. On Linux, use lowercase `malmo/rl/...` paths and `./launchClient.sh`. See [setup_linux.md](./setup_linux.md).
+
 Train an agent across multiple environments in a single run. All environments in a curriculum must share the same `INPUT_SIZE` and `N_ACTIONS`.
 
 ## JSON Format

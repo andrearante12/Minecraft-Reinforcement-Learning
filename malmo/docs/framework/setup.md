@@ -1,5 +1,7 @@
 # Setup & Installation
 
+> **On Linux?** See [Setup & Installation (Linux)](./setup_linux.md). This doc covers Windows.
+
 ## Table of Contents
 
 - [Conda Environment Setup](#conda-environment-setup)

@@ -1,5 +1,7 @@
 # Behavioral Cloning + PPO Fine-tuning
 
+> **Linux note:** commands below use Windows syntax. On Linux, use `cd malmo/Minecraft && ./launchClient.sh` instead of `cd .\Malmo\Minecraft && .\launchClient.bat`, and lowercase `malmo/rl/...` paths. See [setup_linux.md](./setup_linux.md).
+
 A two-phase training pipeline: (1) behavioral cloning from human demonstrations to bootstrap a reasonable policy, then (2) PPO fine-tuning to optimize beyond the demonstrations.
 
 ## Why BC?

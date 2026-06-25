@@ -1,0 +1,36 @@
+# Linux counterpart of malmo_environment.yml (Ubuntu 24.04+).
+# Same `malmo` env as the Windows file (runs Minecraft + the env_server), but
+# Linux-flavored. All Windows-only conda packages (vc / vc14_runtime /
+# vs2015_runtime / ucrt / wincertstore) and build hashes / prefix are removed.
+#
+# PYTHON 3.6 (not 3.7): the only prebuilt Linux MalmoPython.so for Malmo 0.37.0
+# is the Ubuntu-18.04 / Python-3.6 build. A prebuilt CPython extension is
+# ABI-locked to its Python minor version, so the env that imports MalmoPython
+# must be 3.6. (The Windows side stays 3.7 via its own MalmoPython.pyd.)
+# Boost is statically linked into the .so, so no boost package is needed here.
+#
+# Create with:  conda env create -f malmo/conda_enviornments/malmo_environment_linux.yml
+#
+# NOTE: the native MalmoPython binding (MalmoPython.so) is placed by hand —
+# see malmo/docs/framework/setup_linux.md.
+name: malmo
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.6.15
+  - pip
+  - pip:
+      # numpy is the only third-party import on the malmo side (env_server +
+      # parkour_env/bridging_env); 1.19.5 is the last release supporting 3.6.
+      - numpy==1.19.5
+      - future==1.0.0
+      # matplotlib/pillow kept for parity with the Windows env (visualization
+      # helpers); pinned to the last 3.6-compatible releases.
+      - matplotlib==3.3.4
+      - pillow==8.4.0
+      - cycler==0.11.0
+      - kiwisolver==1.3.1
+      - pyparsing==2.4.7
+      - python-dateutil==2.9.0.post0
+      - six==1.16.0

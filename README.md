@@ -4,7 +4,9 @@ A framework for training reinforcement learning agents in Minecraft using Micros
 
 Built-in tasks include parkour (jumping across gaps) and block-bridging, but the framework is designed to support any Minecraft-based RL task.
 
-**First time setup?** See [Setup & Installation](./Malmo/docs/framework/setup.md) before continuing.
+**First time setup?** See [Setup & Installation](./Malmo/docs/framework/setup.md) before continuing (Linux: [setup_linux.md](./malmo/docs/framework/setup_linux.md)).
+
+> **Windows vs Linux commands:** examples below use Windows syntax (`.\Malmo\...`, `.\launchClient.bat`). On Linux, use lowercase forward-slash paths and the `.sh` launcher: `cd malmo/Minecraft && ./launchClient.sh`, and run python as `python malmo/rl/...`.
 
 ## Documentation
 
@@ -78,6 +80,16 @@ cd .\Malmo\Minecraft && .\launchClient.bat
 # Terminal 2: Environment server
 conda activate malmo
 python Malmo/rl/envs/env_server.py --env bridging --port 10002 --malmo-port 10000
+```
+
+Linux equivalent:
+
+```bash
+# Terminal 1
+cd malmo/Minecraft && ./launchClient.sh
+# Terminal 2
+conda activate malmo
+python malmo/rl/envs/env_server.py --env bridging --port 10002 --malmo-port 10000
 ```
 
 Wait for `Waiting for training script to connect...` before continuing.
@@ -174,6 +186,11 @@ python Malmo/rl/envs/env_server.py --env bridging --port 10003 --malmo-port 1000
 conda activate train_env
 python Malmo/rl/training/train_sb3.py --env bridging --num-envs 2 --base-port 10002
 ```
+
+> On Linux, replace `cd .\Malmo\Minecraft && .\launchClient.bat` with
+> `cd malmo/Minecraft && ./launchClient.sh` and `Malmo/rl/...` with `malmo/rl/...`.
+> `WorkflowScripts/launch_training.sh` opens all three panes in tmux.
+
 ---
 
 

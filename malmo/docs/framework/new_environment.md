@@ -1,5 +1,7 @@
 # Creating a New Environment
 
+> **Linux note:** commands below use Windows syntax. On Linux, use `cd malmo/Minecraft && ./launchClient.sh` instead of `cd .\Malmo\Minecraft && .\launchClient.bat`, and lowercase `malmo/rl/...` paths. See [setup_linux.md](./setup_linux.md).
+
 This guide covers two scenarios:
 
 1. **New parkour variant** — same observation/reward structure, different geometry (e.g. wider gap, higher platform). Only requires an XML file, a config, and two registry entries.
