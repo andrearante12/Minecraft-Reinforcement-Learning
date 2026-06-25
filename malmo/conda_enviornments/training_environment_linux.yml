@@ -1,0 +1,43 @@
+# Linux counterpart of training_environment.yml (Ubuntu 24.04+).
+# Same `train_env` env as the Windows file, with Windows-only conda packages
+# (vc / vc14_runtime / vs2015_runtime / ucrt) and build hashes / prefix removed.
+# matplotlib is moved to the pip block for cross-OS parity. The +cu124 torch
+# wheels are not on PyPI, hence the --extra-index-url line. These match the
+# RTX 4070 + CUDA 12.x driver on this machine.
+#
+# stable-baselines3 + gymnasium + tensorboard are required by train_sb3.py (the
+# bridging task). They were pip-installed outside the Windows yml export, so they
+# are added here. SB3 is pinned to 2.8.0: it provides FloatSchedule (so the
+# sb3_bridging baseline checkpoint deserializes cleanly) while only requiring
+# torch>=2.3, so it keeps torch 2.6.0+cu124. Avoid SB3 >=2.9 — that requires
+# torch>=2.8 and would pull a non-cu124 torch, breaking GPU support.
+#
+# Create with:  conda env create -f malmo/conda_enviornments/training_environment_linux.yml
+name: train_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10.20
+  - pip
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu124
+      - torch==2.6.0+cu124
+      - torchaudio==2.6.0+cu124
+      - torchvision==0.21.0+cu124
+      - stable-baselines3==2.8.0
+      - gymnasium==1.1.1
+      - tensorboard==2.20.0
+      - cloudpickle==3.1.2
+      - pandas==2.3.3
+      - numpy==2.2.6
+      - matplotlib==3.10.8
+      - pillow==12.0.0
+      - networkx==3.4.2
+      - sympy==1.13.1
+      - mpmath==1.3.0
+      - filelock==3.20.0
+      - fsspec==2025.12.0
+      - jinja2==3.1.6
+      - markupsafe==3.0.2
+      - typing-extensions==4.15.0
