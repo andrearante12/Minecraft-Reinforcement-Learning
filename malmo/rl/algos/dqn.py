@@ -23,31 +23,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from collections import deque
 
 from algos.base_agent import BaseAgent
-
-
-class ReplayBuffer:
-    def __init__(self, capacity):
-        self.buffer = deque(maxlen=capacity)
-
-    def add(self, obs, action, reward, next_obs, done):
-        self.buffer.append((obs, action, reward, next_obs, float(done)))
-
-    def sample(self, batch_size):
-        batch = random.sample(self.buffer, batch_size)
-        obs, actions, rewards, next_obs, dones = zip(*batch)
-        return (
-            np.array(obs,      dtype=np.float32),
-            np.array(actions,  dtype=np.int64),
-            np.array(rewards,  dtype=np.float32),
-            np.array(next_obs, dtype=np.float32),
-            np.array(dones,    dtype=np.float32),
-        )
-
-    def __len__(self):
-        return len(self.buffer)
+from algos.replay_buffer import ReplayBuffer
 
 
 class DQN(BaseAgent):

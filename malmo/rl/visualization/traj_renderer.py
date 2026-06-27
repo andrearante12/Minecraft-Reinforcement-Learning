@@ -64,6 +64,42 @@ def render_trajectory(ax, steps, outcome):
     return line, dot
 
 
+def render_imagined_trajectory(ax, steps, color="#FF8800", linestyle="--", label=None):
+    """
+    Draw a world-model *imagined* trajectory as a dashed line, for overlaying
+    on top of a real (solid) trajectory from render_trajectory().
+
+    Parameters
+    ----------
+    ax        : Axes3D
+    steps     : list[dict]  each dict has "x", "y", "z" keys
+    color     : line colour (default orange, to contrast with outcome colours)
+    linestyle : matplotlib linestyle (default dashed)
+    label     : optional legend label
+
+    Returns
+    -------
+    (line, dot) — Line3D and a hollow start-marker scatter
+    """
+    if not steps:
+        return None, None
+
+    xs = [s["x"] for s in steps]
+    ys = [s["y"] for s in steps]
+    zs = [s["z"] for s in steps]
+
+    line, = ax.plot(xs, ys, zs,
+                    color=color, alpha=0.9, linewidth=1.5,
+                    linestyle=linestyle, label=label)
+
+    dot = ax.scatter(
+        [xs[0]], [ys[0]], [zs[0]],
+        s=80, facecolors="none", edgecolors=color, zorder=5,
+    )
+
+    return line, dot
+
+
 def update_dot(ax, state, step_idx):
     """
     Move the animated dot to *step_idx* within the current episode.

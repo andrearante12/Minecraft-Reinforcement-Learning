@@ -8,8 +8,10 @@ in each env's own config file.
 
 import os
 
+from training.configs.world_model_cfg import WorldModelCFG
 
-class BaseCFG:
+
+class BaseCFG(WorldModelCFG):
     # ── Paths ─────────────────────────────────────────────────────────────────
     ROOT_DIR       = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     CHECKPOINT_DIR = os.path.join(ROOT_DIR, "checkpoints")

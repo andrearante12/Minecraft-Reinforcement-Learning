@@ -37,11 +37,13 @@ from training.curriculum import CurriculumScheduler
 from algos.ppo import PPO
 from algos.dqn import DQN
 from algos.behavioral_cloning import BehavioralCloning
+from algos.dreamer import Dreamer
 
 ALGO_REGISTRY = {
-    "ppo": PPO,
-    "dqn": DQN,
-    "bc":  BehavioralCloning,
+    "ppo":     PPO,
+    "dqn":     DQN,
+    "bc":      BehavioralCloning,
+    "dreamer": Dreamer,
 }
 
 # ── Environment registry ──────────────────────────────────────────────────────
@@ -59,6 +61,7 @@ from training.configs.bridging_1block_cfg     import Bridging1BlockCFG
 from training.configs.bridging_2block_cfg     import Bridging2BlockCFG
 from training.configs.bridging_3block_cfg     import Bridging3BlockCFG
 from training.configs.bridging_4block_cfg     import Bridging4BlockCFG
+from training.configs.hunting_cfg              import HuntingCFG
 
 ENV_REGISTRY = {
     "one_block_gap":       (None, OneBlockGapCFG),
@@ -75,6 +78,7 @@ ENV_REGISTRY = {
     "bridging_3block":     (None, Bridging3BlockCFG),
     "bridging_4block":     (None, Bridging4BlockCFG),
     "bridging_5block":     (None, BridgingCFG),
+    "hunting":             (None, HuntingCFG),
 }
 
 
