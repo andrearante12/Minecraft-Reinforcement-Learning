@@ -64,6 +64,28 @@ class WorldModelCFG:
     WM_FREE_NATS  = 1.0
     WM_SEQ_LEN    = 1
 
-    # ── Research seams (default OFF — reserved follow-ups) ──────────────────────
-    ENSEMBLE_SIZE  = 1     # >1 → ensemble for disagreement-based exploration
-    INTRINSIC_COEF = 0.0   # weight on ensemble-disagreement intrinsic reward
+    # ── Uncertainty-aware imagination (default OFF — enabled per-env) ───────────
+    # An ensemble of probabilistic world models lets the agent measure and split
+    # its predictive uncertainty on the moving target into aleatoric (irreducible
+    # noise) and epistemic (model ignorance), then act on each differently:
+    #   • horizon gating  — shorten the effective imagination horizon where the
+    #     future is genuinely unpredictable (trust factor folded into the
+    #     GAMMA*continuation discount), so value targets aren't poisoned by
+    #     diverged dreams.
+    #   • exploration     — reward the actor for visiting states the model is
+    #     merely IGNORANT about (epistemic), never merely NOISY (aleatoric) —
+    #     the guard against the "noisy-TV" trap.
+    # Defaults here keep every existing PPO/DQN and deterministic-Dreamer run
+    # byte-identical; the hunting config turns these on for the study.
+    ENSEMBLE_SIZE   = 1        # K; >1 → aleatoric/epistemic decomposition
+    WM_PROBABILISTIC = False   # goal head emits (mean, log_var) → Gaussian NLL
+    WM_MIN_LOGVAR   = -8.0     # clamp for NLL stability
+    WM_MAX_LOGVAR   =  2.0
+    WM_INIT_LOGVAR  = -2.0     # untrained log-var bias (modest cold-start variance)
+    WM_UNCERTAINTY_DIMS = (0, 1, 2)  # GOAL-stream dims carrying target position
+
+    WM_HORIZON_GATING = False  # τ_t = exp(-WM_TRUST_BETA * cumulative_uncertainty)
+    WM_TRUST_BETA     = 0.5
+
+    INTRINSIC_COEF = 0.0       # weight on the disagreement intrinsic reward
+    INTRINSIC_KIND = "epistemic"  # epistemic | total  (never aleatoric)

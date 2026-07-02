@@ -61,6 +61,7 @@ from training.configs.bridging_1block_cfg     import Bridging1BlockCFG
 from training.configs.bridging_2block_cfg     import Bridging2BlockCFG
 from training.configs.bridging_3block_cfg     import Bridging3BlockCFG
 from training.configs.bridging_4block_cfg     import Bridging4BlockCFG
+from training.configs.bridging_straight_cfg   import BridgingStraightCFG
 from training.configs.hunting_cfg              import HuntingCFG
 
 ENV_REGISTRY = {
@@ -77,6 +78,7 @@ ENV_REGISTRY = {
     "bridging_2block":     (None, Bridging2BlockCFG),
     "bridging_3block":     (None, Bridging3BlockCFG),
     "bridging_4block":     (None, Bridging4BlockCFG),
+    "bridging_straight":   (None, BridgingStraightCFG),
     "bridging_5block":     (None, BridgingCFG),
     "hunting":             (None, HuntingCFG),
 }

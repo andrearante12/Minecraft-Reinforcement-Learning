@@ -68,6 +68,7 @@ When you need to extend the framework, the docs under `malmo/docs/framework/` ar
 | First-time setup (conda envs, Malmo install) | `malmo/docs/framework/setup.md` |
 | Parkour task-specific notes | `malmo/docs/parkour/report.md` |
 | Bridging task-specific notes | `malmo/docs/bridging/bridging.md` |
+| World models / uncertainty-aware imagination (hunting) | `malmo/docs/world_model/report.md` |
 
 ## Conventions
 

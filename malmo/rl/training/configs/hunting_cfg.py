@@ -93,6 +93,20 @@ class HuntingCFG(BaseCFG):
     REWARD_FELL         = -10.0
     APPROACH_CLIP       = 2.0     # clamp per-step approach delta (blocks)
 
+    # ── Uncertainty-aware imagination (enabled for the hunting study) ────────
+    # Overrides the OFF defaults in WorldModelCFG. An ensemble of probabilistic
+    # world models measures aleatoric (the pig's irreducible motion) vs epistemic
+    # (model ignorance) uncertainty; horizon gating trusts imagination less where
+    # the future is unpredictable, and the intrinsic reward explores toward
+    # epistemic (never aleatoric) uncertainty.
+    ENSEMBLE_SIZE       = 5
+    WM_PROBABILISTIC    = True
+    WM_UNCERTAINTY_DIMS = (0, 1, 2)   # target dx,dy,dz within the target stream
+    WM_HORIZON_GATING   = True
+    WM_TRUST_BETA       = 0.5
+    INTRINSIC_COEF      = 0.1
+    INTRINSIC_KIND      = "epistemic"
+
     # ── Hyperparameter notes ─────────────────────────────────────────────────
     # World-model defaults come from WorldModelCFG. Long-horizon sparse task:
     TOTAL_EPISODES = 8000

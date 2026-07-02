@@ -31,7 +31,7 @@ from torch.distributions import Categorical
 
 from algos.base_agent import BaseAgent
 from algos.replay_buffer import ReplayBuffer
-from models.world_model import WorldModel
+from models.world_model import WorldModel, WorldModelEnsemble
 
 
 class Dreamer(BaseAgent):
@@ -43,9 +43,19 @@ class Dreamer(BaseAgent):
         self.model.to(self.device)
         self.optimizer = optim.Adam(model.parameters(), lr=cfg.LR, eps=1e-5)
 
-        # World model + its own optimizer
-        self.world_model   = WorldModel(cfg).to(self.device)
+        # World model + its own optimizer. An ensemble (K>1) enables the
+        # aleatoric/epistemic uncertainty decomposition; K=1 is the single
+        # deterministic model (byte-identical to the validated Phase-0 path).
+        self.is_ensemble   = getattr(cfg, "ENSEMBLE_SIZE", 1) > 1
+        self.world_model   = (WorldModelEnsemble(cfg) if self.is_ensemble
+                              else WorldModel(cfg)).to(self.device)
         self.wm_optimizer  = optim.Adam(self.world_model.parameters(), lr=cfg.WM_LR, eps=1e-5)
+
+        # Uncertainty consumers (both require an ensemble to estimate epistemic).
+        self.horizon_gating = self.is_ensemble and getattr(cfg, "WM_HORIZON_GATING", False)
+        self.trust_beta     = getattr(cfg, "WM_TRUST_BETA", 0.5)
+        self.intrinsic_coef = getattr(cfg, "INTRINSIC_COEF", 0.0) if self.is_ensemble else 0.0
+        self._epi_norm      = 1.0   # EMA normaliser keeping intrinsic reward ~O(coef)
 
         self.buffer        = ReplayBuffer(cfg.WM_BUFFER_CAPACITY)
         self.steps_done    = 0
@@ -57,8 +67,14 @@ class Dreamer(BaseAgent):
         self.current_lr           = cfg.LR
 
         print("Dreamer initialized on device:", self.device)
-        print("  World model params: {0}".format(
+        print("  World model: {0}  params: {1}".format(
+            "ensemble x{0} (probabilistic={1})".format(
+                cfg.ENSEMBLE_SIZE, getattr(cfg, "WM_PROBABILISTIC", False))
+            if self.is_ensemble else "single deterministic",
             sum(p.numel() for p in self.world_model.parameters())))
+        print("  Uncertainty: horizon_gating={0} (beta={1}) intrinsic_coef={2} ({3})".format(
+            self.horizon_gating, self.trust_beta, self.intrinsic_coef,
+            getattr(cfg, "INTRINSIC_KIND", "epistemic")))
         print("  Imagination horizon: {0} | batch: {1} | lambda: {2}".format(
             cfg.IMAG_HORIZON, cfg.IMAG_BATCH, cfg.IMAG_LAMBDA))
         print("  Learning starts at {0} real transitions".format(cfg.LEARNING_STARTS))
@@ -98,34 +114,59 @@ class Dreamer(BaseAgent):
         logs["entropy_coef"] = self.current_entropy_coef
         return logs
 
+    def _batch_tensors(self, batch):
+        obs, actions, rewards, next_obs, dones = batch
+        return (
+            torch.as_tensor(obs,      dtype=torch.float32, device=self.device),
+            torch.as_tensor(actions,  dtype=torch.int64,   device=self.device),
+            torch.as_tensor(rewards,  dtype=torch.float32, device=self.device),
+            torch.as_tensor(next_obs, dtype=torch.float32, device=self.device),
+            torch.as_tensor(dones,    dtype=torch.float32, device=self.device),
+        )
+
     def _train_world_model(self):
-        obs, actions, rewards, next_obs, dones = self.buffer.sample(self.cfg.WM_BATCH_SIZE)
-        obs_t      = torch.as_tensor(obs,      dtype=torch.float32, device=self.device)
-        actions_t  = torch.as_tensor(actions,  dtype=torch.int64,   device=self.device)
-        rewards_t  = torch.as_tensor(rewards,  dtype=torch.float32, device=self.device)
-        next_obs_t = torch.as_tensor(next_obs, dtype=torch.float32, device=self.device)
-        dones_t    = torch.as_tensor(dones,    dtype=torch.float32, device=self.device)
-
-        loss, metrics = self.world_model.loss(obs_t, actions_t, rewards_t, next_obs_t, dones_t)
-
+        # Each ensemble member fits its OWN independently sampled minibatch
+        # (bootstrap) so members diversify → nonzero epistemic uncertainty.
+        # For a single model this is exactly one batch / one loss as before.
+        members = self.world_model.members if self.is_ensemble else [self.world_model]
         self.wm_optimizer.zero_grad()
-        loss.backward()
+        losses, agg = [], None
+        for m in members:
+            tensors = self._batch_tensors(self.buffer.sample(self.cfg.WM_BATCH_SIZE))
+            loss, metrics = m.loss(*tensors)
+            losses.append(loss)
+            agg = metrics if agg is None else {k: agg[k] + metrics[k] for k in agg}
+        total = torch.stack(losses).sum()
+        total.backward()
         nn.utils.clip_grad_norm_(self.world_model.parameters(), self.cfg.WM_MAX_GRAD_NORM)
         self.wm_optimizer.step()
-        return metrics
+        n = len(members)
+        return {k: v / n for k, v in agg.items()}
 
     def _imagine_and_train(self):
-        """Roll the frozen world model from real start states; train actor-critic."""
+        """Roll the frozen world model from real start states; train actor-critic.
+
+        With an ensemble, each imagined step also yields the (aleatoric, epistemic)
+        uncertainty on the target. Two consumers act on it:
+          • horizon gating — a trust factor τ_t = exp(-β·Σ uncertainty) folded into
+            the GAMMA·continuation discount, so returns stop crediting diverged
+            far-future dreams;
+          • exploration — an epistemic-ONLY intrinsic reward (never aleatoric, to
+            avoid chasing the pig's irreducible noise).
+        """
         H       = self.cfg.IMAG_HORIZON
         gamma   = self.cfg.GAMMA
         lam     = self.cfg.IMAG_LAMBDA
 
         starts = self.buffer.sample_starts(self.cfg.IMAG_BATCH)
         s = torch.as_tensor(starts, dtype=torch.float32, device=self.device)
+        B = s.shape[0]
 
         log_probs, entropies, values = [], [], []
-        rewards, conts = [], []
+        rewards, conts, trusts       = [], [], []
+        ales, epis, intrinsics       = [], [], []
 
+        U = torch.zeros(B, device=self.device)         # cumulative uncertainty
         for _ in range(H):
             logits, value = self.model(s)              # actor-critic forward (grad)
             dist = Categorical(logits=logits)
@@ -134,9 +175,24 @@ class Dreamer(BaseAgent):
             entropies.append(dist.entropy())
             values.append(value.squeeze(-1))
             with torch.no_grad():                      # world model is frozen here
-                s, r, cont = self.world_model.predict(s, a)
-            rewards.append(r)
+                if self.is_ensemble:
+                    s, r, cont, ale, epi = self.world_model.predict_with_uncertainty(s, a)
+                else:
+                    s, r, cont = self.world_model.predict(s, a)
+                    ale = epi = torch.zeros(B, device=self.device)
+
+            # Horizon gating: trust the future less as uncertainty accumulates.
+            U = U + ale + epi
+            trust = torch.exp(-self.trust_beta * U) if self.horizon_gating else torch.ones_like(U)
+
+            # Exploration: epistemic-only intrinsic reward (noisy-TV guard).
+            intr = (self.intrinsic_coef * epi / (self._epi_norm + 1e-8)
+                    if self.intrinsic_coef > 0.0 else torch.zeros_like(epi))
+
+            rewards.append(r + intr)
             conts.append(cont)
+            trusts.append(trust)
+            ales.append(ale); epis.append(epi); intrinsics.append(intr)
 
         with torch.no_grad():
             _, last_value = self.model(s)
@@ -147,14 +203,20 @@ class Dreamer(BaseAgent):
         values    = torch.stack(values)                # (H, B)  — requires grad
         rewards   = torch.stack(rewards)               # (H, B)  — detached
         conts     = torch.stack(conts)                 # (H, B)  — detached
+        trusts    = torch.stack(trusts)                # (H, B)  — detached
 
-        # Dreamer λ-returns (value targets treated as constants → detach values)
+        # Update the intrinsic-reward normaliser (EMA of epistemic magnitude).
+        if self.intrinsic_coef > 0.0:
+            self._epi_norm = 0.99 * self._epi_norm + 0.01 * torch.stack(epis).mean().item()
+
+        # Dreamer λ-returns; the trust factor rides inside the discount.
         values_det = values.detach()
         returns = torch.zeros_like(values_det)
         g = last_value
         for t in reversed(range(H)):
             next_v = values_det[t + 1] if t < H - 1 else last_value
-            g = rewards[t] + gamma * conts[t] * ((1.0 - lam) * next_v + lam * g)
+            disc = gamma * conts[t] * trusts[t]
+            g = rewards[t] + disc * ((1.0 - lam) * next_v + lam * g)
             returns[t] = g
 
         advantage = (returns - values_det)             # detached → REINFORCE baseline
@@ -168,12 +230,17 @@ class Dreamer(BaseAgent):
         nn.utils.clip_grad_norm_(self.model.parameters(), self.cfg.MAX_GRAD_NORM)
         self.optimizer.step()
 
+        # eff_horizon ≈ number of imagined steps still trusted (Σ τ_t), ≤ H.
         return {
             "actor_loss":  actor_loss.item(),
             "critic_loss": critic_loss.item(),
             "entropy":     entropies.mean().item(),
             "imag_return": returns.mean().item(),
             "imag_reward": rewards.mean().item(),
+            "aleatoric":   torch.stack(ales).mean().item(),
+            "epistemic":   torch.stack(epis).mean().item(),
+            "eff_horizon": trusts.sum(dim=0).mean().item(),
+            "intrinsic_r": torch.stack(intrinsics).mean().item(),
         }
 
     # ── Optional LR / entropy schedule (train.py calls this if present) ─────────
