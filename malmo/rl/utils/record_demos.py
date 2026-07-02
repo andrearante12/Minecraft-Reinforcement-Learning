@@ -60,12 +60,16 @@ from training.configs.simple_jump_cfg     import SimpleJumpCFG
 from training.configs.one_block_gap_cfg   import OneBlockGapCFG
 from training.configs.three_block_gap_cfg import ThreeBlockGapCFG
 from training.configs.bridging_cfg        import BridgingCFG
+from training.configs.hunting_cfg          import HuntingCFG
+from training.configs.hunting_wild_cfg     import HuntingWildCFG
 
 ENV_CONFIGS = {
     "simple_jump":     SimpleJumpCFG,
     "one_block_gap":   OneBlockGapCFG,
     "three_block_gap": ThreeBlockGapCFG,
     "bridging":        BridgingCFG,
+    "hunting":         HuntingCFG,
+    "hunting_wild":    HuntingWildCFG,
 }
 
 # Action indices matching base_cfg.py DEFAULT_ACTIONS
@@ -199,6 +203,52 @@ def translate_keys_to_action_bridging():
     return None
 
 
+def translate_keys_to_action_hunting():
+    """Read held keys and translate to hunting action index (11 actions).
+
+    Hunting action space:
+        0: move_forward   1: move_backward  2: strafe_left   3: strafe_right
+        4: sprint_forward 5: turn_left      6: turn_right    7: look_up
+        8: look_down      9: attack        10: no_op
+
+    Controls:
+        W/S/A/D = move   Ctrl+W = sprint   Arrows = turn/look
+        X or F  = attack (manually fire; auto-attack also handles this in env)
+    """
+    w     = keyboard.is_pressed("w")
+    s     = keyboard.is_pressed("s")
+    a     = keyboard.is_pressed("a")
+    d     = keyboard.is_pressed("d")
+    ctrl  = keyboard.is_pressed("ctrl")
+    up    = keyboard.is_pressed("up")
+    down  = keyboard.is_pressed("down")
+    left  = keyboard.is_pressed("left")
+    right = keyboard.is_pressed("right")
+    atk   = keyboard.is_pressed("x") or keyboard.is_pressed("f")
+
+    if atk:
+        return 9   # attack
+    if ctrl and w:
+        return 4   # sprint_forward
+    if w:
+        return 0   # move_forward
+    if s:
+        return 1   # move_backward
+    if a:
+        return 2   # strafe_left
+    if d:
+        return 3   # strafe_right
+    if left:
+        return 5   # turn_left
+    if right:
+        return 6   # turn_right
+    if up:
+        return 7   # look_up
+    if down:
+        return 8   # look_down
+    return None
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Record human demonstrations")
     parser.add_argument("--env", type=str, required=True,
@@ -225,6 +275,8 @@ def record():
             print("ERROR: 'mouse' package required for bridging. Install with: pip install mouse")
             sys.exit(1)
         key_translator = translate_keys_to_action_bridging
+    elif args.env in ("hunting", "hunting_wild"):
+        key_translator = translate_keys_to_action_hunting
     else:
         key_translator = translate_keys_to_action
     action_names = [a[0] for a in cfg.ACTIONS]
@@ -376,12 +428,20 @@ def record():
 
                 # Record all actions sequentially, all using obs_prev.
                 # Camera steps carry a target_yaw or target_pitch for closed-loop replay.
+                # Full-transition fields (reward, next_obs, done) are always saved so
+                # the demo buffer can train the world model as well as the BC anchor.
                 for item in actions_to_record:
                     if isinstance(item, tuple):
                         rec_action, extra = item
                     else:
                         rec_action, extra = item, {}
-                    step_record = {"obs": obs_prev.tolist(), "action": int(rec_action)}
+                    step_record = {
+                        "obs":      obs_prev.tolist(),
+                        "action":   int(rec_action),
+                        "reward":   float(reward),
+                        "next_obs": obs.tolist(),
+                        "done":     bool(done),
+                    }
                     step_record.update(extra)
                     steps.append(step_record)
                     placed = " [PLACED #{0}]".format(prev_blocks_placed) if rec_action == 10 and prev_blocks_placed > 0 else ""

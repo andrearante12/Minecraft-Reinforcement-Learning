@@ -23,6 +23,8 @@ stay byte-compatible with PPO/DQN/BC — warm-start works both ways). The world
 model + its optimizer are persisted via _extra_state().
 """
 
+import json
+import os
 import numpy as np
 import torch
 import torch.nn as nn
@@ -59,6 +61,17 @@ class Dreamer(BaseAgent):
 
         self.buffer        = ReplayBuffer(cfg.WM_BUFFER_CAPACITY)
         self.steps_done    = 0
+
+        # DreamerFD-style demo integration
+        self.demo_buffer     = None
+        self._demo_bc_coef   = getattr(cfg, "DEMO_BC_COEF", 0.0)
+        demo_path            = getattr(cfg, "DEMO_PATH", None)
+        if demo_path and os.path.exists(demo_path):
+            self.demo_buffer = self._load_demo_buffer(demo_path)
+            print("  Demo buffer: {0} transitions from {1}".format(
+                len(self.demo_buffer), demo_path))
+        elif demo_path:
+            print("  WARNING: demo path not found: {0}".format(demo_path))
 
         # Actor entropy schedule (mirrors PPO's optional decay)
         self.initial_entropy_coef = cfg.IMAG_ENTROPY_COEF
@@ -110,6 +123,7 @@ class Dreamer(BaseAgent):
             logs.update(self._train_world_model())
         for _ in range(self.cfg.IMAG_UPDATES):
             logs.update(self._imagine_and_train())
+        logs.update(self._demo_bc_update())
         logs["lr"] = self.current_lr
         logs["entropy_coef"] = self.current_entropy_coef
         return logs
@@ -124,15 +138,58 @@ class Dreamer(BaseAgent):
             torch.as_tensor(dones,    dtype=torch.float32, device=self.device),
         )
 
+    def _load_demo_buffer(self, path):
+        """Load demo JSON into a ReplayBuffer.
+
+        Supports two formats:
+          - full: steps have "reward", "next_obs", "done" keys
+          - BC-only (legacy): steps have only "obs" and "action"; next_obs is
+            inferred from the next step's obs, reward=0, done=False/last-step.
+        """
+        with open(path) as f:
+            data = json.load(f)
+        buf = ReplayBuffer(capacity=200_000)
+        for ep in data["episodes"]:
+            steps = ep["steps"]
+            for i, step in enumerate(steps):
+                obs = np.array(step["obs"], dtype=np.float32)
+                action = int(step["action"])
+                reward = float(step.get("reward", 0.0))
+                if "next_obs" in step:
+                    next_obs = np.array(step["next_obs"], dtype=np.float32)
+                elif i + 1 < len(steps):
+                    next_obs = np.array(steps[i + 1]["obs"], dtype=np.float32)
+                else:
+                    next_obs = np.zeros_like(obs)
+                done = bool(step.get("done", i + 1 == len(steps)))
+                buf.add(obs, action, reward, next_obs, done)
+        return buf
+
     def _train_world_model(self):
         # Each ensemble member fits its OWN independently sampled minibatch
         # (bootstrap) so members diversify → nonzero epistemic uncertainty.
         # For a single model this is exactly one batch / one loss as before.
+        # With a demo buffer, a small fraction (DEMO_WM_FRACTION) of each
+        # minibatch is drawn from expert transitions.
         members = self.world_model.members if self.is_ensemble else [self.world_model]
+        demo_frac = getattr(self.cfg, "DEMO_WM_FRACTION", 0.1)
         self.wm_optimizer.zero_grad()
         losses, agg = [], None
         for m in members:
-            tensors = self._batch_tensors(self.buffer.sample(self.cfg.WM_BATCH_SIZE))
+            batch_size = self.cfg.WM_BATCH_SIZE
+            if self.demo_buffer and len(self.demo_buffer) > 0:
+                n_demo = max(1, int(batch_size * demo_frac))
+                n_real = batch_size - n_demo
+                real_b = self.buffer.sample(n_real)
+                demo_b = self.demo_buffer.sample(n_demo)
+                obs      = np.concatenate([real_b[0], demo_b[0]], axis=0)
+                actions  = np.concatenate([real_b[1], demo_b[1]], axis=0)
+                rewards  = np.concatenate([real_b[2], demo_b[2]], axis=0)
+                next_obs = np.concatenate([real_b[3], demo_b[3]], axis=0)
+                dones    = np.concatenate([real_b[4], demo_b[4]], axis=0)
+                tensors  = self._batch_tensors((obs, actions, rewards, next_obs, dones))
+            else:
+                tensors = self._batch_tensors(self.buffer.sample(batch_size))
             loss, metrics = m.loss(*tensors)
             losses.append(loss)
             agg = metrics if agg is None else {k: agg[k] + metrics[k] for k in agg}
@@ -158,7 +215,18 @@ class Dreamer(BaseAgent):
         gamma   = self.cfg.GAMMA
         lam     = self.cfg.IMAG_LAMBDA
 
-        starts = self.buffer.sample_starts(self.cfg.IMAG_BATCH)
+        # Blend real and demo start states so imagination explores the expert's
+        # distribution early in training (when demo BC coef is large).
+        batch = self.cfg.IMAG_BATCH
+        if self.demo_buffer and len(self.demo_buffer) > 0:
+            start_frac = getattr(self.cfg, "DEMO_START_FRACTION", 0.3)
+            n_demo = max(1, int(batch * start_frac))
+            n_real = batch - n_demo
+            real_s  = self.buffer.sample_starts(n_real)
+            demo_s  = self.demo_buffer.sample_starts(n_demo)
+            starts  = np.concatenate([real_s, demo_s], axis=0)
+        else:
+            starts = self.buffer.sample_starts(batch)
         s = torch.as_tensor(starts, dtype=torch.float32, device=self.device)
         B = s.shape[0]
 
@@ -243,6 +311,24 @@ class Dreamer(BaseAgent):
             "intrinsic_r": torch.stack(intrinsics).mean().item(),
         }
 
+    def _demo_bc_update(self):
+        """Behavioural-cloning cross-entropy anchor on demo (obs, action) pairs.
+
+        Decays with training progress via _demo_bc_coef so the actor can improve
+        beyond the demonstrator without being permanently anchored.
+        """
+        if self._demo_bc_coef <= 0.0 or not self.demo_buffer or len(self.demo_buffer) == 0:
+            return {}
+        batch = self.demo_buffer.sample(min(len(self.demo_buffer), self.cfg.WM_BATCH_SIZE))
+        obs_t, actions_t, _, _, _ = self._batch_tensors(batch)
+        logits, _ = self.model(obs_t)
+        bc_loss = nn.CrossEntropyLoss()(logits, actions_t)
+        self.optimizer.zero_grad()
+        (self._demo_bc_coef * bc_loss).backward()
+        nn.utils.clip_grad_norm_(self.model.parameters(), self.cfg.MAX_GRAD_NORM)
+        self.optimizer.step()
+        return {"bc_loss": bc_loss.item()}
+
     # ── Optional LR / entropy schedule (train.py calls this if present) ─────────
     def set_progress(self, fraction):
         fraction = max(0.0, min(1.0, fraction))
@@ -253,6 +339,10 @@ class Dreamer(BaseAgent):
         if getattr(self.cfg, "ENTROPY_DECAY", False):
             end = getattr(self.cfg, "ENTROPY_COEF_END", self.initial_entropy_coef)
             self.current_entropy_coef = self.initial_entropy_coef + (end - self.initial_entropy_coef) * fraction
+        # Decay BC anchor so the agent can eventually improve beyond the demonstrator.
+        if self._demo_bc_coef > 0.0:
+            initial_bc = getattr(self.cfg, "DEMO_BC_COEF", self._demo_bc_coef)
+            self._demo_bc_coef = initial_bc * (1.0 - fraction)
 
     # ── Checkpointing ───────────────────────────────────────────────────────────
     def _extra_state(self):

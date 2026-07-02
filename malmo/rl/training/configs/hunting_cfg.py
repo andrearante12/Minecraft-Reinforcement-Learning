@@ -87,11 +87,17 @@ class HuntingCFG(BaseCFG):
     REWARD_HIT          = +5.0    # per point of target health removed
     REWARD_KILL         = +100.0  # dominant terminal success signal
     REWARD_APPROACH_COEF = +1.0   # per block of distance closed to the target
-    REWARD_AIM          = +0.05   # per step the crosshair is on the animal
+    REWARD_AIM          = +0.05   # per step the crosshair is on the animal (los_hit)
     REWARD_STEP_PENALTY = -0.02   # mild speed pressure
     REWARD_TIMEOUT      = -5.0
     REWARD_FELL         = -10.0
     APPROACH_CLIP       = 2.0     # clamp per-step approach delta (blocks)
+
+    # Aim-alignment shaping (Phase 1 fix for the hard-exploration bottleneck).
+    # Potential-based so it adds zero net discounted reward (policy-invariant).
+    AIM_ALIGN_COEF    = 0.3    # weight on γΦ'−Φ; Φ=cos(heading_error·π)
+    AUTO_ATTACK       = True   # fire attack automatically when aligned + in range
+    AUTO_ATTACK_ANGLE = 0.15   # heading_error threshold (normalized, ~27°)
 
     # ── Uncertainty-aware imagination (enabled for the hunting study) ────────
     # Overrides the OFF defaults in WorldModelCFG. An ensemble of probabilistic
@@ -106,6 +112,12 @@ class HuntingCFG(BaseCFG):
     WM_TRUST_BETA       = 0.5
     INTRINSIC_COEF      = 0.1
     INTRINSIC_KIND      = "epistemic"
+
+    # Sustain exploration: the mixin default (0.003) lets the discrete policy
+    # collapse to a degenerate local optimum (corner-camping) within ~200 updates
+    # before it discovers reliable kills. Raised to match/exceed the framework's
+    # tuned PPO entropy (0.02) for this sparse long-horizon task.
+    IMAG_ENTROPY_COEF   = 0.03
 
     # ── Hyperparameter notes ─────────────────────────────────────────────────
     # World-model defaults come from WorldModelCFG. Long-horizon sparse task:

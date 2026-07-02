@@ -74,14 +74,17 @@ class HuntingEnv:
         self._steps    = 0
 
         # Target-tracking state (updated each step in _build_obs_vector)
-        self._prev_tgt_pos = None
-        self._tgt_pos      = None
-        self._tgt_dist     = float(cfg.DIST_SCALE)
-        self._tgt_life     = cfg.TARGET_MAX_LIFE
-        self._tgt_visible  = False
-        self._los_hit      = False
-        self._target_seen  = False     # ever seen the animal this episode
-        self._damaged      = False     # ever dealt damage this episode
+        self._prev_tgt_pos  = None
+        self._tgt_pos       = None
+        self._tgt_dist      = float(cfg.DIST_SCALE)
+        self._tgt_life      = cfg.TARGET_MAX_LIFE
+        self._tgt_visible   = False
+        self._los_hit       = False
+        self._target_seen   = False     # ever seen the animal this episode
+        self._damaged       = False     # ever dealt damage this episode
+        self._heading_error = 0.0       # normalized heading error to target
+        self._in_range      = False     # within ATTACK_RANGE
+        self._prev_phi      = 0.0      # previous potential Φ = cos(heading_error·π)
 
         self.observation_shape = (cfg.INPUT_SIZE,)
 
@@ -98,15 +101,18 @@ class HuntingEnv:
     # ── Public API ───────────────────────────────────────────────────────────
     def reset(self):
         self._steps        = 0
-        self._prev_pos     = np.array(self.cfg.SPAWN, dtype=np.float32)
-        self._prev_tgt_pos = None
-        self._tgt_pos      = None
-        self._tgt_dist     = float(self.cfg.DIST_SCALE)
-        self._tgt_life     = self.cfg.TARGET_MAX_LIFE
-        self._tgt_visible  = False
-        self._los_hit      = False
-        self._target_seen  = False
-        self._damaged      = False
+        self._prev_pos      = np.array(self.cfg.SPAWN, dtype=np.float32)
+        self._prev_tgt_pos  = None
+        self._tgt_pos       = None
+        self._tgt_dist      = float(self.cfg.DIST_SCALE)
+        self._tgt_life      = self.cfg.TARGET_MAX_LIFE
+        self._tgt_visible   = False
+        self._los_hit       = False
+        self._target_seen   = False
+        self._damaged       = False
+        self._heading_error = 0.0
+        self._in_range      = False
+        self._prev_phi      = 0.0
 
         tx, tz = self._choose_target_spawn()
         draw_entity = '    <DrawEntity x="{x:.1f}" y="46.0" z="{z:.1f}" type="{mob}"/>\n'.format(
@@ -132,6 +138,14 @@ class HuntingEnv:
 
         obs_dict, world_state = self._get_obs_dict()
         obs = self._build_obs_vector(obs_dict)  # updates target + prev_pos state
+
+        # Auto-fire: attack when aligned and in range (fires before next obs tick)
+        if (getattr(self.cfg, 'AUTO_ATTACK', False)
+                and self._in_range
+                and abs(self._heading_error) < getattr(self.cfg, 'AUTO_ATTACK_ANGLE', 0.15)):
+            self._agent_host.sendCommand("attack 1")
+            time.sleep(0.05)
+            self._agent_host.sendCommand("attack 0")
 
         reward, done, outcome = self._get_reward(obs_dict, prev_dist, prev_life, prev_visible)
 
@@ -266,7 +280,9 @@ class HuntingEnv:
 
             in_range = 1.0 if dist <= self.cfg.ATTACK_RANGE else 0.0
             los_hit  = 1.0 if self._los_on_target(obs) else 0.0
-            self._los_hit = bool(los_hit)
+            self._los_hit       = bool(los_hit)
+            self._heading_error = heading_error
+            self._in_range      = bool(in_range)
 
             return np.array([
                 dx, dy, dz,
@@ -279,8 +295,10 @@ class HuntingEnv:
             ], dtype=np.float32)
 
         # Target not currently visible
-        self._tgt_visible = False
-        self._los_hit     = False
+        self._tgt_visible   = False
+        self._los_hit       = False
+        self._heading_error = 0.0
+        self._in_range      = False
         return np.array([
             0, 0, 0, 0, 0, 0,
             1.0,            # max normalized distance
@@ -344,6 +362,16 @@ class HuntingEnv:
             # Aim bonus: crosshair on the animal
             if self._los_hit:
                 reward += self.cfg.REWARD_AIM
+            # Potential-based aim-alignment shaping (Ng 1999, policy-invariant).
+            # Φ(s) = cos(heading_error · π): 1 when perfectly aimed, -1 when opposite.
+            # Shaping = AIM_ALIGN_COEF · (γ·Φ' − Φ) — adds zero net discounted reward.
+            align_coef = getattr(self.cfg, 'AIM_ALIGN_COEF', 0.0)
+            if align_coef:
+                phi_new = math.cos(self._heading_error * math.pi)
+                reward += align_coef * (self.cfg.GAMMA * phi_new - self._prev_phi)
+                self._prev_phi = phi_new
+        else:
+            self._prev_phi = 0.0
 
         return reward, False, "alive"
 

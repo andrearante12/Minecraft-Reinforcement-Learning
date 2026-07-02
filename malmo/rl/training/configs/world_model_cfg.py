@@ -89,3 +89,14 @@ class WorldModelCFG:
 
     INTRINSIC_COEF = 0.0       # weight on the disagreement intrinsic reward
     INTRINSIC_KIND = "epistemic"  # epistemic | total  (never aleatoric)
+
+    # ── DreamerFD-style demo integration (default OFF — supply --demo-path) ────
+    # A separate demo replay buffer feeds WM training (DEMO_WM_FRACTION of each
+    # minibatch) and imagination start states (DEMO_START_FRACTION of each batch).
+    # A decayed BC cross-entropy anchor discourages the imagination actor from
+    # drifting far from the expert early in training.
+    # Set DEMO_PATH via --demo-path CLI flag; the others are tuning knobs.
+    DEMO_PATH           = None   # path to demo JSON; None → demos disabled
+    DEMO_WM_FRACTION    = 0.1    # fraction of each WM minibatch drawn from demos
+    DEMO_START_FRACTION = 0.3    # fraction of imagination starts drawn from demos
+    DEMO_BC_COEF        = 0.0    # BC loss coefficient (0 = off)

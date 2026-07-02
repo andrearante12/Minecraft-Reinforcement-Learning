@@ -46,7 +46,8 @@ from training.configs.bridging_4block_cfg     import Bridging4BlockCFG
 
 from envs.bridging_env import BridgingEnv
 
-from training.configs.hunting_cfg import HuntingCFG
+from training.configs.hunting_cfg      import HuntingCFG
+from training.configs.hunting_wild_cfg import HuntingWildCFG
 from envs.hunting_env import HuntingEnv
 
 ENV_REGISTRY = {
@@ -66,6 +67,7 @@ ENV_REGISTRY = {
     "bridging_4block":     (BridgingEnv, Bridging4BlockCFG),
     "bridging_5block":     (BridgingEnv, BridgingCFG),
     "hunting":             (HuntingEnv, HuntingCFG),
+    "hunting_wild":        (HuntingEnv, HuntingWildCFG),
 }
 
 HOST = "127.0.0.1"

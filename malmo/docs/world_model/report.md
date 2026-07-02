@@ -1,6 +1,6 @@
 # World Models for MalmoRL — Uncertainty-Aware Imagination (Hunting)
 
-*Status: 2026-07-02 · branch `extension/world-model-hunting` · built + validated offline, ready for Phase D (live Malmo).*
+*Status: 2026-07-02 · branch `extension/world-model-hunting` · Phase 1 (aiming fix) + Phase 2 (DreamerFD demos) + Phase 3 (hunting_wild) implemented and offline-validated.*
 
 This document explains **what we currently have** and **what we are trying to do**. It is the entry point for the world-model line of work; the task-specific env notes live alongside the parkour/bridging reports.
 
@@ -101,10 +101,64 @@ Notes:
 
 ---
 
-## 5. Caveats
+---
+
+## 5. What was added in the sample-efficiency + realism pass (2026-07-02)
+
+### 5.1 Phase 1 — Aiming fix (the hard-exploration bottleneck)
+**Problem:** `attack` only deals damage if `los_hit` (ray exactly on the pig), making the aim-AND-attack conjunction unreachable by random exploration.
+
+**Fix in `envs/hunting_env.py`:**
+- **Potential-based aim-alignment shaping** (Ng 1999, policy-invariant): `Φ(s) = cos(heading_error·π)`, shaped reward = `AIM_ALIGN_COEF · (γΦ' − Φ)`. Adds zero net discounted reward — no policy bias — but gives a dense gradient toward reducing crosshair-to-pig angle. Heading error is already in obs[18]; `_prev_phi` tracked as instance state.
+- **Auto-fire**: when `in_range` and `abs(heading_error) < AUTO_ATTACK_ANGLE (~27°)`, an attack command is automatically fired between steps. Dissolves the conjunction bottleneck.
+
+**New `hunting_cfg.py` knobs:** `AIM_ALIGN_COEF=0.3`, `AUTO_ATTACK=True`, `AUTO_ATTACK_ANGLE=0.15`.
+
+**Verify:** first live run should show `outcome=killed` within tens of episodes. `heading_error` should trend toward 0 as training progresses.
+
+### 5.2 Phase 2 — DreamerFD demo integration
+**Goal:** reach first reliable kills in fewer real Malmo steps by leveraging a small expert demonstration set.
+
+**Changes:**
+- **`algos/dreamer.py`**: demo buffer loaded from `cfg.DEMO_PATH` on init (`_load_demo_buffer` handles both full-transition and BC-only legacy formats). In `_train_world_model`, `DEMO_WM_FRACTION` (10%) of each WM minibatch comes from the demo buffer — expert transitions teach the world model dynamics it can't see from random exploration. In `_imagine_and_train`, `DEMO_START_FRACTION` (30%) of imagination start states come from the demo buffer — roots imagination in expert territory. `_demo_bc_update()` adds a cross-entropy loss against demo (obs, action) pairs, weighted by `_demo_bc_coef` which decays linearly with training progress so the agent can eventually surpass the demonstrator.
+- **`configs/world_model_cfg.py`**: `DEMO_PATH=None`, `DEMO_WM_FRACTION=0.1`, `DEMO_START_FRACTION=0.3`, `DEMO_BC_COEF=0.0` (enable per-run via CLI or override in cfg).
+- **`utils/generate_hunting_demos.py`** (new): scripted hunter using obs[17-22] heuristics — turn toward pig, move forward when far, attack when aligned+in_range. Records full `(obs, action, reward, next_obs, done)` transitions. Run 20–50 episodes; successful kills give the clearest signal.
+- **`utils/record_demos.py`**: added hunting/hunting_wild to ENV_CONFIGS, `translate_keys_to_action_hunting()`, full transitions now saved in all envs.
+
+**Usage:**
+```bash
+# Step 1 — generate scripted demos (needs live Malmo + env_server)
+conda run -n train_env python malmo/rl/utils/generate_hunting_demos.py --port 9999 --episodes 30
+
+# Step 2 — BC warm-start (optional but cheap)
+conda run -n train_env python malmo/rl/training/train.py --algo bc --env hunting --demo-path demos/hunting.json
+
+# Step 3 — Dreamer + demos
+conda run -n train_env python malmo/rl/training/train.py --algo dreamer --env hunting --demo-path demos/hunting.json
+# (add --checkpoint <bc_ckpt.pt> for BC warm-start)
+```
+
+### 5.3 Phase 3 — Generic constrained world (hunting_wild)
+**Goal:** show the method scales to realistic terrain, not just a superflat arena.
+
+**Changes:**
+- **`envs/hunting_wild/missions/hunting_wild.xml`** (new): `DefaultWorldGenerator seed="4837" forceReset="true"` for reproducible natural plains terrain + a bedrock cage (x=±21, z=±21, y=61–80) bounding a 42×42 play area. No interior clearing — agent navigates real terrain.
+- **`configs/hunting_wild_cfg.py`** (new): inherits `HuntingCFG`; overrides `SPAWN=(0.5,65.0,0.5)`, `FALL_Y_THRESHOLD=60.0`, larger `ARENA_MIN/MAX=±18`, expanded `BLOCK_ENCODING` with natural blocks (grass/dirt/stone/gravel/sand/log/leaves/bedrock).
+- **Registered in both** `env_server.py` and `train.py` as `"hunting_wild"`.
+
+**Calibration step (one-time):** start env_server on `hunting_wild`, run one episode, check `YPos` in logs. If agent spawns in air (falling) raise SPAWN[1]; if underground lower it and FALL_Y_THRESHOLD.
+
+**Verify:** env server accepts `--env hunting_wild` without error; first episode places agent on terrain; pig spawns within the bedrock cage.
+
+---
+
+## 6. Caveats
 
 - **Reward or obs-layout changes invalidate policy checkpoints.**
-- **Ensemble/probabilistic checkpoints are a new architecture** — they will not load into the old single deterministic model, and vice-versa (expected; these are new experiment runs, not a migration).
-- **Aiming is the hard part of the task.** `los_hit` requires the crosshair on the pig before an `attack` lands; dense `approach`+`aim`+`hit` shaping and `penned` mode exist to bootstrap this. If cold-start exploration stalls, widen `ATTACK_RANGE` or start the pig closer before touching the world-model knobs.
+- **Ensemble/probabilistic checkpoints** will not load into the old single deterministic model, and vice-versa (expected; these are new experiment runs, not a migration).
+- **Aim shaping + auto-fire (Phase 1)** fix the hard-exploration bottleneck. Without them, `attack` requires `los_hit` (ray exactly on pig) which random exploration almost never achieves.
+- **Demo quality matters**: scripted demos should include aligned + in-range attack sequences. `generate_hunting_demos.py` produces this automatically; human demos use X/F for attack.
+- **BC anchor decays to zero by end of training** — intentional. Early anchor prevents imagination actor drift; decay lets the agent eventually surpass the demonstrator.
+- **`hunting_wild` spawn calibration**: seed 4837 targets y=65 for plains but terrain height varies ±3 blocks. On first run check `YPos` in episode logs and adjust `SPAWN[1]` and `FALL_Y_THRESHOLD` in `hunting_wild_cfg.py` if the agent falls.
 - **`env_server` exits on client disconnect** — restart it before each fresh run.
 - Gating/intrinsic require an **ensemble** (`ENSEMBLE_SIZE>1`); with a single model they are inert and the extra log columns report zeros.
