@@ -162,3 +162,49 @@ conda run -n train_env python malmo/rl/training/train.py --algo dreamer --env hu
 - **`hunting_wild` spawn calibration**: seed 4837 targets y=65 for plains but terrain height varies ±3 blocks. On first run check `YPos` in episode logs and adjust `SPAWN[1]` and `FALL_Y_THRESHOLD` in `hunting_wild_cfg.py` if the agent falls.
 - **`env_server` exits on client disconnect** — restart it before each fresh run.
 - Gating/intrinsic require an **ensemble** (`ENSEMBLE_SIZE>1`); with a single model they are inert and the extra log columns report zeros.
+
+---
+
+## 7. Video-based world model (pixel-space RSSM) — a SEPARATE architecture (2026-08-01)
+
+**Why:** everything above predicts directly in Malmo's privileged, hand-engineered observation space (exact entity coordinates, a voxel occupancy grid) — state that a real robot never gets. Frontier robotics world models (DreamerV1/V3 on real robots, e.g. DayDreamer; Genie/Cosmos/GAIA at larger scale) learn from pixels instead. This phase adds a pixel-space world model as a second, independent architecture so the project also demonstrates that direction, without touching or risking the validated vector pipeline above.
+
+**Scope decision (v1): single RSSM, no ensemble.** The vector side's aleatoric/epistemic uncertainty split is NOT replicated here yet — the RSSM's stochastic latent already captures aleatoric spread on its own, and an ensemble-of-RSSMs would be ~5x the world-model compute for a first pass. Parity with the vector-side uncertainty story is explicit future work (see below), not a v1 goal.
+
+### 7.1 Architecture
+A DreamerV1-style RSSM, fully separate from `models/world_model.py`:
+```
+frame (64x64x3) + hybrid state vector (98-dim)
+  -> ConvEncoder + vec MLP -> embed
+  -> RSSM (GRU deter=256 + Gaussian stoch=32, KL vs free-nats floor)
+  -> feat = [stoch ++ deter] (288-dim)
+  -> ConvDecoder (frame recon) + vec head + reward/cont heads (conditioned on feat+action)
+```
+Imagination is prior-only (`img_step`), rolled from real posterior start states — same Dreamer principle as the vector agent, in pixel space. ~5.5M params.
+
+**New files:**
+- `models/video_world_model.py` — `ConvEncoder`, `ConvDecoder`, `RSSM`, `VideoWorldModel` (the RSSM + all heads + `loss()`)
+- `models/latent_actor_critic.py` — policy/value on RSSM features; **NOT checkpoint-compatible** with `ActorCritic` (different input space)
+- `algos/sequence_replay_buffer.py` — episode-aware buffer storing frames as uint8 (not float32), with padding + masking so short (e.g. fast-kill) episodes aren't discarded
+- `algos/dreamer_video.py` — `DreamerVideo(BaseAgent)`, a **separate class from `Dreamer`, not a subclass** (stateful per-env RSSM tracking, sequence collection, and prior-only imagination substrate all differ enough that sharing code would force branches into the frozen vector path)
+- `training/configs/hunting_video_cfg.py` — claims the `WM_LATENT_DIM` / `USE_GRU` / `WM_KL_SCALE` / `WM_FREE_NATS` / `WM_SEQ_LEN` seams that `world_model_cfg.py` reserved back in Phase 2 (§2.2) and that no code had read until now
+- `visualization/dream_strip_viz.py` — film-strip figure: real context frames / posterior reconstructions / imagined continuation, with predicted reward+continuation per column
+
+**Gated additions to existing files** (every existing algo/env combination is byte-identical — verified via empty `git diff` on `dreamer.py`, `world_model.py`, `replay_buffer.py`, `actor_critic.py`, `hunting_cfg.py`, `imagination_viz.py`, and the mission XML):
+- `world_model_cfg.py` — additive `VIDEO_ENABLED=False` / RSSM-size / loss-weight block
+- `envs/hunting_env.py` — `mission.requestVideo(W,H)` + frame harvesting in `_get_obs_dict`, gated on `cfg.VIDEO_ENABLED`
+- `envs/env_server.py` — `attach_frame()` base64-encodes `env.last_frame` onto the reset/step JSON payload only when the env is video-enabled; registers `hunting_video`
+- `envs/env_client.py` — `EnvClient(..., video=False)`; when `True`, `reset()`/`step()` return `(vec, frame)` tuples instead of a flat vector
+- `training/train.py` — `dreamer_video`/`hunting_video` registry entries, `LatentActorCritic` vs `ActorCritic` selection, list-based (not ndarray) obs container for video, and a hard error if `--algo dreamer_video` is paired with a non-video env (or a warning the other way — frames would ship over the wire and be discarded)
+
+### 7.2 Verification done (no Malmo, `tests/smoke_video_wm.py` / `smoke_dreamer_video.py` / `smoke_wire.py`)
+Encoder/decoder shape round-trips; `VideoWorldModel.loss()` finite with gradients reaching every parameter; KL free-nats floor behaves correctly on identical prior/posterior; `SequenceReplayBuffer` padding/masking/dtype-preservation, including a real bug found and fixed (a single episode longer than buffer capacity was being evicted to empty — fixed by never evicting the last remaining sealed episode); full collect→update loop against a fake video env with all losses finite; **learnability sanity check** (`vwm_image` measurably decreases fitting a constant-frame env); per-env RSSM state correctly resets to initial on episode `done`; checkpoint save→load round-trip reproduces identical action logits; wire-format base64 round-trip and cross-compatibility in both directions (video client vs non-video server and vice versa); Python-3.6 `py_compile` gate on every env-server-side file; the project's own `utils/validate.py` Tier-1 checks (registry parity across `env_server.py`/`train.py`, 73 files of valid syntax); `dream_strip_viz.py` end-to-end render against a checkpoint (both pure-imagination and real-context modes).
+
+### 7.3 What's NOT done — needs live Malmo (cannot be verified offline)
+1. Frame arrival sanity check against real Minecraft (non-black frames, correct 64x64 resolution, `requestVideo` accepted by the running Malmo build)
+2. Frame/observation sync check (yaw vs. rendered frame content, quantify the skew — `_get_obs_dict` harvests frames opportunistically per poll, not on a guaranteed same-tick basis)
+3. Confirm `--env hunting --algo dreamer` (the existing vector path) shows zero wire-format or step-timing regression
+4. First real training run: `python training/train.py --env hunting_video --algo dreamer_video --base-port 9999`, and a first look at whether `vwm_image`/`vwm_kl` trend down against real footage
+
+### 7.4 Explicit future work (not v1)
+Ensemble-of-RSSMs for the aleatoric/epistemic split (parity with §2.2's uncertainty story, in pixel space); DreamerV3-style categorical latents + symlog transforms; DreamerFD demo-sequence integration for the video path (currently vector-only, §5.2); binary/JPEG frame transport (currently base64-in-JSON, ~25KB/step — fine on localhost, not optimized); latent-policy support in `evaluate.py`/`live_viz.py` (they currently only know how to build `ActorCritic`).

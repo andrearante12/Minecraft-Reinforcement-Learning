@@ -100,3 +100,35 @@ class WorldModelCFG:
     DEMO_WM_FRACTION    = 0.1    # fraction of each WM minibatch drawn from demos
     DEMO_START_FRACTION = 0.3    # fraction of imagination starts drawn from demos
     DEMO_BC_COEF        = 0.0    # BC loss coefficient (0 = off)
+
+    # ── Video world model (RSSM; used ONLY by --algo dreamer_video) ─────────────
+    # A separate architecture from the vector WorldModel above: a DreamerV1-style
+    # RSSM (conv encoder -> GRU deterministic state + Gaussian stochastic latent
+    # -> conv decoder), trained on frame SEQUENCES from a video-enabled env
+    # (VIDEO_ENABLED=True, e.g. hunting_video). Off by default; every existing
+    # algo/env combination is unaffected. The WM_LATENT_DIM / USE_GRU /
+    # WM_KL_SCALE / WM_FREE_NATS / WM_SEQ_LEN seams above are claimed by this
+    # variant (models/video_world_model.py) — they are read by no other code.
+    VIDEO_ENABLED  = False   # env_server attaches a frame; EnvClient returns (vec, frame)
+    VIDEO_WIDTH    = 64
+    VIDEO_HEIGHT   = 64
+    VIDEO_CHANNELS = 3
+
+    # RSSM sizes
+    RSSM_DETER        = 256   # GRU deterministic state size
+    RSSM_HIDDEN       = 256   # width of prior/posterior/GRU-input MLPs
+    RSSM_EMBED        = 1024  # CNN embedding size (fixed by the 64x64 conv stack)
+    VWM_PROPRIO_EMBED = 128   # proprio-vector embedding fed to the posterior
+    VWM_CNN_DEPTH      = 32   # base channel count (32 -> 64 -> 128 -> 256)
+
+    # Optimisation / loss weights
+    VWM_LR        = 3e-4
+    VWM_W_IMAGE   = 1.0
+    VWM_W_PROPRIO = 1.0   # vector reconstruction head (hybrid obs)
+    VWM_W_REWARD  = 1.0
+    VWM_W_CONT    = 1.0
+
+    # Sequence replay
+    VWM_SEQ_BATCH       = 16      # sequences per world-model minibatch
+    VWM_MIN_SEQ         = 8       # shortest usable episode fragment (padded+masked to WM_SEQ_LEN)
+    SEQ_BUFFER_CAPACITY = 50000   # steps of uint8 frames stored (~600MB at 64x64x3)

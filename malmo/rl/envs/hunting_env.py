@@ -86,6 +86,10 @@ class HuntingEnv:
         self._in_range      = False     # within ATTACK_RANGE
         self._prev_phi      = 0.0      # previous potential Φ = cos(heading_error·π)
 
+        # Video observation (off by default; see training/configs/hunting_video_cfg.py).
+        self._video     = bool(getattr(cfg, "VIDEO_ENABLED", False))
+        self.last_frame = None
+
         self.observation_shape = (cfg.INPUT_SIZE,)
 
         with open(cfg.MISSION_FILE, "r") as f:
@@ -113,6 +117,7 @@ class HuntingEnv:
         self._heading_error = 0.0
         self._in_range      = False
         self._prev_phi      = 0.0
+        self.last_frame     = None   # never leak a frame across an episode boundary
 
         tx, tz = self._choose_target_spawn()
         draw_entity = '    <DrawEntity x="{x:.1f}" y="46.0" z="{z:.1f}" type="{mob}"/>\n'.format(
@@ -395,6 +400,8 @@ class HuntingEnv:
         time.sleep(0.5)
 
         mission        = MalmoPython.MissionSpec(mission_xml, True)
+        if self._video:
+            mission.requestVideo(self.cfg.VIDEO_WIDTH, self.cfg.VIDEO_HEIGHT)
         mission_record = MalmoPython.MissionRecordSpec()
         client_pool    = MalmoPython.ClientPool()
         client_pool.add(MalmoPython.ClientInfo("127.0.0.1", self._malmo_port))
@@ -444,6 +451,13 @@ class HuntingEnv:
         t0 = time.time()
         while time.time() - t0 < timeout:
             ws = self._agent_host.getWorldState()
+            # getWorldState() clears the "since last state" frame counter, so a
+            # frame must be harvested from THIS ws, not a later poll.
+            if self._video and len(ws.video_frames) > 0:
+                f = ws.video_frames[-1]
+                self.last_frame = np.frombuffer(
+                    bytes(f.pixels), dtype=np.uint8
+                ).reshape(f.height, f.width, self.cfg.VIDEO_CHANNELS).copy()
             if ws.number_of_observations_since_last_state > 0:
                 return json.loads(ws.observations[-1].text), ws
             time.sleep(0.03)

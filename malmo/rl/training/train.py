@@ -29,6 +29,7 @@ sys.path.insert(0, PARKOUR_ROOT)
 
 from training.configs.one_block_gap_cfg import OneBlockGapCFG
 from models.actor_critic import ActorCritic
+from models.latent_actor_critic import LatentActorCritic
 from envs.env_client  import EnvClient
 from utils.logger     import Logger
 from training.curriculum import CurriculumScheduler
@@ -38,12 +39,14 @@ from algos.ppo import PPO
 from algos.dqn import DQN
 from algos.behavioral_cloning import BehavioralCloning
 from algos.dreamer import Dreamer
+from algos.dreamer_video import DreamerVideo
 
 ALGO_REGISTRY = {
-    "ppo":     PPO,
-    "dqn":     DQN,
-    "bc":      BehavioralCloning,
-    "dreamer": Dreamer,
+    "ppo":           PPO,
+    "dqn":           DQN,
+    "bc":            BehavioralCloning,
+    "dreamer":       Dreamer,
+    "dreamer_video": DreamerVideo,
 }
 
 # ── Environment registry ──────────────────────────────────────────────────────
@@ -64,6 +67,7 @@ from training.configs.bridging_4block_cfg     import Bridging4BlockCFG
 from training.configs.bridging_straight_cfg   import BridgingStraightCFG
 from training.configs.hunting_cfg              import HuntingCFG
 from training.configs.hunting_wild_cfg         import HuntingWildCFG
+from training.configs.hunting_video_cfg        import HuntingVideoCFG
 
 ENV_REGISTRY = {
     "one_block_gap":       (None, OneBlockGapCFG),
@@ -83,6 +87,7 @@ ENV_REGISTRY = {
     "bridging_5block":     (None, BridgingCFG),
     "hunting":             (None, HuntingCFG),
     "hunting_wild":        (None, HuntingWildCFG),
+    "hunting_video":       (None, HuntingVideoCFG),
 }
 
 
@@ -142,6 +147,12 @@ def print_header(env_name, algo_name, cfg, num_envs=1, total_episodes=None):
         print("BC epochs:      ", cfg.BC_EPOCHS)
         print("BC batch size:  ", cfg.BC_BATCH_SIZE)
         print("LR:             ", cfg.LR)
+    elif algo_name == "dreamer_video":
+        print("Video:          ", "{0}x{1}x{2}".format(cfg.VIDEO_HEIGHT, cfg.VIDEO_WIDTH, cfg.VIDEO_CHANNELS))
+        print("RSSM:           ", "deter={0} stoch={1}".format(cfg.RSSM_DETER, cfg.WM_LATENT_DIM))
+        print("Seq len:        ", cfg.WM_SEQ_LEN)
+        print("Seq buffer cap: ", cfg.SEQ_BUFFER_CAPACITY)
+        print("Imag horizon:   ", cfg.IMAG_HORIZON)
     print("=" * 60)
     print()
 
@@ -177,13 +188,28 @@ def train():
             cfg.N_STEPS, n_envs))
         sys.exit(1)
 
+    # dreamer_video <-> video env pairing
+    is_video = (args.algo == "dreamer_video")
+    env_names = (scheduler.all_env_names() if args.curriculum else [args.env])
+    env_video_flags = [getattr(ENV_REGISTRY[name][1], "VIDEO_ENABLED", False) for name in env_names]
+    if is_video and not all(env_video_flags):
+        print("ERROR: --algo dreamer_video requires a video-enabled env (e.g. --env hunting_video). "
+              "Got env(s) {0} with VIDEO_ENABLED={1}".format(env_names, env_video_flags))
+        sys.exit(1)
+    if not is_video and any(env_video_flags):
+        print("WARNING: env(s) {0} have VIDEO_ENABLED=True but --algo {1} doesn't use video — "
+              "frames will be shipped over the wire and discarded (wasted bandwidth).".format(
+                  env_names, args.algo))
+
     os.makedirs(cfg.CHECKPOINT_DIR, exist_ok=True)
     os.makedirs(cfg.LOG_DIR, exist_ok=True)
 
     # Create N env clients, each connecting to base_port+i
     base_port = args.base_port
-    envs   = [EnvClient(cfg.INPUT_SIZE, port=base_port + i) for i in range(n_envs)]
-    model  = ActorCritic(cfg)
+    envs   = [EnvClient(cfg.INPUT_SIZE, port=base_port + i, video=is_video,
+                        frame_shape=(cfg.VIDEO_HEIGHT, cfg.VIDEO_WIDTH, cfg.VIDEO_CHANNELS))
+              for i in range(n_envs)]
+    model  = LatentActorCritic(cfg) if is_video else ActorCritic(cfg)
     agent  = ALGO_REGISTRY[args.algo](model, cfg, n_envs=n_envs)
     logger = Logger(cfg.LOG_DIR, run_name)
 
@@ -226,8 +252,9 @@ def train():
     current_envs = [initial_env] * n_envs
     logger.init_trajectory(initial_env, cfg)
 
-    # Per-env state tracking
-    obs_all    = np.zeros((n_envs, cfg.INPUT_SIZE), dtype=np.float32)
+    # Per-env state tracking. Video obs are (vec, frame) tuples, so obs_all is a
+    # plain Python list rather than a preallocated ndarray in that case.
+    obs_all    = [None] * n_envs if is_video else np.zeros((n_envs, cfg.INPUT_SIZE), dtype=np.float32)
     ep_rewards = np.zeros(n_envs, dtype=np.float64)
     ep_steps   = np.zeros(n_envs, dtype=np.int64)
     ep_outcome = ["timeout"] * n_envs

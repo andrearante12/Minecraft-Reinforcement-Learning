@@ -20,6 +20,7 @@ Usage:
 import json
 import socket
 import struct
+import base64
 import numpy as np
 
 HOST = "127.0.0.1"
@@ -27,11 +28,25 @@ PORT = 9999
 
 
 class EnvClient:
-    def __init__(self, input_size, host=HOST, port=PORT):
+    def __init__(self, input_size, host=HOST, port=PORT, video=False, frame_shape=(64, 64, 3)):
+        """video=True switches reset()/step() to return (vec, frame) observation
+        tuples instead of a flat vector — only for use with a VIDEO_ENABLED env
+        (e.g. hunting_video) and algos/dreamer_video.py. Default False keeps
+        every other caller (train.py, evaluate.py, utils/*, live_viz.py, ...)
+        completely unaffected."""
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((host, port))
         self.observation_shape = (input_size,)
+        self.video = video
+        self.frame_shape = frame_shape
         print("Connected to env server at {0}:{1}".format(host, port))
+
+    def _decode_frame(self, resp):
+        shape = tuple(resp.get("frame_shape", self.frame_shape))
+        if "frame_b64" not in resp:
+            return np.zeros(shape, dtype=np.uint8)
+        raw = base64.b64decode(resp["frame_b64"])
+        return np.frombuffer(raw, dtype=np.uint8).reshape(shape).copy()
 
     def _send(self, data):
         msg = json.dumps(data).encode()
@@ -69,7 +84,10 @@ class EnvClient:
                         max_retries, resp["error"]))
                 time.sleep(10)
                 continue
-            return np.array(resp["obs"], dtype=np.float32)
+            vec = np.array(resp["obs"], dtype=np.float32)
+            if self.video:
+                return vec, self._decode_frame(resp)
+            return vec
 
     def step(self, action):
         self._send({"cmd": "step", "action": int(action)})
@@ -77,10 +95,17 @@ class EnvClient:
         if "error" in resp:
             # Treat mission failure mid-episode as a terminal step
             print("WARNING: step failed (mission error), ending episode")
-            dummy_obs = np.zeros(self.observation_shape, dtype=np.float32)
-            return dummy_obs, -5.0, True, {"outcome": "mission_error", "steps": 0, "pos": (0, 0, 0), "action": "none"}
+            dummy_vec = np.zeros(self.observation_shape, dtype=np.float32)
+            dummy_info = {"outcome": "mission_error", "steps": 0, "pos": (0, 0, 0), "action": "none"}
+            if self.video:
+                dummy_obs = (dummy_vec, np.zeros(self.frame_shape, dtype=np.uint8))
+            else:
+                dummy_obs = dummy_vec
+            return dummy_obs, -5.0, True, dummy_info
+        vec = np.array(resp["obs"], dtype=np.float32)
+        obs = (vec, self._decode_frame(resp)) if self.video else vec
         return (
-            np.array(resp["obs"], dtype=np.float32),
+            obs,
             float(resp["reward"]),
             bool(resp["done"]),
             resp["info"],

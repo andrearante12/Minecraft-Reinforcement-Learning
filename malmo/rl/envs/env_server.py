@@ -22,6 +22,8 @@ import json
 import socket
 import struct
 import argparse
+import base64
+import numpy as np
 
 PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PARKOUR_ROOT)
@@ -46,8 +48,9 @@ from training.configs.bridging_4block_cfg     import Bridging4BlockCFG
 
 from envs.bridging_env import BridgingEnv
 
-from training.configs.hunting_cfg      import HuntingCFG
-from training.configs.hunting_wild_cfg import HuntingWildCFG
+from training.configs.hunting_cfg       import HuntingCFG
+from training.configs.hunting_wild_cfg  import HuntingWildCFG
+from training.configs.hunting_video_cfg import HuntingVideoCFG
 from envs.hunting_env import HuntingEnv
 
 ENV_REGISTRY = {
@@ -68,6 +71,7 @@ ENV_REGISTRY = {
     "bridging_5block":     (BridgingEnv, BridgingCFG),
     "hunting":             (HuntingEnv, HuntingCFG),
     "hunting_wild":        (HuntingEnv, HuntingWildCFG),
+    "hunting_video":       (HuntingEnv, HuntingVideoCFG),
 }
 
 HOST = "127.0.0.1"
@@ -88,6 +92,20 @@ def recv_msg(conn):
     while len(data) < length:
         data += conn.recv(length - len(data))
     return json.loads(data.decode())
+
+
+def attach_frame(payload, env):
+    """No-op for non-video envs (existing wire format stays byte-identical).
+    For video envs, base64-encode env.last_frame (or a zeros frame if a frame
+    hasn't arrived yet, e.g. the very first tick of an episode)."""
+    if not getattr(env.cfg, "VIDEO_ENABLED", False):
+        return payload
+    frame = getattr(env, "last_frame", None)
+    if frame is None:
+        frame = np.zeros((env.cfg.VIDEO_HEIGHT, env.cfg.VIDEO_WIDTH, env.cfg.VIDEO_CHANNELS), dtype=np.uint8)
+    payload["frame_b64"]   = base64.b64encode(frame.tobytes()).decode("ascii")
+    payload["frame_shape"] = list(frame.shape)
+    return payload
 
 
 def main():
@@ -126,7 +144,7 @@ def main():
                         if msg.get("force_reset") and hasattr(env, '_next_force_reset'):
                             env._next_force_reset = True
                         obs = env.reset()
-                        send_msg(conn, {"obs": obs.tolist()})
+                        send_msg(conn, attach_frame({"obs": obs.tolist()}, env))
                     except Exception as e:
                         import traceback
                         traceback.print_exc()
@@ -136,12 +154,12 @@ def main():
                 elif cmd == "step":
                     try:
                         obs, reward, done, info = env.step(msg["action"])
-                        send_msg(conn, {
+                        send_msg(conn, attach_frame({
                             "obs":    obs.tolist(),
                             "reward": reward,
                             "done":   done,
                             "info":   info,
-                        })
+                        }, env))
                     except Exception as e:
                         import traceback
                         traceback.print_exc()
