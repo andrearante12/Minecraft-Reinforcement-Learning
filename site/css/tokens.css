@@ -1,0 +1,22 @@
+:root {
+  --void: #12151a;
+  --void-2: #1a1e24;
+  --stone: #2a2d32;
+  --limestone: #d8d2c4;
+  --paper: #efe9db;
+  --ink: #1c1a16;
+  --muted: #5c574e;
+  --moss: #3f6b3a;
+  --moss-soft: #c5d4b8;
+  --gold: #c4a35a;
+  --gold-dim: #8a7340;
+  --redstone: #a63d3d;
+  --lapis: #3d5a8a;
+  --hud: #b8d4a8;
+  --line: rgba(28, 26, 22, 0.14);
+  --line-dark: rgba(184, 212, 168, 0.22);
+  --font-display: "Bricolage Grotesque", "Segoe UI", sans-serif;
+  --font-body: "Source Serif 4", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --max: 72rem;
+}

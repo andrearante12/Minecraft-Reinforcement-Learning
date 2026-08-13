@@ -23,3 +23,13 @@ Malmo/rl/tb_logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Overview site recordings (keep SVG posters + replay JSON)
+site/media/*.mp4
+site/media/*.webm
+site/media/*.mov
+
+# TikZ build artifacts (SVGs in site/media/ are the deliverable)
+site/diagrams/*.aux
+site/diagrams/*.log
+site/diagrams/*.pdf

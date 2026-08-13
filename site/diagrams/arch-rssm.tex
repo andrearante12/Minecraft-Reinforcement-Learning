@@ -1,0 +1,12 @@
+\documentclass[tikz,border=12pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=1.9cm]
+  \node[wide] (in) {$64\times64$ frame\\$+$ 98-d vector};
+  \node[wide, right=of in] (rssm) {RSSM\\deter, stoch\\DreamerV1, $K{=}1$};
+  \node[wide, right=of rssm] (hd) {heads\\frame, vec, $r$, $c$};
+
+  \draw[arr] (in) -- node[lbl, above] {encode} (rssm);
+  \draw[arr] (rssm) -- node[lbl, above] {decode} (hd);
+\end{tikzpicture}
+\end{document}

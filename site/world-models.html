@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>World models — MalmoRL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="index.html">MalmoRL</a>
+    <nav aria-label="Works">
+      <ul class="slots">
+        <li><a href="index.html#parkour">Parkour</a></li>
+        <li><a href="index.html#bridging">Bridging</a></li>
+        <li><a href="index.html#world-models" aria-current="page">World models</a></li>
+        <li><a href="index.html#how">Architecture</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <article class="page page-wide">
+    <a class="back" href="index.html">← Overview</a>
+    <h1>World models</h1>
+    <p class="lede">Malmo observations are already compact state vectors, and every step is a 0.15s hold. That makes a Dreamer-style world model cheap — and valuable, because imagined steps replace expensive real ones.</p>
+
+    <h2>Hunting forward pass</h2>
+    <p>Showcase task: locate, aim, approach, attack a pig. Same clip | net stage as parkour. Below the replay, five ensemble members imagine pig Δ — disagreement is epistemic; each member’s own spread is aleatoric.</p>
+
+    <div class="demo-stage">
+      <div class="clip-slot">
+        <span class="clip-kicker">clip · F5</span>
+        <video autoplay muted loop playsinline poster="media/hunting.jpg" aria-label="Hunting agent approaching a pig in third person">
+          <source src="media/hunting.webm" type="video/webm" />
+        </video>
+        <p class="clip-fallback">Drop <code>site/media/hunting.webm</code> here.<br />Third person, HUD off. Replay on the right keeps running either way.</p>
+      </div>
+      <div class="net-wrap">
+        <div class="net-controls">
+          <button type="button" id="play">pause</button>
+          <span id="scrub-label">—</span>
+          <input id="scrub" type="range" min="0" max="0" value="0" aria-label="Replay step" />
+        </div>
+        <div class="net-meta">
+          <span id="env">env —</span>
+          <span id="step">step 0</span>
+          <span class="act" id="action">—</span>
+        </div>
+        <div class="net-embed" id="stage">
+          <section class="panel" id="inputs">
+            <h2>Observation</h2>
+            <div id="input-fields"></div>
+          </section>
+          <section class="panel" id="net">
+            <canvas id="canvas"></canvas>
+          </section>
+          <section class="panel" id="outputs">
+            <h2>Policy π(a|s)</h2>
+            <div id="action-bars"></div>
+            <h2>Value V(s)</h2>
+            <div id="value-gauge">
+              <div class="gauge-track"><div class="gauge-fill" id="value-fill"></div></div>
+              <div class="gauge-labels">
+                <span id="value-min">—</span>
+                <span id="value-num">—</span>
+                <span id="value-max">—</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="dream-panel">
+      <canvas id="dream" aria-label="Ensemble imagined pig trajectories"></canvas>
+    </div>
+    <div class="uncert">
+      <div class="card">
+        <h3>Aleatoric</h3>
+        <p class="readout" id="ale">—</p>
+        <div class="gauge-track"><div class="gauge-fill" id="ale-fill"></div></div>
+        <ul>
+          <li>Irreducible pig motion</li>
+          <li>Grows penned → wandering → fleeing</li>
+          <li>Shortens imagination (horizon gating)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Epistemic</h3>
+        <p class="readout" id="epi">—</p>
+        <div class="gauge-track"><div class="gauge-fill" id="epi-fill"></div></div>
+        <ul>
+          <li>Model ignorance — shrinks with data</li>
+          <li>Intrinsic reward, never aleatoric</li>
+          <li>Noisy-TV guard: do not chase noise</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>The showcase task is hunting</h2>
+    <p>The observation is 98 numbers: body, a moving target (relative pose, heading error, line-of-sight, life), and a 5×3×5 voxel patch. Eleven discrete actions including <code>attack</code>.</p>
+    <p>A single point-prediction of where the pig will go, trusted equally at every imagined step, is the failure mode. We train an ensemble of probabilistic models so the agent can measure its own uncertainty and split it.</p>
+
+    <h2>Loop</h2>
+    <p>Collect real transitions → fit the ensemble → imagine H steps from real starts → update the same three-stream actor-critic in imagination. Policy checkpoints stay byte-compatible with PPO / DQN / BC; the world model rides along as extra state.</p>
+
+    <figure class="diagram">
+      <img src="media/arch-hunting-obs.svg" alt="Hunting observation of 98 dimensions splits into body 11, target 12, and voxels 75." />
+      <figcaption>Figure. Hunting observation. Goal stream is the moving target.</figcaption>
+    </figure>
+
+    <figure class="diagram">
+      <img src="media/arch-dreamer.svg" alt="Dreamer loop: collect, fit ensemble, imagine H steps, update ActorCritic. Imagine also feeds aleatoric horizon gating and epistemic intrinsic reward." />
+      <figcaption>Figure. Dreamer loop. Policy checkpoint stays PPO/DQN/BC compatible; the ensemble is extra state.</figcaption>
+    </figure>
+
+    <p class="note">Mechanisms are implemented and offline-validated (ensemble NLL, epistemic shrinks on refit, gating truncates the horizon). Live Malmo comparisons vs PPO/DQN are still the study, not a claimed result.</p>
+
+    <h2>Pixels, separately</h2>
+    <p>A second architecture — DreamerV1-style RSSM on 64×64 frames plus the same 98-d vector — exists so the project also speaks the robotics-from-pixels dialect. No ensemble in v1. Not checkpoint-compatible with the vector agent.</p>
+
+    <figure class="diagram">
+      <img src="media/arch-rssm.svg" alt="64 by 64 frame plus 98-d vector encoded into an RSSM then decoded to frame, vector, reward, and continuation heads." />
+      <figcaption>Figure. Pixels path. Separate checkpoint family from the vector ensemble agent.</figcaption>
+    </figure>
+    <p class="note">Full lab notes: <a href="../malmo/docs/world_model/report.md">world model report</a>.</p>
+  </article>
+
+  <footer class="foot">
+    <span>MalmoRL · world models</span>
+    <a href="index.html">Overview</a>
+  </footer>
+  <script src="js/clip-slot.js"></script>
+  <script src="js/net-viz.js"></script>
+  <script>
+    NetViz.mount({ synth: "hunting" });
+  </script>
+</body>
+</html>

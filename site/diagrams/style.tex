@@ -1,0 +1,23 @@
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,backgrounds}
+\tikzset{
+  box/.style={
+    draw,
+    very thick,
+    rectangle,
+    align=center,
+    inner sep=8pt,
+    minimum height=1.25cm,
+    minimum width=3.1cm,
+    font=\small,
+  },
+  wide/.style={box, minimum width=3.6cm},
+  arr/.style={-{Stealth[length=2.6mm, width=2mm]}, thick},
+  barr/.style={
+    {Stealth[length=2.4mm, width=1.8mm]}-{Stealth[length=2.4mm, width=1.8mm]},
+    thick,
+  },
+  lbl/.style={font=\scriptsize, inner sep=2pt, fill=white},
+  group/.style={draw, dashed, inner sep=12pt},
+}
