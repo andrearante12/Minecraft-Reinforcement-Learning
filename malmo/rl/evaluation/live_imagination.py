@@ -7,7 +7,8 @@ actually happens (live Experiment 2).
 Each real step:
   1. imagine H steps ahead from the current real obs (actor acts greedily inside
      the frozen model; ensemble members replay the same actions → the fan)
-  2. draw that future as /particle commands in the game (visualization/ingame_overlay.py)
+  2. publish it to a live top-down view at http://localhost:8770 (run it beside Minecraft);
+     optionally (--particles) also draw it as /particle commands in the game
   3. execute the policy's real action
 Afterwards, for every window of H real steps, the model is re-run OPEN-LOOP on the
 actions that were actually taken and compared with the real observations →
@@ -39,8 +40,9 @@ from training.configs.hunting_cfg import HuntingCFG
 from models.actor_critic import ActorCritic
 from algos.dreamer import Dreamer
 from evaluation.imagination_vs_reality import (
-    imagine_open_loop, divergence_curve, divergence_horizon)
+    imagine_open_loop, divergence_curve, divergence_horizon, decode_positions)
 from visualization.ingame_overlay import build_commands, probe_commands, Throttle
+from visualization.live_view_server import LiveState, PlanErrorTracker, serve
 
 
 # ── planning ─────────────────────────────────────────────────────────────────
@@ -70,6 +72,22 @@ def plan(agent, obs, horizon):
                 members.append(np.array(ms, dtype=np.float32))
             members = np.stack(members)
     return np.array(seq, dtype=np.float32), np.array(acts), members
+
+
+def uncertainty_along(agent, seq, acts):
+    """(aleatoric (H,), epistemic (H,)) along a plan; zeros for a single model."""
+    if not getattr(agent, "is_ensemble", False):
+        z = np.zeros(len(acts)); return z, z
+    dev = agent.device
+    with torch.no_grad():
+        s = torch.as_tensor(seq[:-1], dtype=torch.float32, device=dev)
+        a = torch.as_tensor(acts, dtype=torch.int64, device=dev)
+        _, _, _, ale, epi = agent.world_model.predict_with_uncertainty(s, a)
+    return ale.cpu().numpy(), epi.cpu().numpy()
+
+
+def _xz(p):
+    return [[round(float(v[0]), 3), round(float(v[2]), 3)] for v in p]
 
 
 # ── scoring (live Experiment 2) ──────────────────────────────────────────────
@@ -119,27 +137,61 @@ class DryRunClient:
         pass
 
 
-def run(client, agent, cfg, args):
+def run(client, agent, cfg, args, state=None):
     scorer = Scorer(agent, cfg, args.horizon)
     throttle = Throttle(args.max_cmds_per_sec)
-    n_sent = 0
+    tracker = PlanErrorTracker(args.horizon)
+    names = [x[0] for x in cfg.ACTIONS]
+    p = cfg.PROPRIOCEPTION_SIZE
+    n_sent, last_outcome, ghost = 0, None, None
     for ep in range(args.episodes):
         obs = client.reset()
+        tracker.reset_episode()
+        trail_a, trail_p, ghost = [], [], None
         obs_hist, act_hist, done, info = [obs], [], False, {}
         while not done:
             seq, acts, members = plan(agent, obs, args.horizon)
-            if not args.no_draw:
+            ag, pg = decode_positions(seq, cfg)
+            tracker.add_plan(ag, pg)
+            ra, rp = decode_positions(np.asarray(obs)[None], cfg)
+            trail_a.append(ra[0]); trail_p.append(rp[0])
+            a = agent.select_action(obs, greedy=True)
+
+            if args.particles:
                 cmds = build_commands(seq, cfg, members_obs=members, max_cmds=args.max_cmds)
                 k = throttle.take(len(cmds))
                 if k:
                     n_sent += client.chat(cmds[:k])
-            a = agent.select_action(obs, greedy=True)
+            if state is not None:
+                ale, epi = uncertainty_along(agent, seq, acts)
+                mem = [] if members is None else [_xz(decode_positions(m, cfg)[1]) for m in members]
+                state.publish({
+                    "episode": ep + 1, "step": len(act_hist), "H": args.horizon,
+                    "arena": [cfg.ARENA_MIN, cfg.ARENA_MAX], "last_outcome": last_outcome,
+                    "action": names[a],
+                    "real": {"agent": _xz(ra)[0], "pig": _xz(rp)[0], "yaw": float(obs[1]) * 180.0,
+                             "trail_agent": _xz(trail_a), "trail_pig": _xz(trail_p)},
+                    "plan": {"agent": _xz(ag), "pig": _xz(pg), "members": mem},
+                    "ghost": None if ghost is None else {"agent": [ghost["agent"][0], ghost["agent"][2]],
+                                                         "pig": None if ghost["pig"] is None else
+                                                         [ghost["pig"][0], ghost["pig"][2]]},
+                    "obs": {"dist": float(obs[p + 6]) * cfg.DIST_SCALE, "herr": float(obs[p + 7]),
+                            "in_range": bool(obs[p + 9] > 0.5), "life": float(obs[p + 10])},
+                    "ale": [round(float(x), 5) for x in ale], "epi": [round(float(x), 5) for x in epi],
+                    "err_by_k": tracker.mean_by_k(),
+                })
             obs, r, done, info = client.step(a)
+            if args.step_delay:
+                time.sleep(args.step_delay)
+            ra2, rp2 = decode_positions(np.asarray(obs)[None], cfg)
+            ghost = tracker.update(ra2[0], rp2[0]) or ghost
             obs_hist.append(obs); act_hist.append(a)
+        last_outcome = info.get("outcome")
         scorer.score_episode(obs_hist, act_hist)
-        print("episode {}: {} steps, outcome={}".format(ep + 1, len(act_hist), info.get("outcome")))
+        print("episode {}: {} steps, outcome={}".format(ep + 1, len(act_hist), last_outcome))
     out = scorer.summary()
     out["commands_sent"] = n_sent
+    out["online_plan_error_by_k"] = tracker.mean_by_k()
     return out
 
 
@@ -161,8 +213,14 @@ def main():
     ap.add_argument("--target-mode", default=None, choices=["penned", "wandering", "fleeing"])
     ap.add_argument("--max-cmds", type=int, default=16, help="particle commands per real step")
     ap.add_argument("--max-cmds-per-sec", type=float, default=40.0)
-    ap.add_argument("--no-draw", action="store_true", help="score only; draw nothing in game")
+    ap.add_argument("--particles", action="store_true",
+                    help="ALSO draw the imagined future as in-game particles (needs env_server --viz)")
+    ap.add_argument("--view-port", type=int, default=8770,
+                    help="serve the live top-down view at http://localhost:PORT (0 = off)")
+    ap.add_argument("--step-delay", type=float, default=None,
+                    help="extra seconds per step (dry-run defaults to 0.12 so the view is watchable)")
     ap.add_argument("--probe", action="store_true", help="draw one marker per particle type and exit")
+    ap.add_argument("--probe-seconds", type=float, default=20.0)
     ap.add_argument("--dry-run", action="store_true", help="stand-in env, no Malmo")
     ap.add_argument("--out", default=None, help="write summary JSON here")
     args = ap.parse_args()
@@ -181,7 +239,12 @@ def main():
     if args.probe:
         obs = client.reset()
         cmds = probe_commands(cfg.SPAWN)
-        print("sent", client.chat(cmds), "markers 3 blocks ahead of spawn, left→right:")
+        t_end = time.time() + args.probe_seconds
+        sent = 0
+        while time.time() < t_end:          # particles last ~1 s → keep re-drawing
+            sent += client.chat(cmds)
+            time.sleep(0.25)
+        print("sent", sent, "commands; markers 3 blocks ahead of spawn, left→right:")
         from visualization.ingame_overlay import STYLE
         print("  " + "  ".join(STYLE.values()))
         print("If a marker is missing, that particle name isn't valid in this Minecraft "
@@ -189,8 +252,15 @@ def main():
         return
 
     agent = load_agent(cfg, args.checkpoint)
+    if args.step_delay is None:
+        args.step_delay = 0.12 if args.dry_run else 0.0
+    state = None
+    if args.view_port:
+        state = LiveState()
+        serve(state, args.view_port)
+        print("Live view: http://localhost:{}".format(args.view_port))
     t0 = time.time()
-    summary = run(client, agent, cfg, args)
+    summary = run(client, agent, cfg, args, state)
     summary["seconds"] = round(time.time() - t0, 1)
     print(json.dumps(summary, indent=2))
     if args.out:

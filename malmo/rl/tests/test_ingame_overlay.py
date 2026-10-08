@@ -57,7 +57,7 @@ assert root.find(".//m:AgentHandlers/m:ChatCommands", ns) is not None
 # end-to-end dry run through the live driver on the stand-in env
 from evaluation.live_imagination import DryRunClient, load_agent, run
 import argparse
-a = argparse.Namespace(episodes=1, horizon=8, no_draw=False, max_cmds=16, max_cmds_per_sec=1e9)
+a = argparse.Namespace(episodes=1, horizon=8, particles=True, step_delay=0, max_cmds=16, max_cmds_per_sec=1e9)
 import torch; torch.set_num_threads(2)
 class Short(C):
     MAX_STEPS = 24

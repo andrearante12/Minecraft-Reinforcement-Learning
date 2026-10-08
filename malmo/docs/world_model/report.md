@@ -388,7 +388,7 @@ The step limits were raised because L0's 200 steps caused most of its timeouts.
 
 ---
 
-## 9. Seeing imagination (2026-10-08)
+## 10. Seeing imagination (2026-10-08)
 
 Three views of the same thing — the model's imagined future vs what really happens:
 
@@ -396,7 +396,8 @@ Three views of the same thing — the model's imagined future vs what really hap
 |---|---|---|
 | **Dashboard** `site/wm-dashboard.html` (build: `rl/visualization/wm_dashboard.py`) | readiness checklist, imagined-vs-real viewer, first-person overlay, per-mode charts | Built and run on a **kinematic stand-in env** (`rl/utils/sim_hunting.py`) — plumbing only, says nothing about real-Malmo model quality |
 | **First-person overlay** `rl/visualization/frame_overlay.py` | projects imagined pig/agent paths onto a first-person frame; live entry point `overlay_from_obs(frame, obs, imag_obs_seq, cfg)` | Camera math unit-tested (`rl/tests/test_frame_overlay.py`); **FOV / eye height / frame-obs sync unverified against real Malmo frames** |
-| **In-game particles** `rl/visualization/ingame_overlay.py` + `rl/evaluation/live_imagination.py` | `/particle` markers drawn in the Minecraft window: flame = imagined pig path, endRod = ghost pig, happyVillager = agent path, witchMagic = ensemble fan | Command generation, budget, throttle, XML injection and the driver are tested offline (`rl/tests/test_ingame_overlay.py`); **never run in Minecraft** |
+| **Live top-down view** `rl/visualization/live_view.html` + `live_view_server.py`, fed by `rl/evaluation/live_imagination.py` | browser page at `http://localhost:8770` (run beside Minecraft): real vs imagined paths, ensemble fan, plan-error-vs-steps-ahead, uncertainty | Tested offline (`rl/tests/test_live_view.py`); **run against live Minecraft** with a sim-trained checkpoint (plumbing only) |
+| **In-game particles** (opt-in `--particles`) `rl/visualization/ingame_overlay.py` + `rl/evaluation/live_imagination.py` | `/particle` markers drawn in the Minecraft window: flame = imagined pig path, endRod = ghost pig, happyVillager = agent path, witchMagic = ensemble fan | Command generation, budget, throttle, XML injection and the driver are tested offline (`rl/tests/test_ingame_overlay.py`); **never run in Minecraft** |
 
 ### In-game run (3 terminals)
 ```
@@ -404,13 +405,14 @@ Three views of the same thing — the model's imagined future vs what really hap
 python malmo/rl/envs/env_server.py --env hunting --port 9999 --malmo-port 10000 --viz
 # T3 (conda: train_env): first the probe, then the real thing
 python malmo/rl/evaluation/live_imagination.py --probe --port 9999
-python malmo/rl/evaluation/live_imagination.py --checkpoint <dreamer_ckpt.pt> --port 9999 --episodes 3 --out /tmp/live.json
+python malmo/rl/evaluation/live_imagination.py --checkpoint <dreamer_ckpt.pt> --port 9999 --episodes 3 --out /tmp/live.json   # then open http://localhost:8770
+# add --particles (and env_server --viz) to ALSO draw the future as particles in the game; omit --viz for the plain top-down view
 ```
 `--viz` adds `<ChatCommands/>` to the mission and enables the `chat` message in the env-server protocol; without it nothing changes (training runs are untouched). Particles are neither blocks nor entities, so they do not enter the voxel/entity observations — but they **do appear in video frames**, so keep `--viz` off when collecting frames for `dreamer_video`.
 
 `live_imagination.py` also scores every H-step window afterwards (re-running the model open-loop on the actions actually taken) and writes error-vs-horizon + median divergence horizon: this is Experiment 2 on live data.
 
-### Known unknowns for the first live run
-1. Are slash commands accepted in a Survival Malmo mission (op/cheats)? If the player is not op, Minecraft kicks for chat spam — `--max-cmds-per-sec` throttles (default 40; lower it if kicked).
-2. Do the 1.11.2 particle names in `STYLE` exist? `--probe` shows each one in a row ahead of spawn.
-3. Do particles live long enough at 0.15 s steps to read as a trail? If not, raise `--max-cmds` or switch to `count` > 1.
+### Particle findings from the first live run (2026-10-08)
+- Slash commands ARE accepted in a Survival Malmo mission (game log: `Playing effect … for N times`); no spam kick at 40 cmd/s.
+- All four `STYLE` particle names are valid in this build.
+- Still unjudged: how readable the particles are as a trail. The top-down view is the primary visual; particles are optional.
