@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>World Model Dashboard</title>
+<style>
+:root{
+  --void:#12151a; --void2:#1a1e24; --stone:#2a2d32; --limestone:#d8d2c4; --paper:#efe9db;
+  --ink:#1c1a16; --muted:#5c574e; --moss:#3f6b3a; --gold:#c4a35a; --gold-dim:#8a7340;
+  --red:#a63d3d; --lapis:#3d5a8a; --hud:#b8d4a8; --hud-dim:#7d9570; --pig:#e59aa8;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --body:"Source Serif 4",Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--limestone);color:var(--ink);font-family:var(--body);line-height:1.5}
+.wrap{max-width:76rem;margin:0 auto;padding:1.5rem 16px 4rem}
+h1{font-size:1.7rem;margin:.2rem 0 .1rem;font-weight:600}
+h2{font-family:var(--mono);font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:2.4rem 0 .8rem;font-weight:500}
+.sub{color:var(--muted);margin:0 0 1rem;max-width:56rem}
+.banner{background:var(--void);color:var(--gold);border-left:4px solid var(--gold);padding:.7rem 1rem;font-family:var(--mono);font-size:.78rem;line-height:1.55;margin:1rem 0}
+.banner b{color:#f3dfa4}
+.mono{font-family:var(--mono)}
+.panel{background:var(--void);color:var(--hud);border:1px solid #000;font-family:var(--mono);font-size:.78rem}
+.panel h3{margin:0;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--hud-dim);font-weight:500}
+/* readiness */
+.sumrow{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.8rem}
+.chip{font-family:var(--mono);font-size:.72rem;padding:.25rem .6rem;background:var(--void);color:var(--hud);border:1px solid #000}
+.chip.pass{color:#b8d4a8;border-color:#3f6b3a}.chip.fail{color:#e88;border-color:#a63d3d}
+.chip.warn{color:#f0cf84;border-color:#8a7340}.chip.unverified,.chip.missing{color:#9aa}
+.grp{margin-bottom:1rem}
+.grp h4{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:.2rem 0 .3rem;font-weight:500}
+.row{display:grid;grid-template-columns:5.6rem 1fr;gap:.8rem;padding:.35rem .7rem;background:var(--void);color:#cfe0c4;border-bottom:1px solid #20252c;font-family:var(--mono);font-size:.76rem;align-items:baseline}
+.row .d{color:var(--hud-dim);display:block;font-size:.7rem}
+.st{font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:.68rem}
+.st.pass{color:#8fcf7f}.st.fail{color:#ee7777}.st.warn{color:#f0cf84}.st.unverified{color:#8a9aa6}.st.missing{color:#d08a5a}
+/* viewer */
+.bar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.6rem}
+.btn,select{font-family:var(--mono);font-size:.76rem;background:var(--void);color:var(--hud);border:1px solid #000;padding:.35rem .7rem;cursor:pointer}
+.btn.on{background:var(--gold);color:var(--void)}
+input[type=range]{flex:1;min-width:8rem;accent-color:var(--gold)}
+.viewer{display:grid;grid-template-columns:minmax(0,26rem) minmax(0,1fr);gap:0;border:1px solid #000}
+@media(max-width:860px){.viewer{grid-template-columns:1fr}}
+.arena{background:#4f6034;position:relative}
+.arena canvas{display:block;width:100%;aspect-ratio:1/1}
+.tag{position:absolute;top:8px;left:10px;font-family:var(--mono);font-size:.68rem;color:var(--gold)}
+.legend{position:absolute;bottom:8px;left:10px;font-family:var(--mono);font-size:.66rem;color:#e8efd8;line-height:1.5;background:rgba(18,21,26,.55);padding:.3rem .5rem}
+.hud{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media(max-width:560px){.hud{grid-template-columns:1fr}}
+.hud>div{padding:.9rem 1rem;border-left:1px solid #20252c}
+.kv{display:grid;grid-template-columns:5.5rem 1fr 1fr;gap:.3rem .6rem;margin-top:.5rem;align-items:center}
+.kv .k{color:var(--hud-dim)}
+.val{background:var(--void2);padding:.2rem .5rem;border:1px solid #262b33;color:#dfeed3}
+.val.im{color:var(--gold)}
+.val.bad{border-color:var(--red);color:#f1a0a0}
+.action{margin:.5rem 0 .8rem;display:inline-block;padding:.5rem .9rem;border:1px solid var(--gold-dim);background:var(--void2);color:var(--gold);font-size:.85rem}
+.bars .b{display:grid;grid-template-columns:7.5rem 1fr 2.4rem;gap:.4rem;align-items:center;margin:.18rem 0;color:var(--hud-dim)}
+.bars .b.hot{color:var(--gold)}
+.bars .track{height:6px;background:#262b33}
+.bars .fill{height:100%;background:var(--moss)}
+.bars .b.hot .fill{background:var(--gold)}
+.fpwrap{margin-top:12px}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:12px;margin-top:12px}
+.chart{background:var(--void);padding:.7rem .8rem .5rem;border:1px solid #000}
+.chart canvas{width:100%;height:11rem;display:block;margin-top:.4rem}
+.chart .cap{color:var(--hud-dim);font-family:var(--mono);font-size:.68rem;margin-top:.2rem}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:.76rem;background:var(--void);color:#cfe0c4}
+th,td{padding:.45rem .7rem;text-align:right;border-bottom:1px solid #20252c}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--hud-dim);font-weight:500;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase}
+.note{font-size:.88rem;color:var(--muted);max-width:56rem;margin:.6rem 0}
+.sw{display:inline-block;width:.8rem;height:.18rem;vertical-align:middle;margin-right:.3rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="mono" style="font-size:.7rem;letter-spacing:.2em;color:var(--muted)">MALMORL · WORLD-MODEL EXTENSION</div>
+  <h1>Infrastructure confirmation</h1>
+  <p class="sub">Everything below is produced by running the repository's real code — the readiness checks, the real <span class="mono">Dreamer</span> agent and the imagined-vs-real harness — not drawn by hand. Generated <span id="gen"></span> · commit <span id="commit" class="mono"></span>.</p>
+
+  <div class="banner" id="banner"><b>SYNTHETIC ENVIRONMENT.</b> No Minecraft client was running, so the "real" side of every comparison is a kinematic stand-in (<span class="mono">utils/sim_hunting.py</span>) that mimics the hunting obs layout, actions and rewards. This confirms the <b>plumbing</b> works end to end; it says nothing about how well the model predicts <b>real Malmo</b>. The Live Malmo rows below stay "unverified" until that run happens.</div>
+
+  <h2>1 · Readiness</h2>
+  <div class="sumrow" id="summary"></div>
+  <div id="checks"></div>
+
+  <h2>2 · Imagined vs real rollout</h2>
+  <p class="note">Freeze the world model, hand it a start state and a fixed action sequence, let it imagine the outcome, then replay the identical actions in the env. Solid = real, hollow/gold = imagined, faint dots = each ensemble member's guess for the pig (the "fan"). This is the prototype of Experiment 2.</p>
+  <div class="bar">
+    <span id="modeBtns"></span>
+    <select id="rollSel" aria-label="rollout"></select>
+    <button class="btn" id="viewBtn" title="open-loop = replay real actions · dream = the actor chooses actions inside the model">view: open-loop</button>
+  </div>
+  <div class="bar">
+    <button class="btn on" id="play">pause</button>
+    <span class="mono" id="stepLbl" style="font-size:.76rem;color:var(--muted);min-width:5rem"></span>
+    <input type="range" id="scrub" min="0" max="20" value="0" aria-label="step">
+  </div>
+  <div class="viewer">
+    <div class="arena">
+      <canvas id="arena" width="700" height="700"></canvas>
+      <div class="tag" id="arenaTag">TOP-DOWN · x/z</div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="panel hud">
+      <div>
+        <h3>Observation · target stream</h3>
+        <div class="kv" id="kv"></div>
+        <div style="height:.9rem"></div>
+        <h3>Action</h3>
+        <div class="action" id="action">—</div>
+        <h3>Reward this step</h3>
+        <div class="kv" id="rew"></div>
+      </div>
+      <div class="bars">
+        <h3>Position error · now</h3>
+        <div class="kv" id="errkv"></div>
+        <div style="height:.9rem"></div>
+        <h3>Ensemble uncertainty · now</h3>
+        <div id="unc"></div>
+        <div style="height:.9rem"></div>
+        <h3>Divergence</h3>
+        <div id="hzn" style="margin-top:.5rem;line-height:1.6"></div>
+      </div>
+    </div>
+  </div>
+  <div class="fpwrap">
+    <div class="panel" style="padding:.8rem 1rem">
+      <h3>First-person view · imagined future overlaid</h3>
+      <img id="fp" alt="first-person frame with imagined future overlay" style="display:block;width:100%;max-width:34rem;image-rendering:pixelated;margin-top:.6rem;border:1px solid #000">
+      <div class="cap" style="color:var(--hud-dim);margin-top:.5rem;font-size:.7rem;line-height:1.5">Camera = the <b>real</b> agent's view at this step. Gold box = where the model imagines the pig is now; gold line + numbers (every 2nd step) = its imagined pig path; dim dashed line = imagined agent path; pale dots = each ensemble member's guess. <b>Base scene is synthetic</b> — in a live run the same overlay (<span class="mono">frame_overlay.overlay_from_obs</span>) draws on the actual Malmo frame.</div>
+    </div>
+  </div>
+  <div class="charts">
+    <div class="chart"><h3 class="mono" style="margin:0;font-size:.68rem;letter-spacing:.2em;color:var(--hud-dim)">ERROR VS HORIZON (BLOCKS)</h3><canvas id="cErr"></canvas><div class="cap" id="capErr"></div></div>
+    <div class="chart"><h3 class="mono" style="margin:0;font-size:.68rem;letter-spacing:.2em;color:var(--hud-dim)">PREDICTED VS REAL REWARD</h3><canvas id="cRew"></canvas><div class="cap">per step; gold = imagined</div></div>
+    <div class="chart"><h3 class="mono" style="margin:0;font-size:.68rem;letter-spacing:.2em;color:var(--hud-dim)">ALEATORIC / EPISTEMIC</h3><canvas id="cUnc"></canvas><div class="cap">along the imagined path, this rollout</div></div>
+  </div>
+
+  <h2>3 · Across all rollouts &amp; target modes</h2>
+  <p class="note">Mean over held-out rollouts per <span class="mono">TARGET_MODE</span>. The knob study predicts aleatoric uncertainty rising from penned to fleeing while epistemic stays comparatively flat. "Divergence horizon" is the number of steps before the larger of agent/pig position error first exceeds the threshold — the headline metric of Experiment 2.</p>
+  <table id="tbl"></table>
+  <div class="charts">
+    <div class="chart"><h3 class="mono" style="margin:0;font-size:.68rem;letter-spacing:.2em;color:var(--hud-dim)">MEAN ERROR · MODEL VS "NOTHING CHANGES"</h3><canvas id="cModeErr"></canvas><div class="cap">solid = world model · dashed = persistence baseline</div></div>
+    <div class="chart"><h3 class="mono" style="margin:0;font-size:.68rem;letter-spacing:.2em;color:var(--hud-dim)">ALEATORIC BY MODE</h3><canvas id="cModeAle"></canvas><div class="cap">should rise penned → wandering → fleeing</div></div>
+    <div class="chart"><h3 class="mono" style="margin:0;font-size:.68rem;letter-spacing:.2em;color:var(--hud-dim)">EPISTEMIC BY MODE</h3><canvas id="cModeEpi"></canvas><div class="cap">should stay comparatively flat</div></div>
+  </div>
+
+  <h2>4 · Training signals (real Dreamer.update logs)</h2>
+  <div class="charts">
+    <div class="chart"><h3 class="mono" style="margin:0;font-size:.68rem;letter-spacing:.2em;color:var(--hud-dim)">WORLD-MODEL LOSS · DYNAMICS HEADS</h3><canvas id="cLoss"></canvas><div class="cap">proprio + goal(NLL) + voxel + cont — reward head excluded (see warning in §1)</div></div>
+    <div class="chart"><h3 class="mono" style="margin:0;font-size:.68rem;letter-spacing:.2em;color:var(--hud-dim)">EFFECTIVE IMAGINATION HORIZON</h3><canvas id="cEff"></canvas><div class="cap">Σ trust τₜ — max 15; lower = gating is cutting imagination short</div></div>
+    <div class="chart"><h3 class="mono" style="margin:0;font-size:.68rem;letter-spacing:.2em;color:var(--hud-dim)">IMAGINED RETURN</h3><canvas id="cRet"></canvas><div class="cap">mean λ-return the actor optimises</div></div>
+  </div>
+</div>
+
+<script>
+const D = /*__DATA__*/null;
+const MC = {penned:"#8fcf7f", wandering:"#f0cf84", fleeing:"#ee7777"};
+const $ = id => document.getElementById(id);
+let mode = "wandering", ri = 0, step = 0, playing = true, view = "open";
+
+/* ---------- readiness ---------- */
+(function(){
+  $("gen").textContent = D.meta.generated; $("commit").textContent = D.meta.commit;
+  const cnt = {pass:0,fail:0,warn:0,unverified:0,missing:0};
+  D.checks.forEach(c => cnt[c.status]++);
+  $("summary").innerHTML = Object.entries(cnt).filter(([,n])=>n).map(([k,n]) =>
+    `<span class="chip ${k}">${n} ${k}</span>`).join("");
+  const groups = {};
+  D.checks.forEach(c => (groups[c.group] = groups[c.group] || []).push(c));
+  $("checks").innerHTML = Object.entries(groups).map(([g, cs]) =>
+    `<div class="grp"><h4>${g}</h4>` + cs.map(c =>
+      `<div class="row"><span class="st ${c.status}">${c.status}</span><span>${c.name}<span class="d">${c.detail||""}</span></span></div>`
+    ).join("") + `</div>`).join("");
+})();
+
+/* ---------- chart helper ---------- */
+function chart(cv, series, o = {}) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const g = cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0);
+  g.clearRect(0,0,w,h);
+  const L = 34, R = 8, T = 6, B = 18;
+  let xs = series.flatMap(s => s.x), ys = series.flatMap(s => s.y).filter(Number.isFinite);
+  if (o.hline != null) ys.push(o.hline);
+  const x0 = 0, x1 = Math.max(...xs, 1);
+  let y0 = o.ymin != null ? o.ymin : Math.min(0, ...ys), y1 = o.ymax != null ? o.ymax : Math.max(...ys, 1e-6) * 1.08;
+  if (y1 === y0) y1 = y0 + 1;
+  const X = v => L + (v - x0) / (x1 - x0) * (w - L - R), Y = v => T + (1 - (v - y0) / (y1 - y0)) * (h - T - B);
+  g.strokeStyle = "#262b33"; g.fillStyle = "#7d9570"; g.font = "10px IBM Plex Mono, monospace"; g.lineWidth = 1;
+  for (let i = 0; i <= 3; i++) {
+    const v = y0 + (y1 - y0) * i / 3, y = Y(v);
+    g.beginPath(); g.moveTo(L, y); g.lineTo(w - R, y); g.stroke();
+    g.fillText(Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 1 ? v.toFixed(1) : v.toFixed(3), 2, y + 3);
+  }
+  const nx = Math.min(4, x1);
+  for (let i = 0; i <= nx; i++) { const v = x1 * i / nx; const t = String(Math.round(v)); g.fillText(t, Math.min(X(v) - 4, w - R - 6.2 * t.length), h - 4); }
+  if (o.hline != null) { g.strokeStyle = "#a63d3d"; g.setLineDash([4,3]); g.beginPath(); g.moveTo(L,Y(o.hline)); g.lineTo(w-R,Y(o.hline)); g.stroke(); g.setLineDash([]); }
+  series.forEach(s => {
+    g.strokeStyle = s.color; g.lineWidth = s.w || 1.6; g.setLineDash(s.dash || []);
+    g.beginPath(); let st = false;
+    s.x.forEach((xv, i) => { if (!Number.isFinite(s.y[i])) return; const px = X(xv), py = Y(s.y[i]); st ? g.lineTo(px,py) : g.moveTo(px,py); st = true; });
+    g.stroke(); g.setLineDash([]);
+  });
+  if (o.cursor != null) { g.strokeStyle = "#c4a35a"; g.globalAlpha = .7; g.beginPath(); g.moveTo(X(o.cursor), T); g.lineTo(X(o.cursor), h - B); g.stroke(); g.globalAlpha = 1; }
+  if (o.mark != null) { g.fillStyle = "#ee7777"; g.beginPath(); g.arc(X(o.mark.x), Y(o.mark.y), 4, 0, 7); g.fill(); }
+}
+const rng = n => Array.from({length:n}, (_,i) => i);
+
+/* ---------- arena ---------- */
+function drawArena(r) {
+  const cv = $("arena"), g = cv.getContext("2d"), S = cv.width;
+  const [lo, hi] = D.meta.arena, pad = 40, sc = (S - 2*pad) / (hi - lo);
+  const P = p => [pad + (p[0] - lo) * sc, pad + (p[1] - lo) * sc];
+  g.clearRect(0,0,S,S);
+  g.fillStyle = "#566a39"; g.fillRect(0,0,S,S);
+  g.strokeStyle = "rgba(0,0,0,.12)"; g.lineWidth = 1;
+  for (let v = lo; v <= hi; v++) { const a = P([v,lo]), b = P([v,hi]), c = P([lo,v]), d = P([hi,v]);
+    g.beginPath(); g.moveTo(a[0],a[1]); g.lineTo(b[0],b[1]); g.moveTo(c[0],c[1]); g.lineTo(d[0],d[1]); g.stroke(); }
+  g.strokeStyle = "#2a2d32"; g.lineWidth = 6; const a = P([lo,lo]), b = P([hi,hi]); g.strokeRect(a[0], a[1], b[0]-a[0], b[1]-a[1]);
+
+  const T = Math.min(step, r.real.agent.length - 1);
+  const trail = (pts, col, dash, wd) => { g.strokeStyle = col; g.lineWidth = wd; g.setLineDash(dash); g.beginPath();
+    pts.slice(0, step + 1).forEach((p,i) => { const q = P(p); i ? g.lineTo(q[0],q[1]) : g.moveTo(q[0],q[1]); }); g.stroke(); g.setLineDash([]); };
+  const dot = (p, col, rad, fill, yaw) => { const q = P(p); g.beginPath(); g.arc(q[0], q[1], rad, 0, 7);
+    if (fill) { g.fillStyle = col; g.fill(); g.strokeStyle = "#000"; g.lineWidth = 1.5; g.stroke(); } else { g.strokeStyle = col; g.lineWidth = 3; g.stroke(); }
+    if (yaw != null) { const a = yaw * Math.PI/180, dx = -Math.sin(a), dz = Math.cos(a);
+      g.beginPath(); g.moveTo(q[0],q[1]); g.lineTo(q[0] + dx*rad*1.9, q[1] + dz*rad*1.9); g.strokeStyle = col; g.lineWidth = 3; g.stroke(); } };
+
+  const I = view === "open" ? r.imag : r.dream, hasReal = view === "open";
+  if (view === "open") r.members.forEach(m => { const q = P(m[step]); g.fillStyle = "rgba(255,230,160,.55)"; g.beginPath(); g.arc(q[0],q[1],4,0,7); g.fill(); });
+  if (hasReal) { trail(r.real.pig, "rgba(229,154,168,.7)", [], 2); trail(r.real.agent, "rgba(120,190,255,.8)", [], 2); }
+  trail(I.pig, "rgba(255,225,150,.8)", [6,5], 2); trail(I.agent, "rgba(196,163,90,.95)", [6,5], 2);
+  if (hasReal) { dot(r.real.pig[T], "#e59aa8", 11, true); dot(r.real.agent[T], "#4aa3df", 13, true, r.real.f.yaw[T]); }
+  dot(I.pig[step], "#f3dfa4", 11, false); dot(I.agent[step], "#c4a35a", 13, false, view === "open" ? r.imag.f.yaw[step] : null);
+  $("legend").innerHTML = hasReal
+    ? `<span class="sw" style="background:#4aa3df"></span>real agent <span class="sw" style="background:#e59aa8"></span>real pig<br><span class="sw" style="background:#c4a35a"></span>imagined agent/pig <span class="sw" style="background:#ffe6a0"></span>ensemble members`
+    : `<span class="sw" style="background:#c4a35a"></span>dream: actor acts inside the model<br>no real counterpart — shows the policy's imagined plan`;
+}
+
+/* ---------- viewer ---------- */
+const AN = D.meta.actions;
+function cur() { return D.modes[mode].rollouts[ri]; }
+function setMode(m) {
+  mode = m; ri = 0; step = 0;
+  $("rollSel").innerHTML = D.modes[m].rollouts.map((r,i) => `<option value="${i}">rollout ${i+1} · diverges @ ${r.horizon}${r.horizon >= r.H ? "+" : ""}</option>`).join("");
+  $("modeBtns").innerHTML = Object.keys(D.modes).map(k => `<button class="btn ${k===m?"on":""}" data-m="${k}">${k}</button>`).join(" ");
+  $("modeBtns").querySelectorAll("button").forEach(b => b.onclick = () => setMode(b.dataset.m));
+  $("scrub").max = cur().H; render(true);
+}
+function fmt(v, d=2) { return v == null ? "—" : (v >= 0 ? " " : "") + v.toFixed(d); }
+function render(full) {
+  const r = cur(), H = r.H;
+  $("scrub").value = step; $("stepLbl").textContent = `step ${step} / ${H}`;
+  drawArena(r);
+  const fr = r.real.f, fi = r.imag.f, s = step;
+  const rows = [["Δx", "dx"], ["Δz", "dz"], ["distance", "dist"], ["heading err", "herr"], ["in range", "in_range"], ["pig life", "life"]];
+  $("kv").innerHTML = `<span></span><span class="k" style="color:#8ab">real</span><span class="k" style="color:var(--gold)">imagined</span>` +
+    rows.map(([n,k]) => `<span class="k">${n}</span><span class="val">${fmt(fr[k][s])}</span><span class="val im">${view==="open"?fmt(fi[k][s]):"—"}</span>`).join("");
+  const a = (view === "open" ? r.actions : r.dream.actions)[Math.min(s, H-1)];
+  $("action").textContent = s < H ? AN[a] : "(end)";
+  const rr = s > 0 ? r.real.reward[s-1] : null, ir = s > 0 ? (view==="open"? r.imag.reward[s-1] : r.dream.reward[s-1]) : null;
+  $("rew").innerHTML = `<span></span><span class="k" style="color:#8ab">real</span><span class="k" style="color:var(--gold)">imagined</span><span class="k">r</span><span class="val">${fmt(rr)}</span><span class="val im">${fmt(ir)}</span>`;
+  const e = r.err, thr = D.meta.threshold;
+  const cls = v => v > thr ? "val bad" : "val";
+  $("errkv").innerHTML = view !== "open" ? `<span class="k" style="grid-column:1/-1">n/a in dream view</span>` :
+    `<span class="k">agent</span><span class="${cls(e.agent[s])}">${fmt(e.agent[s])}</span><span class="k"></span>` +
+    `<span class="k">pig</span><span class="${cls(e.pig[s])}">${fmt(e.pig[s])}</span><span class="k"></span>` +
+    `<span class="k">persist.</span><span class="val">${fmt(e.persist[s])}</span><span class="k">baseline</span>`;
+  const ale = s > 0 ? r.ale[s-1] : 0, epi = s > 0 ? r.epi[s-1] : 0, mx = Math.max(...D.modes[mode].rollouts.flatMap(q => q.ale.concat(q.epi)), 1e-6);
+  $("unc").innerHTML = [["aleatoric", ale], ["epistemic", epi]].map(([n,v]) =>
+    `<div class="b ${n==="aleatoric"?"hot":""}"><span>${n}</span><div class="track"><div class="fill" style="width:${Math.min(100, v/mx*100)}%"></div></div><span>${v.toFixed(3)}</span></div>`).join("");
+  const fp = $("fp"); fp.style.opacity = view === "open" ? 1 : .25; if (r.frames) fp.src = "data:image/jpeg;base64," + r.frames[Math.min(s, r.frames.length - 1)];
+  $("hzn").innerHTML = view === "open"
+    ? `stays within ${thr.toFixed(1)} block for <b style="color:var(--gold)">${r.horizon}${r.horizon>=H?"+":""}</b> steps<br><span style="color:var(--hud-dim)">"nothing changes" baseline: ${r.persist_horizon}${r.persist_horizon>=H?"+":""}</span>`
+    : `dream value V(s₀) = ${r.dream.value[0].toFixed(1)}`;
+  const xs = rng(H + 1);
+  chart($("cErr"), [
+    {x:xs, y:e.persist, color:"#6f7a86", dash:[4,3], w:1.2},
+    {x:xs, y:e.agent, color:"#4aa3df"}, {x:xs, y:e.pig, color:"#e59aa8"}, {x:xs, y:e.max, color:"#c4a35a", w:2.2}],
+    {hline: thr, cursor: s, mark: r.horizon < H ? {x: r.horizon + 1, y: e.max[r.horizon + 1]} : null});
+  $("capErr").innerHTML = `<span class="sw" style="background:#4aa3df"></span>agent <span class="sw" style="background:#e59aa8"></span>pig <span class="sw" style="background:#c4a35a"></span>max · grey dashed = persistence · red = threshold`;
+  chart($("cRew"), [{x:rng(H).map(i=>i+1), y:r.real.reward, color:"#4aa3df"}, {x:rng(H).map(i=>i+1), y:r.imag.reward, color:"#c4a35a"}], {cursor: s});
+  chart($("cUnc"), [{x:rng(H).map(i=>i+1), y:r.ale, color:"#c4a35a"}, {x:rng(H).map(i=>i+1), y:r.epi, color:"#8fcf7f"}], {cursor: s});
+}
+/* static charts */
+function renderStatic() {
+  const ms = Object.keys(D.modes), H = D.meta.horizon, xs = rng(H + 1), xs1 = rng(H).map(i => i + 1);
+  chart($("cModeErr"), ms.flatMap(m => [
+    {x:xs, y:D.modes[m].summary.mean_err, color:MC[m], w:2}, {x:xs, y:D.modes[m].summary.mean_persist, color:MC[m], dash:[4,3], w:1}]), {hline: D.meta.threshold});
+  chart($("cModeAle"), ms.map(m => ({x:xs1, y:D.modes[m].summary.mean_ale, color:MC[m], w:2})));
+  chart($("cModeEpi"), ms.map(m => ({x:xs1, y:D.modes[m].summary.mean_epi, color:MC[m], w:2})));
+  const up = m => D.modes[m].curve.map(c => c.update);
+  chart($("cLoss"), ms.map(m => ({x:up(m), y:D.modes[m].curve.map(c => c.wm_proprio_loss + c.wm_goal_loss + c.wm_voxel_loss + c.wm_cont_loss), color:MC[m]})), {});
+  chart($("cEff"), ms.map(m => ({x:up(m), y:D.modes[m].curve.map(c => c.eff_horizon), color:MC[m]})), {ymin:0, ymax:15});
+  chart($("cRet"), ms.map(m => ({x:up(m), y:D.modes[m].curve.map(c => c.imag_return), color:MC[m]})));
+}
+function renderTable() {
+  const ms = Object.keys(D.modes);
+  $("tbl").innerHTML = `<tr><th>mode</th><th>rollouts</th><th>median divergence horizon</th><th>"nothing changes"</th><th>never diverged</th><th>mean aleatoric</th><th>mean epistemic</th><th>train updates</th><th>WM params</th></tr>` +
+    ms.map(m => { const s = D.modes[m].summary, avg = a => a.reduce((x,y)=>x+y,0)/a.length;
+      return `<tr><td style="color:${MC[m]}">${m}</td><td>${s.n}</td><td>${s.median_horizon} / ${D.meta.horizon}</td><td>${s.median_persist_horizon}</td><td>${s.never_diverged}</td><td>${avg(s.mean_ale).toFixed(4)}</td><td>${avg(s.mean_epi).toFixed(4)}</td><td>${s.updates} (${s.train_seconds}s)</td><td>${(s.n_params_wm/1e3).toFixed(0)}k</td></tr>`; }).join("");
+}
+
+$("rollSel").onchange = e => { ri = +e.target.value; step = 0; $("scrub").max = cur().H; render(); };
+$("scrub").oninput = e => { step = +e.target.value; playing = false; $("play").textContent = "play"; $("play").classList.remove("on"); render(); };
+$("play").onclick = () => { playing = !playing; $("play").textContent = playing ? "pause" : "play"; $("play").classList.toggle("on", playing); };
+$("viewBtn").onclick = () => { view = view === "open" ? "dream" : "open"; $("viewBtn").textContent = "view: " + (view === "open" ? "open-loop" : "dream"); render(); };
+setInterval(() => { if (!playing) return; const H = cur().H; step = step >= H ? 0 : step + 1; render(); }, 450);
+window.addEventListener("resize", () => { render(); renderStatic(); });
+if (!D.modes[mode]) mode = Object.keys(D.modes)[0];
+setMode(mode); renderStatic(); renderTable();
+</script>
+</body>
+</html>

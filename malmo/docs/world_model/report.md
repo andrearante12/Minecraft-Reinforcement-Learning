@@ -385,3 +385,32 @@ With `cfg.HEIGHTMAP` set, `HuntingEnv` places things on the ground instead of at
 The step limits were raised because L0's 200 steps caused most of its timeouts.
 
 **Live L1 check:** the agent and cow both stand on the ground and the cow is sensed. Resets take 10–40 seconds, because `forceReset` regenerates the world each episode. The teacher kills 4 of 4 on plains.
+
+---
+
+## 9. Seeing imagination (2026-10-08)
+
+Three views of the same thing — the model's imagined future vs what really happens:
+
+| View | Where | Status |
+|---|---|---|
+| **Dashboard** `site/wm-dashboard.html` (build: `rl/visualization/wm_dashboard.py`) | readiness checklist, imagined-vs-real viewer, first-person overlay, per-mode charts | Built and run on a **kinematic stand-in env** (`rl/utils/sim_hunting.py`) — plumbing only, says nothing about real-Malmo model quality |
+| **First-person overlay** `rl/visualization/frame_overlay.py` | projects imagined pig/agent paths onto a first-person frame; live entry point `overlay_from_obs(frame, obs, imag_obs_seq, cfg)` | Camera math unit-tested (`rl/tests/test_frame_overlay.py`); **FOV / eye height / frame-obs sync unverified against real Malmo frames** |
+| **In-game particles** `rl/visualization/ingame_overlay.py` + `rl/evaluation/live_imagination.py` | `/particle` markers drawn in the Minecraft window: flame = imagined pig path, endRod = ghost pig, happyVillager = agent path, witchMagic = ensemble fan | Command generation, budget, throttle, XML injection and the driver are tested offline (`rl/tests/test_ingame_overlay.py`); **never run in Minecraft** |
+
+### In-game run (3 terminals)
+```
+# T1: Minecraft client      T2 (conda: malmo): env server WITH --viz
+python malmo/rl/envs/env_server.py --env hunting --port 9999 --malmo-port 10000 --viz
+# T3 (conda: train_env): first the probe, then the real thing
+python malmo/rl/evaluation/live_imagination.py --probe --port 9999
+python malmo/rl/evaluation/live_imagination.py --checkpoint <dreamer_ckpt.pt> --port 9999 --episodes 3 --out /tmp/live.json
+```
+`--viz` adds `<ChatCommands/>` to the mission and enables the `chat` message in the env-server protocol; without it nothing changes (training runs are untouched). Particles are neither blocks nor entities, so they do not enter the voxel/entity observations — but they **do appear in video frames**, so keep `--viz` off when collecting frames for `dreamer_video`.
+
+`live_imagination.py` also scores every H-step window afterwards (re-running the model open-loop on the actions actually taken) and writes error-vs-horizon + median divergence horizon: this is Experiment 2 on live data.
+
+### Known unknowns for the first live run
+1. Are slash commands accepted in a Survival Malmo mission (op/cheats)? If the player is not op, Minecraft kicks for chat spam — `--max-cmds-per-sec` throttles (default 40; lower it if kicked).
+2. Do the 1.11.2 particle names in `STYLE` exist? `--probe` shows each one in a row ahead of spawn.
+3. Do particles live long enough at 0.15 s steps to read as a trail? If not, raise `--max-cmds` or switch to `count` > 1.

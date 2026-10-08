@@ -119,9 +119,14 @@ def main():
                         help="TCP port to listen on (default: {0})".format(PORT))
     parser.add_argument("--malmo-port", type=int, default=None,
                         help="Minecraft/Malmo client port (default: from config, usually 10000)")
+    parser.add_argument("--viz", action="store_true",
+                        help="Enable in-game imagination overlay: adds <ChatCommands/> to the mission "
+                             "and accepts 'chat' messages (eval only; leave off for training)")
     args = parser.parse_args()
 
     EnvClass, cfg = ENV_REGISTRY[args.env]
+    if args.viz:
+        cfg.INGAME_VIZ = True
     env = EnvClass(cfg, malmo_port=args.malmo_port, force_reset=True)
     print("Env server starting — env:{0}  address:{1}:{2}".format(args.env, HOST, args.port))
 
@@ -167,6 +172,13 @@ def main():
                         traceback.print_exc()
                         print("ERROR during step: {0}".format(e))
                         send_msg(conn, {"error": str(e)})
+
+                elif cmd == "chat":
+                    # In-game overlay: only acts if started with --viz and the env supports it.
+                    n = 0
+                    if args.viz and hasattr(env, "send_chat"):
+                        n = env.send_chat(msg.get("commands", []))
+                    send_msg(conn, {"status": "ok", "sent": n})
 
                 elif cmd == "switch_env":
                     env_name = msg["env"]

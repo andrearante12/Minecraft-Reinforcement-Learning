@@ -154,6 +154,12 @@ class HuntingEnv:
                   for _ in range(int(getattr(self.cfg, "N_TARGETS", 1)))]
         mission_xml = self._build_mission_xml(spawns)
 
+        # In-game imagination overlay (eval only): lets send_chat() issue /particle
+        # commands. Off unless env_server --viz sets cfg.INGAME_VIZ.
+        if getattr(self.cfg, "INGAME_VIZ", False):
+            mission_xml = mission_xml.replace(
+                '</AgentHandlers>', '  <ChatCommands/>\n    </AgentHandlers>')
+
         time.sleep(0.5)
         self._start_mission(mission_xml)
         print("  [reset] target {mob} at {pos}  mode={mode}".format(
@@ -426,6 +432,20 @@ class HuntingEnv:
         if getattr(self.cfg, "EMIT_PRIVILEGED", False) and self._last_target is not None:
             info["privileged"] = [round(float(v), 5) for v in self._last_target]
         return obs, reward, done, info
+
+    def send_chat(self, commands):
+        """Send chat / slash commands (e.g. '/particle flame x y z 0 0 0 0 1 force').
+        No-op unless the mission was started with INGAME_VIZ (ChatCommands handler)."""
+        if not getattr(self.cfg, "INGAME_VIZ", False):
+            return 0
+        n = 0
+        for c in commands:
+            try:
+                self._agent_host.sendCommand("chat " + c)
+                n += 1
+            except Exception:
+                break
+        return n
 
     def close(self):
         try:

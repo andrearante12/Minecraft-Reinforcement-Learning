@@ -126,6 +126,12 @@ class EnvClient:
             resp["info"],
         )
 
+    def chat(self, commands):
+        """Send chat/slash commands to the game (needs env_server --viz). Returns #sent."""
+        self._send({"cmd": "chat", "commands": list(commands)})
+        resp = self._recv()
+        return int(resp.get("sent", 0))
+
     def switch_env(self, env_name):
         self._send({"cmd": "switch_env", "env": env_name})
         resp = self._recv()
