@@ -16,6 +16,11 @@ Differences from ReplayBuffer that matter for images:
   - Short episodes are NOT discarded — a fast kill is exactly the data the
     hunting world model most needs, so windows shorter than seq_len are
     zero-padded and masked rather than dropped.
+
+The per-step observation is a dict of arrays whose dtype is preserved:
+`add()` stores {"frames": uint8 frame} (pixel world model); `add_obs()` stores
+any keys, e.g. {"feats": fp16 frozen-encoder tokens, "thumbs": uint8 64x64}
+for the feature world model. `sample_sequences` returns every stored key.
 """
 
 import numpy as np
@@ -36,10 +41,18 @@ class SequenceReplayBuffer:
         self._current = None
         self._total_steps = 0
 
+    _STEP_KEYS = ("vecs", "actions", "rewards", "dones")
+
     def add(self, frame, vec, action, reward, done):
+        self.add_obs({"frames": np.asarray(frame, dtype=np.uint8)}, vec, action, reward, done)
+
+    def add_obs(self, obs, vec, action, reward, done):
+        """obs: dict of per-step arrays (dtype kept as given)."""
         if self._current is None:
-            self._current = {"frames": [], "vecs": [], "actions": [], "rewards": [], "dones": []}
-        self._current["frames"].append(np.asarray(frame, dtype=np.uint8))
+            self._current = {k: [] for k in self._STEP_KEYS}
+            self._current.update({k: [] for k in obs})
+        for k, v in obs.items():
+            self._current[k].append(np.asarray(v))
         self._current["vecs"].append(np.asarray(vec, dtype=np.float32))
         self._current["actions"].append(int(action))
         self._current["rewards"].append(float(reward))
@@ -48,6 +61,28 @@ class SequenceReplayBuffer:
         if done:
             self._seal_current()
         self._evict()
+
+    def add_episode(self, obs, vecs, actions, rewards, dones):
+        """Append a whole finished episode (demos). obs: dict of (N,...) arrays."""
+        n = len(actions)
+        if n == 0:
+            return
+        self._seal_current()
+        ep = {k: list(np.asarray(v)) for k, v in obs.items()}
+        ep["vecs"]    = list(np.asarray(vecs, dtype=np.float32))
+        ep["actions"] = [int(a) for a in actions]
+        ep["rewards"] = [float(r) for r in rewards]
+        ep["dones"]   = [float(d) for d in dones]
+        self.episodes.append(ep)
+        self._total_steps += n
+        self._evict()
+
+    def obs_keys(self):
+        src = self.episodes[0] if self.episodes else self._current
+        return [] if src is None else [k for k in src if k not in self._STEP_KEYS]
+
+    def has_samples(self):
+        return any(len(ep["actions"]) >= self.min_seq for ep in self.episodes)
 
     def _seal_current(self):
         if self._current is not None and len(self._current["actions"]) > 0:
@@ -70,7 +105,7 @@ class SequenceReplayBuffer:
         before the window fills) are zero-padded on the right; `mask` marks
         real (1) vs padded (0) steps.
 
-        Returns a dict of numpy arrays:
+        Returns a dict of numpy arrays (one entry per stored obs key):
           frames  (B,L,H,W,C) uint8   vecs (B,L,D) f32   actions (B,L) i64
           rewards (B,L) f32   dones (B,L) f32   mask (B,L) f32
         """
@@ -83,10 +118,11 @@ class SequenceReplayBuffer:
         lengths = np.array([len(ep["actions"]) for ep in usable], dtype=np.float64)
         probs = lengths / lengths.sum()
 
-        frame_shape = usable[0]["frames"][0].shape
-        vec_dim     = usable[0]["vecs"][0].shape[0]
+        obs_keys = [k for k in usable[0] if k not in self._STEP_KEYS]
+        vec_dim  = usable[0]["vecs"][0].shape[0]
 
-        frames  = np.zeros((batch_size, self.seq_len) + frame_shape, dtype=np.uint8)
+        obs = {k: np.zeros((batch_size, self.seq_len) + usable[0][k][0].shape,
+                           dtype=usable[0][k][0].dtype) for k in obs_keys}
         vecs    = np.zeros((batch_size, self.seq_len, vec_dim), dtype=np.float32)
         actions = np.zeros((batch_size, self.seq_len), dtype=np.int64)
         rewards = np.zeros((batch_size, self.seq_len), dtype=np.float32)
@@ -101,12 +137,15 @@ class SequenceReplayBuffer:
             start = np.random.randint(0, max_start + 1)
             n = min(self.seq_len, L - start)
             for t in range(n):
-                frames[i, t]  = ep["frames"][start + t]
+                for k in obs_keys:
+                    obs[k][i, t] = ep[k][start + t]
                 vecs[i, t]    = ep["vecs"][start + t]
                 actions[i, t] = ep["actions"][start + t]
                 rewards[i, t] = ep["rewards"][start + t]
                 dones[i, t]   = ep["dones"][start + t]
                 mask[i, t]    = 1.0
 
-        return {"frames": frames, "vecs": vecs, "actions": actions,
-                "rewards": rewards, "dones": dones, "mask": mask}
+        batch = {"vecs": vecs, "actions": actions,
+                 "rewards": rewards, "dones": dones, "mask": mask}
+        batch.update(obs)
+        return batch

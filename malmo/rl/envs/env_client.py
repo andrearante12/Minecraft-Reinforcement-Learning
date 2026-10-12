@@ -39,6 +39,9 @@ class EnvClient:
         self.observation_shape = (input_size,)
         self.video = video
         self.frame_shape = frame_shape
+        # Latest camera frame whenever the server ships one (video envs, or any
+        # env under MALMO_RECORD_VIDEO=1) — read by the live split-screen viewer.
+        self.last_frame = None
         print("Connected to env server at {0}:{1}".format(host, port))
 
     def _decode_frame(self, resp):
@@ -47,6 +50,13 @@ class EnvClient:
             return np.zeros(shape, dtype=np.uint8)
         raw = base64.b64decode(resp["frame_b64"])
         return np.frombuffer(raw, dtype=np.uint8).reshape(shape).copy()
+
+    def _remember_frame(self, resp):
+        """Decode this response's frame into self.last_frame; None if it has none."""
+        if "frame_b64" not in resp:
+            return None
+        self.last_frame = self._decode_frame(resp)
+        return self.last_frame
 
     def _send(self, data):
         msg = json.dumps(data).encode()
@@ -85,8 +95,9 @@ class EnvClient:
                 time.sleep(10)
                 continue
             vec = np.array(resp["obs"], dtype=np.float32)
+            frame = self._remember_frame(resp)
             if self.video:
-                return vec, self._decode_frame(resp)
+                return vec, frame if frame is not None else self._decode_frame(resp)
             return vec
 
     def step(self, action):
@@ -103,7 +114,11 @@ class EnvClient:
                 dummy_obs = dummy_vec
             return dummy_obs, -5.0, True, dummy_info
         vec = np.array(resp["obs"], dtype=np.float32)
-        obs = (vec, self._decode_frame(resp)) if self.video else vec
+        frame = self._remember_frame(resp)
+        if self.video:
+            obs = (vec, frame if frame is not None else self._decode_frame(resp))
+        else:
+            obs = vec
         return (
             obs,
             float(resp["reward"]),

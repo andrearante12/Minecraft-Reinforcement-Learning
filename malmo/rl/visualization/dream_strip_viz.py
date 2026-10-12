@@ -69,7 +69,8 @@ def load_models(checkpoint, cfg, device=None):
 def posterior_pass(world_model, frames, vecs, actions, device):
     """Run the RSSM posterior over a real context sequence.
 
-    frames: (L,H,W,C) uint8   vecs: (L,D) f32   actions: (L,) int64 or None
+    frames: (L,H,W,C) uint8 (or (L,T,D) frozen-encoder tokens for a feature
+            world model)   vecs: (L,D) f32   actions: (L,) int64 or None
     (if actions is None, zeros are used — acceptable for a context whose sole
     purpose is seeding the latent state, not for training).
     Returns (posts, recon_frames [0,1]-space (L,H,W,C), last_state).
@@ -204,7 +205,12 @@ def main():
         frames = data["frames"]
         vecs = data["vecs"]
         ctx_actions = data["actions"] if "actions" in data else None
-        _, recon_np, last_state = posterior_pass(world_model, frames, vecs, ctx_actions, device)
+        obs_in = frames
+        if getattr(world_model, "input_kind", "pixels") == "features":
+            # Feature world model: encode the context with the same frozen backbone.
+            from models.frozen_encoder import build_frozen_encoder
+            obs_in = build_frozen_encoder(cfg, device).encode_np(frames)
+        _, recon_np, last_state = posterior_pass(world_model, obs_in, vecs, ctx_actions, device)
     else:
         frames, recon_np = None, None
         last_state = world_model.rssm.initial(1, device)

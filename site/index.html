@@ -19,7 +19,6 @@
         <li><a href="#parkour">Parkour</a></li>
         <li><a href="#bridging">Bridging</a></li>
         <li><a href="#world-models">World models</a></li>
-        <li><a href="#how">Architecture</a></li>
       </ul>
     </nav>
   </header>
@@ -29,8 +28,8 @@
       <canvas id="voxel" aria-hidden="true"></canvas>
       <div class="f3" id="f3"></div>
       <div class="hero-copy">
-        <h1>Three Minecraft tasks. One training loop.</h1>
-        <p>Compose an environment, a reward, an algorithm, and a net. The agent sees numbers, not pixels — except when we ask it to dream.</p>
+        <h1>Learn any minecraft task through trial and error.</h1>
+        <p>Compose an environment, a reward, an algorithm, and a net.</p>
       </div>
     </div>
   </section>
@@ -38,14 +37,14 @@
   <section class="work" id="parkour">
     <div class="work-copy">
       <p class="kicker">Parkour</p>
-      <h2>Sprint-jump the gap.</h2>
-      <p>The agent crosses stone platforms from a 159-number state vector — body, goal, and a 5×5×6 occupancy grid. No pixels. A curriculum widens the gap and adds diagonals once it lands.</p>
+      <h2>Jump across the gap.</h2>
+      <p>The agent jumps across stone platforms as quickly as possible, learning that failure means death.</p>
       <ul class="facts">
         <li>159-d obs</li>
         <li>15 actions</li>
-        <li>PPO · curriculum</li>
+        <li>PPO via ActorCritic Networks</li>
       </ul>
-      <a class="more" href="parkour.html">How parkour works</a>
+      <a class="more" href="parkour.html">How do we learn to preform parkour?</a>
     </div>
     <div class="work-media clip-slot">
       <video autoplay muted loop playsinline poster="media/parkour.jpg" aria-label="Parkour agent sprint-jumping a two-block gap">
@@ -58,8 +57,8 @@
   <section class="work" id="bridging">
     <div class="work-copy">
       <p class="kicker">Bridging</p>
-      <h2>Place the floor as you go.</h2>
-      <p>Crossing a five-block void means sneaking, looking down, and putting stone underfoot. Human demos warm-start PPO; the rest is the same registry as parkour.</p>
+      <h2>Build across the gap.</h2>
+      <p>Building a bridge across a gap is dangerous. The agent must learn to place build carefully while avoiding falling.</p>
       <ul class="facts">
         <li>220-d obs</li>
         <li>12 actions</li>
@@ -85,35 +84,13 @@
         <li>Dreamer ensemble</li>
         <li>aleatoric ≠ epistemic</li>
       </ul>
-      <a class="more" href="world-models.html">How the world model works</a>
+      <a class="more is-dead" href="#" aria-disabled="true" tabindex="-1">In Development</a>
     </div>
     <div class="work-media clip-slot" style="background:#12151a;border-color:#2a2d32">
       <video autoplay muted loop playsinline poster="media/hunting.jpg" aria-label="Hunting agent approaching a pig">
         <source src="media/hunting.webm" type="video/webm" />
       </video>
       <img class="clip-fallback" src="media/world-models.svg" alt="Five imagined pig trajectories fanning out" />
-    </div>
-  </section>
-
-  <section class="how" id="how">
-    <div class="how-inner">
-      <h2>How it is built</h2>
-      <p>Malmo needs Python 3.7. Training needs 3.10 and PyTorch. Two processes talk JSON over localhost. Swap an env, a reward, an algorithm, or a net — same loop. Register a new env in both <code>env_server.py</code> and <code>train.py</code> or training fails silently.</p>
-
-      <figure class="diagram">
-        <img src="media/arch-stack.svg" alt="Three processes: Minecraft client on port 10000, env_server.py on port 9999, and train.py, connected by Malmo TCP and JSON observations and actions." />
-        <figcaption>Figure 1. Training stack. One Minecraft client and one env_server per parallel env.</figcaption>
-      </figure>
-
-      <figure class="diagram">
-        <img src="media/arch-registry.svg" alt="ENV, REWARD, ALGO, and MODEL boxes feeding into a single experiment box." />
-        <figcaption>Figure 2. Compose-by-registry. The env key must be registered in both env_server.py and train.py.</figcaption>
-      </figure>
-
-      <figure class="diagram">
-        <img src="media/arch-net.svg" alt="Observation splits into proprio, goal, and voxel streams, concatenates to 256, then actor and critic heads." />
-        <figcaption>Figure 3. ActorCritic. Contract: get_distribution, get_value, evaluate_actions. Cfg slices change per task.</figcaption>
-      </figure>
     </div>
   </section>
 

@@ -17,7 +17,6 @@
         <li><a href="index.html#parkour">Parkour</a></li>
         <li><a href="index.html#bridging" aria-current="page">Bridging</a></li>
         <li><a href="index.html#world-models">World models</a></li>
-        <li><a href="index.html#how">Architecture</a></li>
       </ul>
     </nav>
   </header>
@@ -25,18 +24,18 @@
   <article class="page page-wide">
     <a class="back" href="index.html">← Overview</a>
     <h1>Bridging</h1>
-    <p class="lede">Place blocks underfoot to cross a five-block gap. Inventory, sneak, and a ray-cast — then the same compose-by-registry loop as parkour.</p>
+    <p class="lede">Place blocks underfoot across a five-block diagonal gap, finishing four blocks east. Inventory, sneak, and a ray-cast feed the strongest recorded SB3 PPO policy.</p>
 
     <h2>Forward pass</h2>
-    <p>Same layout as parkour. The voxel strip fills as stone is placed; <code>sneak_down</code> then <code>place_block</code> is the conjunction random exploration rarely finds. Clip slot waits for <code>site/media/bridging.webm</code>.</p>
+    <p>One successful rollout drives both panels. The third-person frame on the left is paired step-for-step with the real SB3 actor/value activations, action probabilities, and observation readout on the right.</p>
 
     <div class="demo-stage">
       <div class="clip-slot">
         <span class="clip-kicker">clip · F5</span>
-        <video autoplay muted loop playsinline poster="media/bridging.jpg" aria-label="Bridging agent placing stone across a five-block gap">
+        <video muted playsinline poster="media/bridging.jpg" aria-label="Bridging agent placing stone across a five-block diagonal gap">
           <source src="media/bridging.webm" type="video/webm" />
         </video>
-        <p class="clip-fallback">Drop <code>site/media/bridging.webm</code> here.<br />Third person, HUD off. Replay on the right keeps running either way.</p>
+        <p class="clip-fallback">Paired clip unavailable.<br />The replay falls back to a synthetic diagonal crossing.</p>
       </div>
       <div class="net-wrap">
         <div class="net-controls">
@@ -55,6 +54,7 @@
             <div id="input-fields"></div>
           </section>
           <section class="panel" id="net">
+            <h2>State → action</h2>
             <canvas id="canvas"></canvas>
           </section>
           <section class="panel" id="outputs">
@@ -74,42 +74,17 @@
       </div>
     </div>
 
-    <h2>World</h2>
-    <pre class="ascii">Z:  0  1  2  3  4  5  6  7  8  9  10
-    [start   ] [   5-block gap   ] [end]
-    stone       air air air air air  stone</pre>
-    <p>Default run is diagonal (<code>GOAL_X_OFFSETS = [4]</code>). Straight and 1–5 block curricula are registry variants, not new env classes.</p>
-
-    <div class="split">
-      <div class="card">
-        <h3>Sees · 220-d</h3>
-        <ul>
-          <li>Proprio + inventory + ray hit</li>
-          <li>3 goal Δ</li>
-          <li>5×5×8 voxel grid (deeper than parkour)</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Does · 12 actions</h3>
-        <ul>
-          <li>No jump. Sneak is edge-triggered.</li>
-          <li><code>place_block</code> at the crosshair</li>
-          <li>+2 valid place · +10 reach · −5 fall</li>
-        </ul>
-      </div>
-    </div>
-
     <h2>How it is trained</h2>
     <p>Record human crossings, clone the policy, then fine-tune with Stable-Baselines3 PPO. Longer episodes than parkour (150 steps) and a stronger entropy bonus — sneaking then placing is a conjunction random exploration rarely finds.</p>
 
     <figure class="diagram">
       <img src="media/arch-bridging.svg" alt="Human demos cloned by behavioral cloning then fine-tuned with Stable-Baselines3 PPO." />
-      <figcaption>Figure. Training pipeline. Demos warm-start the same ActorCritic used in parkour.</figcaption>
+      <figcaption>Figure. Human demonstrations warm-start Stable-Baselines3 PPO before reinforcement-learning fine-tuning.</figcaption>
     </figure>
 
     <figure class="diagram">
-      <img src="media/arch-bridging-net.svg" alt="Bridging observation of 220 dimensions: proprio 17, goal 3, voxels 200, then actor with 12 actions and critic." />
-      <figcaption>Figure. Bridging ActorCritic. Extra proprio dims are cfg, not a new model class.</figcaption>
+      <img src="media/arch-bridging-net.svg" alt="A flat 220-dimensional bridging observation feeds separate two-layer SB3 actor and value branches." />
+      <figcaption>Figure. The recorded checkpoint is an SB3 MlpPolicy, not parkour's custom three-stream network.</figcaption>
     </figure>
 
     <p class="note">Full lab notes: <a href="../malmo/docs/bridging/bridging.md">bridging report</a>.</p>
@@ -122,7 +97,7 @@
   <script src="js/clip-slot.js"></script>
   <script src="js/net-viz.js"></script>
   <script>
-    NetViz.mount({ synth: "bridging" });
+    NetViz.mount({ url: "data/bridging_replay.json", synth: "bridging" });
   </script>
 </body>
 </html>

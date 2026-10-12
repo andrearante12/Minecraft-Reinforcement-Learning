@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<Mission xmlns="http://ProjectMalmo.microsoft.com" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <About>
+    <Summary>Hunting (vision) — catch a fleeing rabbit in a seeded natural world</Summary>
+  </About>
+
+  <ServerSection>
+    <ServerInitialConditions>
+      <Time><StartTime>6000</StartTime><AllowPassageOfTime>false</AllowPassageOfTime></Time>
+      <Weather>clear</Weather>
+      <!-- No NEW random mobs. Animals placed by world generation still exist;
+           the env tracks the nearest Rabbit, so a wild one counts too. -->
+      <AllowSpawning>false</AllowSpawning>
+    </ServerInitialConditions>
+    <ServerHandlers>
+      <!-- Seed is substituted from HuntingVisionCFG.WORLD_SEED at reset.
+           Natural terrain (trees, hills, bushes) provides the occlusion. -->
+      <DefaultWorldGenerator seed="4837" forceReset="true"/>
+
+      <DrawingDecorator>
+        <!-- The bedrock cage (CAGE_HALF) and the target rabbit(s) are injected
+             here per-episode by HuntingEnv.reset() -->
+      </DrawingDecorator>
+
+      <!-- Generous: the env's MAX_STEPS ends episodes, not the server clock -->
+      <ServerQuitFromTimeUp timeLimitMs="3600000"/>
+      <ServerQuitWhenAnyAgentFinishes/>
+    </ServerHandlers>
+  </ServerSection>
+
+  <AgentSection mode="Survival">
+    <Name>Hunter</Name>
+    <AgentStart>
+      <!-- Must match HuntingVisionCFG.SPAWN; calibrate y on the first live run. -->
+      <Placement x="0.5" y="65.0" z="0.5" yaw="0" pitch="0"/>
+      <Inventory>
+        <InventoryItem type="wooden_sword" slot="0"/>
+      </Inventory>
+    </AgentStart>
+    <AgentHandlers>
+      <ContinuousMovementCommands turnSpeedDegs="180"/>
+      <!-- Lets HuntingEnv end the episode with "quit" (without it the mission
+           only ends on ServerQuitFromTimeUp) -->
+      <MissionQuitCommands/>
+      <ObservationFromFullStats/>
+      <ObservationFromRay/>
+      <!-- Privileged (reward / teacher only — never in the model's observation).
+           Covers the whole L3 cage so a rabbit can't leave sensor range. -->
+      <ObservationFromNearbyEntities>
+        <Range name="entities" xrange="70" yrange="20" zrange="70"/>
+      </ObservationFromNearbyEntities>
+      <ObservationFromGrid>
+        <Grid name="floor3x3">
+          <min x="-2" y="-1" z="-2"/>
+          <max x="2"  y="1"  z="2"/>
+        </Grid>
+      </ObservationFromGrid>
+      <RewardForDamagingEntity>
+        <Mob type="Rabbit" reward="1"/>
+      </RewardForDamagingEntity>
+    </AgentHandlers>
+  </AgentSection>
+</Mission>

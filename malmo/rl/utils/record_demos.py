@@ -24,6 +24,11 @@ Keyboard mapping (standard Minecraft):
 Controls:
     Enter = finish current episode (reset)
     Esc   = stop recording and save
+
+hunting_vision records a frames demo DIRECTORY (utils/demo_io.py: camera frame
++ proprio + action per step) instead of JSON; Space = jump_forward there. Start
+the env server with the same MALMO_HUNT_LEVEL you pass here (default: cfg).
+    python Malmo/rl/utils/record_demos.py --env hunting_vision --port 9999
 """
 
 import sys
@@ -62,6 +67,7 @@ from training.configs.three_block_gap_cfg import ThreeBlockGapCFG
 from training.configs.bridging_cfg        import BridgingCFG
 from training.configs.hunting_cfg          import HuntingCFG
 from training.configs.hunting_wild_cfg     import HuntingWildCFG
+from training.configs.hunting_vision_cfg   import HuntingVisionCFG
 
 ENV_CONFIGS = {
     "simple_jump":     SimpleJumpCFG,
@@ -70,6 +76,7 @@ ENV_CONFIGS = {
     "bridging":        BridgingCFG,
     "hunting":         HuntingCFG,
     "hunting_wild":    HuntingWildCFG,
+    "hunting_vision":  HuntingVisionCFG,
 }
 
 # Action indices matching base_cfg.py DEFAULT_ACTIONS
@@ -249,6 +256,62 @@ def translate_keys_to_action_hunting():
     return None
 
 
+def translate_keys_to_action_hunting_vision():
+    """hunting_vision = hunting's 11 actions + 11: jump_forward (Space)."""
+    if keyboard.is_pressed("space"):
+        return 11
+    return translate_keys_to_action_hunting()
+
+
+def record_vision(args, cfg):
+    """Human demos for the pixels + proprio task -> frames demo directory."""
+    from utils.demo_io import DemoWriter
+    from training.configs.hunting_vision_cfg import apply_hunt_level
+    level = apply_hunt_level(cfg)
+    out_dir = args.output or os.path.join(PARKOUR_ROOT, "..", "demos",
+                                          "{0}_{1}_L{2}".format(args.env, cfg.PREY, level))
+    writer = DemoWriter(out_dir, args.env)
+    env = EnvClient(cfg.INPUT_SIZE, port=args.port, video=True,
+                    frame_shape=(cfg.VIDEO_HEIGHT, cfg.VIDEO_WIDTH, cfg.VIDEO_CHANNELS))
+    action_names = [a[0] for a in cfg.ACTIONS]
+    no_op = action_names.index("no_op")
+    print("=" * 60)
+    print("Vision demo recorder — {0} L{1} -> {2} ({3} episodes so far)".format(
+        args.env, level, out_dir, len(writer)))
+    print("  W/S/A/D move  Ctrl+W sprint  Space jump_forward  Arrows turn/look")
+    print("  X/F attack    Enter = finish episode   Esc = save & quit")
+    print("=" * 60)
+    running = True
+    try:
+        while running:
+            vec, frame = env.reset(force_reset=True)
+            writer.begin_episode()
+            done, outcome, total, n = False, "manual_reset", 0.0, 0
+            while not done and n < args.max_steps:
+                if keyboard.is_pressed("esc"):
+                    running = False
+                    break
+                if keyboard.is_pressed("enter"):
+                    break
+                act = translate_keys_to_action_hunting_vision()
+                act = no_op if act is None else act
+                (next_vec, next_frame), reward, done, info = env.step(act)
+                writer.add(frame, vec, act, reward, done, privileged=info.get("privileged"))
+                vec, frame = next_vec, next_frame
+                total += reward
+                n += 1
+                if done:
+                    outcome = info.get("outcome", "unknown")
+                time.sleep(args.tick_rate)
+            name = writer.end_episode(outcome, source="human")
+            print("  episode: {0} steps, reward {1:.2f}, {2} -> {3}".format(n, total, outcome, name))
+    except KeyboardInterrupt:
+        print("\nInterrupted (finished episodes are saved).")
+    finally:
+        env.close()
+    print("Demo set: {0} episodes in {1}".format(len(writer), out_dir))
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Record human demonstrations")
     parser.add_argument("--env", type=str, required=True,
@@ -268,6 +331,8 @@ def parse_args():
 def record():
     args = parse_args()
     cfg = ENV_CONFIGS[args.env]
+    if getattr(cfg, "OBS_MODE", "full") == "proprio":
+        return record_vision(args, cfg)
 
     # Select the correct key translator and action names for this env
     if args.env == "bridging":

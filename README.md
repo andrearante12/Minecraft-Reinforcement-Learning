@@ -6,7 +6,9 @@ Built-in tasks include parkour (jumping across gaps), block-bridging, and a hunt
 
 **Demo site** (parkour, bridging, world models): from the repo root, `python -m http.server 3456` then open [http://localhost:3456/site/](http://localhost:3456/site/).
 
-**First time setup?** See [Setup & Installation](./Malmo/docs/framework/setup.md) before continuing (Linux: [setup_linux.md](./malmo/docs/framework/setup_linux.md)).
+**Live split-screen** (Minecraft camera | world-model predictions): `train.py ... --viz-port 8765` or `python malmo/rl/visualization/live_split.py --env hunting --checkpoint <ckpt>`, then open http://localhost:8765/. See `malmo/docs/world_model/report.md` §8.
+
+**First time setup?** See [Setup & Installation](./malmo/docs/framework/setup.md) before continuing (Linux: [setup_linux.md](./malmo/docs/framework/setup_linux.md)).
 
 > **Windows vs Linux commands:** examples below use Windows syntax (`.\Malmo\...`, `.\launchClient.bat`). On Linux, use lowercase forward-slash paths and the `.sh` launcher: `cd malmo/Minecraft && ./launchClient.sh`, and run python as `python malmo/rl/...`.
 
@@ -14,22 +16,22 @@ Built-in tasks include parkour (jumping across gaps), block-bridging, and a hunt
 
 ### Framework
 
-- [Setup & Installation](./Malmo/docs/framework/setup.md) — conda environments, Malmo installation, env vars
-- [Observation Vector](./Malmo/docs/framework/observation_vector.md) — what the agent perceives on each step
-- [Action Space](./Malmo/docs/framework/action_space.md) — available actions and how to modify them
-- [Behavioral Cloning](./Malmo/docs/framework/behavioral_cloning.md) — demo recording, replay, BC + PPO pipeline
-- [Curriculum Training](./Malmo/docs/framework/curriculum_training.md) — multi-env training with sequential, weighted, or adaptive progression
-- [New Environments](./Malmo/docs/framework/new_environment.md) — how to add a new Malmo environment
-- [New RL Algorithms](./Malmo/docs/framework/new_algorithm.md) — how to add a new training algorithm
-- [New Model Architectures](./Malmo/docs/framework/new_model.md) — how to swap in a different network
+- [Setup & Installation](./malmo/docs/framework/setup.md) — conda environments, Malmo installation, env vars
+- [Observation Vector](./malmo/docs/framework/observation_vector.md) — what the agent perceives on each step
+- [Action Space](./malmo/docs/framework/action_space.md) — available actions and how to modify them
+- [Behavioral Cloning](./malmo/docs/framework/behavioral_cloning.md) — demo recording, replay, BC + PPO pipeline
+- [Curriculum Training](./malmo/docs/framework/curriculum_training.md) — multi-env training with sequential, weighted, or adaptive progression
+- [New Environments](./malmo/docs/framework/new_environment.md) — how to add a new Malmo environment
+- [New RL Algorithms](./malmo/docs/framework/new_algorithm.md) — how to add a new training algorithm
+- [New Model Architectures](./malmo/docs/framework/new_model.md) — how to swap in a different network
 
 ### Parkour
 
-- [Parkour Guide](./Malmo/docs/parkour/report.md) — world layout, observation space, action space, reward shaping, training pipeline
+- [Parkour Guide](./malmo/docs/parkour/report.md) — world layout, observation space, action space, reward shaping, training pipeline
 
 ### Bridging
 
-- [Bridging Guide](./Malmo/docs/bridging/bridging.md) — world layout, observation space, action space, reward shaping, training pipeline
+- [Bridging Guide](./malmo/docs/bridging/bridging.md) — world layout, observation space, action space, reward shaping, training pipeline
 
 ### World models
 
@@ -40,9 +42,9 @@ Built-in tasks include parkour (jumping across gaps), block-bridging, and a hunt
 
 | What to add | Guide |
 |-------------|-------|
-| New task / environment | [New Environments](./Malmo/docs/framework/new_environment.md) — XML + config for new parkour variants; full env class for new task types |
-| New RL algorithm | [New Algorithms](./Malmo/docs/framework/new_algorithm.md) — inherit from `BaseAgent`, implement 4 methods |
-| New model architecture | [New Models](./Malmo/docs/framework/new_model.md) — implement 3 interface methods, swap in one import line |
+| New task / environment | [New Environments](./malmo/docs/framework/new_environment.md) — XML + config for new parkour variants; full env class for new task types |
+| New RL algorithm | [New Algorithms](./malmo/docs/framework/new_algorithm.md) — inherit from `BaseAgent`, implement 4 methods |
+| New model architecture | [New Models](./malmo/docs/framework/new_model.md) — implement 3 interface methods, swap in one import line |
 
 ---
 
@@ -126,7 +128,7 @@ conda activate train_env
 python Malmo/rl/evaluation/evaluate.py --env bridging --checkpoint checkpoints/sb3_bridging_final.zip --episodes 50 --port 10002
 ```
 
-See the [Bridging Guide](./Malmo/docs/bridging/bridging.md) for full details.
+See the [Bridging Guide](./malmo/docs/bridging/bridging.md) for full details.
 
 ---
 
@@ -170,7 +172,7 @@ Train across multiple environments in a single run with automatic progression:
 python Malmo/rl/training/train.py --curriculum path/to/curriculum.json --algo ppo --base-port 10002
 ```
 
-See [Curriculum Training](./Malmo/docs/framework/curriculum_training.md) for the JSON format.
+See [Curriculum Training](./malmo/docs/framework/curriculum_training.md) for the JSON format.
 
 ---
 

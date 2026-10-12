@@ -17,7 +17,6 @@
         <li><a href="index.html#parkour">Parkour</a></li>
         <li><a href="index.html#bridging">Bridging</a></li>
         <li><a href="index.html#world-models" aria-current="page">World models</a></li>
-        <li><a href="index.html#how">Architecture</a></li>
       </ul>
     </nav>
   </header>
@@ -55,6 +54,7 @@
             <div id="input-fields"></div>
           </section>
           <section class="panel" id="net">
+            <h2>State → action</h2>
             <canvas id="canvas"></canvas>
           </section>
           <section class="panel" id="outputs">
@@ -77,6 +77,7 @@
     <div class="dream-panel">
       <canvas id="dream" aria-label="Ensemble imagined pig trajectories"></canvas>
     </div>
+    <p class="note">This page is a recorded replay. For the live version, with the Minecraft camera and the model's predictions streaming side by side during training or checkpoint playback, run <code>python malmo/rl/visualization/live_split.py --env hunting --checkpoint &lt;ckpt&gt;</code> or <code>train.py … --viz-port 8765</code>, then open <code>http://localhost:8765/</code> (<a href="live.html">page</a>).</p>
     <div class="uncert">
       <div class="card">
         <h3>Aleatoric</h3>

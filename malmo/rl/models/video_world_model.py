@@ -22,6 +22,14 @@ every step, and pushes them together with a KL term (floored at WM_FREE_NATS
 prior early in training). Imagination later rolls out PRIOR-ONLY from a real
 posterior start state, since the whole point is not needing real frames.
 
+Feature input (cfg.VWM_INPUT == "features", e.g. hunting_vision): the encoder
+input is a set of FROZEN pretrained tokens (models/frozen_encoder.py — DINOv2
+CLS + pooled patches) instead of pixels. A small trainable FeatureEncoder
+projects them; the decoder reconstructs the tokens (DINO-WM style), not pixels.
+A separate thumbnail ConvDecoder reads a STOP-GRAD latent so the dream-strip /
+live viewers still get images without pixel loss shaping the latent. The
+default VWM_INPUT="pixels" path builds exactly the modules it always did.
+
 This module has no coupling to models/world_model.py or models/actor_critic.py
 — the two world-model architectures are independent by design so neither can
 regress the other. See models/latent_actor_critic.py for the paired policy
@@ -42,6 +50,23 @@ def _make_mlp_head(in_dim, hidden_dim, out_dim):
         nn.ELU(),
         nn.Linear(hidden_dim, out_dim),
     )
+
+
+def symlog(x):
+    return torch.sign(x) * torch.log1p(torch.abs(x))
+
+
+def symexp(x):
+    return torch.sign(x) * torch.expm1(torch.abs(x))
+
+
+def privileged_targets(priv):
+    """12-dim privileged target stream (hunting_env layout) -> aux targets
+    (...,4) = [sin(bearing), cos(bearing), dist_norm, in_range] and a validity
+    mask (...,) = target sensed. Training labels only; never a model input."""
+    h = priv[..., 7] * 3.141592653589793
+    targets = torch.stack([torch.sin(h), torch.cos(h), priv[..., 6], priv[..., 9]], dim=-1)
+    return targets, (priv[..., 11] > 0.5).float()
 
 
 def _stack_states(states):
@@ -106,6 +131,43 @@ class ConvDecoder(nn.Module):
         _, C, H, W = x.shape
         x = x.reshape(B, L, C, H, W)
         return x.squeeze(1) if squeeze_l else x
+
+
+class FeatureEncoder(nn.Module):
+    """Frozen-encoder tokens (...,T,D) -> flat embedding (...,embed_dim).
+
+    Per-token projection (shared across tokens) keeps the parameter count small
+    before the flatten; token order (CLS, then row-major pooled patches) carries
+    the spatial layout.
+    """
+
+    def __init__(self, n_tokens, token_dim, token_proj, embed_dim):
+        super().__init__()
+        self.token = nn.Sequential(
+            nn.Linear(token_dim, token_proj), nn.LayerNorm(token_proj), nn.ELU())
+        self.out = nn.Sequential(
+            nn.Linear(n_tokens * token_proj, embed_dim), nn.LayerNorm(embed_dim), nn.ELU())
+
+    def forward(self, tokens):
+        h = self.token(tokens.float())
+        return self.out(h.reshape(h.shape[:-2] + (-1,)))
+
+
+class FeatureDecoder(nn.Module):
+    """RSSM feature (...,feat) -> reconstructed tokens (...,T,D)."""
+
+    def __init__(self, feat_dim, n_tokens, token_dim, hidden_dim):
+        super().__init__()
+        self.n_tokens, self.token_dim = n_tokens, token_dim
+        self.net = nn.Sequential(
+            nn.Linear(feat_dim, hidden_dim), nn.LayerNorm(hidden_dim), nn.ELU(),
+            nn.Linear(hidden_dim, hidden_dim), nn.LayerNorm(hidden_dim), nn.ELU(),
+            nn.Linear(hidden_dim, n_tokens * token_dim),
+        )
+
+    def forward(self, feat):
+        out = self.net(feat)
+        return out.reshape(out.shape[:-1] + (self.n_tokens, self.token_dim))
 
 
 class RSSM(nn.Module):
@@ -208,7 +270,18 @@ class VideoWorldModel(nn.Module):
         self.vec_size   = cfg.INPUT_SIZE
 
         depth = cfg.VWM_CNN_DEPTH
-        self.encoder = ConvEncoder(cfg.VIDEO_CHANNELS, depth)
+        self.input_kind = getattr(cfg, "VWM_INPUT", "pixels")
+        feat_dim = self.deter_dim + self.stoch_dim
+        if self.input_kind == "features":
+            from models.frozen_encoder import token_shape
+            n_tokens, token_dim = token_shape(cfg)
+            self.encoder = FeatureEncoder(n_tokens, token_dim, cfg.VIS_TOKEN_PROJ, cfg.RSSM_EMBED)
+            self.feat_decoder  = FeatureDecoder(feat_dim, n_tokens, token_dim, cfg.VWM_FEAT_DEC_HIDDEN)
+            self.thumb_decoder = ConvDecoder(feat_dim, cfg.VIDEO_CHANNELS, depth, cfg.RSSM_EMBED)
+        elif self.input_kind == "pixels":
+            self.encoder = ConvEncoder(cfg.VIDEO_CHANNELS, depth)
+        else:
+            raise ValueError("VWM_INPUT must be 'pixels' or 'features', got {0!r}".format(self.input_kind))
         self.vec_encoder = nn.Sequential(
             nn.Linear(self.vec_size, cfg.VWM_PROPRIO_EMBED),
             nn.LayerNorm(cfg.VWM_PROPRIO_EMBED),
@@ -217,8 +290,8 @@ class VideoWorldModel(nn.Module):
         embed_dim = cfg.RSSM_EMBED + cfg.VWM_PROPRIO_EMBED
         self.rssm = RSSM(embed_dim, self.n_actions, self.deter_dim, self.stoch_dim, cfg.RSSM_HIDDEN)
 
-        feat_dim = self.deter_dim + self.stoch_dim
-        self.decoder     = ConvDecoder(feat_dim, cfg.VIDEO_CHANNELS, depth, cfg.RSSM_EMBED)
+        if self.input_kind == "pixels":
+            self.decoder = ConvDecoder(feat_dim, cfg.VIDEO_CHANNELS, depth, cfg.RSSM_EMBED)
         self.vec_head    = _make_mlp_head(feat_dim, cfg.WM_HEAD_HIDDEN, self.vec_size)
         # Reward/continuation are conditioned on (feat, action) explicitly — same
         # convention as models/world_model.py's (obs, action) -> reward — rather
@@ -230,9 +303,23 @@ class VideoWorldModel(nn.Module):
         self.reward_head = _make_mlp_head(feat_dim + self.n_actions, cfg.WM_HEAD_HIDDEN, 1)
         self.cont_head   = _make_mlp_head(feat_dim + self.n_actions, cfg.WM_HEAD_HIDDEN, 1)
 
+        # Reward head regresses symlog(r) (DreamerV3) so a rare +100 kill doesn't
+        # dominate the loss; predictions are symexp'd back. Off by default.
+        self.symlog_reward = getattr(cfg, "VWM_SYMLOG_REWARD", False)
+        # Training-time privileged auxiliary head: forces the latent to track the
+        # target (bearing/distance/in-range) — from posterior AND prior features,
+        # so imagination keeps tracking it too. Labels only; inputs stay pixels.
+        self.priv_aux = getattr(cfg, "VWM_PRIV_AUX", False)
+        if self.priv_aux:
+            self.priv_head = _make_mlp_head(feat_dim, cfg.WM_HEAD_HIDDEN, 4)
+
     # ── Encoding ─────────────────────────────────────────────────────────────
     def _embed(self, frames, vecs):
-        """frames: (B,L,H,W,C) uint8 or float or (B,H,W,C); vecs matching leading dims."""
+        """frames: (B,L,H,W,C) uint8 or float or (B,H,W,C); vecs matching leading dims.
+        In feature mode `frames` is the token tensor (B,L,T,D) / (B,T,D)."""
+        if self.input_kind == "features":
+            tokens = frames.float()
+            return torch.cat([self.encoder(tokens), self.vec_encoder(vecs)], dim=-1), tokens
         frames_norm = frames.float() / 255.0 - 0.5
         if frames_norm.dim() == 4:
             frames_chw = frames_norm.permute(0, 3, 1, 2)
@@ -250,7 +337,10 @@ class VideoWorldModel(nn.Module):
         return prev
 
     def decode(self, feat):
-        """RSSM feature -> (frame_mean [-0.5,0.5]-space, vec_mean). Used by the viz."""
+        """RSSM feature -> (frame_mean [-0.5,0.5]-space, vec_mean). Used by the viz.
+        Feature mode returns the thumbnail decoder's image (VIS_THUMB square)."""
+        if self.input_kind == "features":
+            return self.thumb_decoder(feat), self.vec_head(feat)
         return self.decoder(feat), self.vec_head(feat)
 
     def predict_reward_cont(self, feat, action_onehot):
@@ -258,6 +348,8 @@ class VideoWorldModel(nn.Module):
         both by loss() and by the imagination rollout in algos/dreamer_video.py."""
         feat_act = torch.cat([feat, action_onehot], dim=-1)
         reward = self.reward_head(feat_act).squeeze(-1)
+        if self.symlog_reward:
+            reward = symexp(reward)
         cont = torch.sigmoid(self.cont_head(feat_act).squeeze(-1))
         return reward, cont
 
@@ -269,10 +361,12 @@ class VideoWorldModel(nn.Module):
         return post
 
     # ── Training loss on a batch of real (masked) sequences ────────────────────
-    def loss(self, frames, vecs, actions, rewards, dones, mask):
+    def loss(self, frames, vecs, actions, rewards, dones, mask, thumbs=None, priv=None):
         """
         frames: (B,L,H,W,C) uint8   vecs: (B,L,D) f32   actions: (B,L) int64
         rewards/dones/mask: (B,L) f32 — mask=1 for real steps, 0 for padding.
+        Feature mode: frames is (B,L,T,D) tokens; thumbs (B,L,h,w,C) uint8 optional;
+        priv (B,L,12) privileged target stream for the auxiliary head (VWM_PRIV_AUX).
         Returns (total, metrics_dict, posts) — posts is DETACHED (safe to reuse
         as imagination start states after backward()).
         """
@@ -283,6 +377,10 @@ class VideoWorldModel(nn.Module):
         embed, frames_norm = self._embed(frames, vecs)
         posts, priors = self.rssm.observe(embed, prev_actions)
         feat = self.rssm.get_feat(posts)                      # (B,L,feat_dim)
+
+        if self.input_kind == "features":
+            return self._feature_loss(feat, posts, priors, frames_norm, vecs, actions_onehot,
+                                      rewards, dones, mask, thumbs, priv)
 
         recon_frame, recon_vec = self.decode(feat)
         feat_act = torch.cat([feat, actions_onehot], dim=-1)  # unshifted: action taken FROM this state
@@ -312,6 +410,63 @@ class VideoWorldModel(nn.Module):
         metrics = {
             "vwm_loss":    total.item(),
             "vwm_image":   l_image.item(),
+            "vwm_proprio": l_vec.item(),
+            "vwm_reward":  l_reward.item(),
+            "vwm_cont":    l_cont.item(),
+            "vwm_kl":      l_kl.item(),
+        }
+        posts_detached = {k: v.detach() for k, v in posts.items()}
+        return total, metrics, posts_detached
+
+    def _feature_loss(self, feat, posts, priors, tokens, vecs, actions_onehot,
+                      rewards, dones, mask, thumbs, priv=None):
+        eps = 1e-8
+        mask_sum = mask.sum().clamp_min(eps)
+        feat_act = torch.cat([feat, actions_onehot], dim=-1)
+        reward_pred = self.reward_head(feat_act).squeeze(-1)
+        cont_logit  = self.cont_head(feat_act).squeeze(-1)
+
+        l_feat = (((self.feat_decoder(feat) - tokens) ** 2).mean(dim=(-1, -2)) * mask).sum() / mask_sum
+        l_vec  = (((self.vec_head(feat) - vecs) ** 2).sum(dim=-1) * mask).sum() / (mask_sum * self.vec_size)
+        reward_target = symlog(rewards) if self.symlog_reward else rewards
+        l_reward = (((reward_pred - reward_target) ** 2) * mask).sum() / mask_sum
+        l_cont = (F.binary_cross_entropy_with_logits(cont_logit, 1.0 - dones, reduction="none")
+                  * mask).sum() / mask_sum
+        l_kl = (torch.clamp(self.rssm.kl_loss(posts, priors), min=self.free_nats) * mask).sum() / mask_sum
+
+        # Thumbnail decoder: visualisation only — the stop-grad keeps pixel
+        # reconstruction from shaping the latent the policy acts on.
+        l_thumb = torch.zeros((), device=feat.device)
+        if thumbs is not None:
+            target = (thumbs.float() / 255.0 - 0.5).permute(0, 1, 4, 2, 3)
+            recon = self.thumb_decoder(feat.detach())
+            n_pix = target.shape[2] * target.shape[3] * target.shape[4]
+            l_thumb = (((recon - target) ** 2).sum(dim=(2, 3, 4)) * mask).sum() / (mask_sum * n_pix)
+
+        l_priv = torch.zeros((), device=feat.device)
+        if self.priv_aux and priv is not None:
+            targets, sensed = privileged_targets(priv.float())
+            w = mask * sensed
+            w_sum = w.sum().clamp_min(eps)
+            prior_feat = self.rssm.get_feat(priors)
+            for f in (feat, prior_feat):
+                l_priv = l_priv + (((self.priv_head(f) - targets) ** 2).sum(-1) * w).sum() / w_sum
+            l_priv = 0.5 * l_priv
+
+        total = (
+            self.cfg.VWM_W_IMAGE   * l_feat
+            + self.cfg.VWM_W_PROPRIO * l_vec
+            + self.cfg.VWM_W_REWARD  * l_reward
+            + self.cfg.VWM_W_CONT    * l_cont
+            + self.kl_scale          * l_kl
+            + getattr(self.cfg, "VWM_W_THUMB", 1.0) * l_thumb
+            + getattr(self.cfg, "VWM_W_PRIV", 1.0) * l_priv
+        )
+        metrics = {
+            "vwm_loss":    total.item(),
+            "vwm_feat":    l_feat.item(),
+            "vwm_thumb":   l_thumb.item(),
+            "vwm_priv":    l_priv.item(),
             "vwm_proprio": l_vec.item(),
             "vwm_reward":  l_reward.item(),
             "vwm_cont":    l_cont.item(),

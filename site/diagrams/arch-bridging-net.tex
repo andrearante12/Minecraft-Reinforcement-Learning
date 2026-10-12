@@ -1,25 +1,22 @@
 \documentclass[tikz,border=12pt]{standalone}
 \input{style}
 \begin{document}
-\begin{tikzpicture}[node distance=0.8cm and 0.65cm]
-  \node[wide] (obs) {obs $220$\\bridging};
+\begin{tikzpicture}[node distance=1.15cm and 1.4cm]
+  \node[wide] (obs) {flat observation $220$\\proprio $17$ + goal $\Delta$ $3$ + voxels $200$};
 
-  \node[box, below left=1.1cm and 0.05cm of obs] (p) {proprio $17$\\inv, ray, face\\$\to 64$};
-  \node[box, below=1.1cm of obs] (g) {goal $\Delta$ $3$\\far bank\\$\to 64$};
-  \node[box, below right=1.1cm and 0.05cm of obs] (v) {voxels $200$\\$5\times5\times8$, $Z\in[-2,+5]$\\$\to 128$};
+  \node[box, below left=of obs] (pi1) {policy MLP\\Linear $220\to64$\\Tanh};
+  \node[box, below=of pi1] (pi2) {Linear $64\to64$\\Tanh};
+  \node[box, below=of pi2] (act) {action logits $12$\\$\pi(a\mid s)$\\sneak, place};
 
-  \node[box, below=1.25cm of g] (cat) {concat $256$};
+  \node[box, below right=of obs] (v1) {value MLP\\Linear $220\to64$\\Tanh};
+  \node[box, below=of v1] (v2) {Linear $64\to64$\\Tanh};
+  \node[box, below=of v2] (crt) {value head $1$\\$V(s)$};
 
-  \node[box, below left=1.15cm and 0.5cm of cat] (act) {actor\\$\pi(a\mid s)$, $12$ actions\\sneak, place};
-  \node[box, below right=1.15cm and 0.5cm of cat] (crt) {critic $V(s)$\\$+2$ place, $+10$ reach\\$-5$ fall};
-
-  \draw[arr] (obs) -- (p);
-  \draw[arr] (obs) -- (g);
-  \draw[arr] (obs) -- (v);
-  \draw[arr] (p) |- (cat);
-  \draw[arr] (g) -- (cat);
-  \draw[arr] (v) |- (cat);
-  \draw[arr] (cat) -- (act);
-  \draw[arr] (cat) -- (crt);
+  \draw[arr] (obs) -- (pi1);
+  \draw[arr] (pi1) -- (pi2);
+  \draw[arr] (pi2) -- (act);
+  \draw[arr] (obs) -- (v1);
+  \draw[arr] (v1) -- (v2);
+  \draw[arr] (v2) -- (crt);
 \end{tikzpicture}
 \end{document}

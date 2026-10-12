@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live — MalmoRL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body class="live" data-kind="vector">
+  <header class="live-bar">
+    <span class="brand">MalmoRL <b>live</b></span>
+    <div class="live-pills">
+      <span class="pill" id="env">env —</span>
+      <span class="pill" id="mode">—</span>
+      <span class="pill" id="episode">ep —</span>
+      <span class="pill" id="step">step 0</span>
+      <span class="pill" id="ep-reward">R —</span>
+      <span class="live-dot" id="conn" title="disconnected"></span>
+    </div>
+  </header>
+
+  <main class="live-split">
+    <!-- left: Minecraft camera -->
+    <section class="cam-pane" aria-label="Minecraft camera">
+      <span class="clip-kicker">minecraft · live</span>
+      <img id="cam" alt="Live Minecraft camera" hidden />
+      <p class="cam-empty" id="cam-empty">Waiting for camera frames…<br />
+        Vector Dreamer: start env_server with <code>MALMO_RECORD_VIDEO=1</code>.<br />
+        Headless: <code>xvfb-run -a ./launchClient.sh</code>.</p>
+      <div class="cam-phase" id="phase" hidden></div>
+      <div class="cam-hud">
+        <span class="act" id="action">—</span>
+        <span id="reward">r —</span>
+      </div>
+    </section>
+
+    <!-- right: model predictions -->
+    <section class="pred-pane" aria-label="Model predictions">
+      <div class="pred-tabs" role="tablist" aria-label="Right-hand view">
+        <button type="button" role="tab" id="tab-inference" data-tab="inference" aria-selected="true">Inference</button>
+        <button type="button" role="tab" id="tab-training" data-tab="training" aria-selected="false">Training</button>
+        <span class="tab-hint" id="tab-hint"></span>
+      </div>
+
+      <div class="tab-panel" id="panel-inference" role="tabpanel" aria-labelledby="tab-inference">
+      <div class="video-panel" id="video-panel">
+        <div class="tile-pair">
+          <figure class="tile"><img id="real-small" alt="Real 64×64 input" /><figcaption>real input</figcaption></figure>
+          <figure class="tile"><img id="recon" alt="Posterior decode" /><figcaption>model sees</figcaption></figure>
+        </div>
+        <h2 class="pred-h">Imagined next <span id="dream-h">8</span> steps</h2>
+        <div class="dream-strip" id="dream-strip"></div>
+      </div>
+
+        <div class="vector-extras" id="vector-extras">
+        <div class="topdown-panel">
+          <div class="topdown-head">
+            <h2 class="pred-h">Top-down · next <span id="td-h">—</span> steps</h2>
+            <span class="td-plan" id="td-plan"></span>
+          </div>
+          <canvas id="topdown" aria-label="Top-down map of real and imagined agent and pig positions"></canvas>
+          <ul class="td-legend">
+            <li><i class="sw sw-agent"></i>real path</li>
+            <li><i class="sw sw-agent dashed"></i>predicted agent</li>
+            <li><i class="sw sw-pig dashed"></i>predicted pig</li>
+            <li><i class="sw sw-sigma"></i>ring = pig noise (aleatoric) · dots = each model’s guess, spread = epistemic</li>
+          </ul>
+        </div>
+        </div>
+      <div class="net-embed" id="stage">
+        <section class="panel" id="inputs">
+          <h2>Observation</h2>
+          <div id="input-fields"></div>
+        </section>
+        <section class="panel" id="net">
+          <h2>State → action</h2>
+          <canvas id="canvas"></canvas>
+        </section>
+        <section class="panel" id="outputs">
+          <h2>Policy π(a|s)</h2>
+          <div id="action-bars"></div>
+          <h2>Value V(s)</h2>
+          <div id="value-gauge">
+            <div class="gauge-track"><div class="gauge-fill" id="value-fill"></div></div>
+            <div class="gauge-labels">
+              <span id="value-min">—</span>
+              <span id="value-num">—</span>
+              <span id="value-max">—</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      </div>
+
+      <div class="tab-panel" id="panel-training" role="tabpanel" aria-labelledby="tab-training" hidden>
+        <div class="stat-tiles">
+          <div class="stat"><span class="k">Episodes</span><b id="st-episodes">—</b></div>
+          <div class="stat"><span class="k">Kill rate · last 20</span><b id="st-success">—</b></div>
+          <div class="stat"><span class="k">Mean return · last 20</span><b id="st-return">—</b></div>
+          <div class="stat"><span class="k">Env steps</span><b id="st-steps">—</b></div>
+          <div class="stat"><span class="k">Updates</span><b id="st-updates">—</b></div>
+          <div class="stat"><span class="k">Replay buffer</span><b id="st-buffer">—</b></div>
+        </div>
+        <div class="uncert" id="uncert-cards">
+          <div class="card">
+            <h3>Aleatoric</h3>
+            <p class="readout" id="ale">—</p>
+            <div class="gauge-track"><div class="gauge-fill" id="ale-fill"></div></div>
+            <p class="hint">Pig’s irreducible motion · gates the horizon</p>
+          </div>
+          <div class="card">
+            <h3>Epistemic</h3>
+            <p class="readout" id="epi">—</p>
+            <div class="gauge-track"><div class="gauge-fill" id="epi-fill"></div></div>
+            <p class="hint">Ensemble disagreement · shrinks with data</p>
+          </div>
+        </div>
+        <p class="train-note" id="train-note" hidden>Showing playback stats. Loss curves need a training run: <code>train.py … --viz-port 8765</code>.</p>
+        <div class="charts" id="charts"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/net-viz.js"></script>
+  <script src="js/live.js"></script>
+</body>
+</html>

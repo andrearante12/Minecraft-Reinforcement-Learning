@@ -16,6 +16,30 @@
   function $(id) { return document.getElementById(id); }
   function lerp(a, b, t) { return a + (b - a) * t; }
 
+  function chevron(ctx, x, y0, y1, rgb, t, reduceMotion) {
+    if (y1 - y0 < 12) return;
+    ctx.strokeStyle = "rgba(" + rgb + ",0.55)";
+    ctx.lineWidth = 1.6;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(x, y0);
+    ctx.lineTo(x, y1);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(" + rgb + ",0.95)";
+    ctx.beginPath();
+    ctx.moveTo(x, y1 + 1);
+    ctx.lineTo(x - 5, y1 - 7);
+    ctx.lineTo(x + 5, y1 - 7);
+    ctx.closePath();
+    ctx.fill();
+    if (reduceMotion) return;
+    var u = (t * 0.45) % 1;
+    var y = y0 + (y1 - y0) * u;
+    ctx.beginPath();
+    ctx.arc(x, y, 2.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   function mount(opts) {
     opts = opts || {};
     var canvas = $("canvas");
@@ -32,14 +56,19 @@
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var timer = null;
     var dt = opts.dt || 150;
+    var meta = {};
+    var synced = false;
+    var video = document.querySelector(".demo-stage .clip-slot video");
 
     function sizeCanvas(c, minH) {
       if (!c) return;
       var parent = c.parentElement;
       var r = parent.getBoundingClientRect();
+      var title = parent.querySelector("h2");
+      var trim = title ? title.getBoundingClientRect().height + 8 : 0;
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
       var w = Math.max(120, r.width);
-      var h = Math.max(minH || 200, r.height || minH || 200);
+      var h = Math.max(minH || 200, (r.height || minH || 200) - trim);
       c.width = Math.floor(w * dpr);
       c.height = Math.floor(h * dpr);
       c.style.width = w + "px";
@@ -142,73 +171,146 @@
       if ($("epi-fill")) $("epi-fill").style.width = ((fr.epistemic || 0) * 100).toFixed(1) + "%";
     }
 
+    function tween(id, vals) {
+      var prev = prevActs[id] || vals;
+      var k = reduce ? 1 : 0.35;
+      var mixed = [];
+      for (var i = 0; i < vals.length; i++) mixed.push(lerp(prev[i] || 0, vals[i] || 0, k));
+      prevActs[id] = mixed;
+      return mixed;
+    }
+
+    function sample(vals, n) {
+      if (!vals || !vals.length) return Array(n).fill(0.15);
+      if (vals.length === n) return vals;
+      var out = [];
+      for (var i = 0; i < n; i++) {
+        var j = Math.round(i * (vals.length - 1) / Math.max(n - 1, 1));
+        out.push(vals[j] || 0);
+      }
+      return out;
+    }
+
+    function stateCells() {
+      var inputs = (frame && frame.inputs) || {};
+      if (inputs.vox && inputs.vox.length) return sample(inputs.vox.map(function (v) { return v ? 1 : 0.08; }), 16);
+      var acts = (frame && frame.activations) || {};
+      var layers = schema.layers || [];
+      var bag = [];
+      layers.forEach(function (layer) {
+        if (layer.group === "head") return;
+        var vals = acts[layer.id] || [];
+        for (var i = 0; i < vals.length; i++) bag.push(vals[i]);
+      });
+      if (!bag.length && layers[0]) bag = acts[layers[0].id] || [];
+      return sample(bag, 16);
+    }
+
+    function hiddenCells() {
+      var acts = (frame && frame.activations) || {};
+      var layers = schema.layers || [];
+      var layer = null;
+      for (var i = 0; i < layers.length; i++) {
+        if (layers[i].id === "actor_hidden" || /actor|policy/i.test(layers[i].label || "")) {
+          layer = layers[i];
+          break;
+        }
+      }
+      if (!layer) layer = layers[0];
+      if (!layer) return sample([], 12);
+      return sample(tween(layer.id, acts[layer.id] || []), 12);
+    }
+
+    function drawGrid(vals, x, y, cols, cell, rgb) {
+      var gap = 4;
+      var rows = Math.max(1, Math.ceil(vals.length / cols));
+      var gw = cols * (cell + gap) - gap;
+      var gh = rows * (cell + gap) - gap;
+      var gx = x - gw / 2;
+      var gy = y;
+      for (var i = 0; i < vals.length; i++) {
+        ctx.fillStyle = "rgba(" + rgb + "," + (0.1 + 0.9 * (vals[i] || 0)) + ")";
+        ctx.fillRect(gx + (i % cols) * (cell + gap), gy + Math.floor(i / cols) * (cell + gap), cell, cell);
+      }
+      return { x: gx, y: gy, w: gw, h: gh };
+    }
+
+    function cellFit(cols, rows, maxW, maxH, cap) {
+      var gap = 4;
+      var byW = Math.floor((maxW - (cols - 1) * gap) / cols);
+      var byH = Math.floor((maxH - (rows - 1) * gap) / rows);
+      return Math.max(6, Math.min(cap, byW, byH));
+    }
+
     function drawNet() {
       if (!schema) return;
       var w = canvas.clientWidth;
       var h = canvas.clientHeight;
       ctx.clearRect(0, 0, w, h);
-      var layers = schema.layers || [];
-      var streams = layers.filter(function (l) { return l.group === "stream"; });
-      var heads = layers.filter(function (l) { return l.group === "head"; });
-      var acts = (frame && frame.activations) || {};
-      var energy = (frame && frame.stream_energy) || {};
-      var colW = w / Math.max(streams.length, 1);
+      var t = performance.now() / 1000;
+      var gold = "196,163,90";
+      var hud = "184,212,168";
+      var cx = w * 0.5;
+      var name = (frame && frame.action_name) || "—";
+      var pad = 10;
+      var labelH = 16;
+      var arrowGap = 26;
+      var pillH = 38;
+      var maxW = w - 28;
 
-      streams.forEach(function (layer, si) {
-        var cx = colW * (si + 0.5);
-        var vals = acts[layer.id] || [];
-        var prev = prevActs[layer.id] || vals;
-        var n = layer.display || vals.length || 16;
-        var cols = 4;
-        var rows = Math.ceil(n / cols);
-        var cell = Math.min(16, (h * 0.34) / rows);
-        var gridW = cols * (cell + 3);
-        var x0 = cx - gridW / 2;
-        var y0 = 32;
-        ctx.fillStyle = COLORS.dim;
-        ctx.font = "11px \"IBM Plex Mono\", monospace";
+      var stateVals = stateCells();
+      var hidVals = hiddenCells();
+      var stateCols = 4;
+      var hidCols = 6;
+      var stateRows = Math.max(1, Math.ceil(stateVals.length / stateCols));
+      var hidRows = Math.max(1, Math.ceil(hidVals.length / hidCols));
+
+      var chrome = pad + labelH + arrowGap + labelH + arrowGap + labelH + pillH + pad;
+      var gridSpace = Math.max(48, h - chrome);
+      var stateH = gridSpace * (stateRows / (stateRows + hidRows));
+      var hidH = gridSpace - stateH;
+      var stateCell = cellFit(stateCols, stateRows, maxW, stateH, 18);
+      var hidCell = cellFit(hidCols, hidRows, maxW, hidH, 16);
+
+      function label(text, y) {
+        ctx.font = "10px \"IBM Plex Mono\", monospace";
         ctx.textAlign = "center";
-        ctx.fillText(layer.label, cx, 18);
-        for (var i = 0; i < n; i++) {
-          var v = lerp(prev[i] || 0, vals[i] || 0, reduce ? 1 : 0.35);
-          ctx.fillStyle = "rgba(196,163,90," + (0.12 + 0.88 * v) + ")";
-          ctx.fillRect(x0 + (i % cols) * (cell + 3), y0 + Math.floor(i / cols) * (cell + 3), cell, cell);
-        }
-        ctx.strokeStyle = "rgba(63,107,58," + (0.25 + (energy[layer.id] || 0)) + ")";
-        ctx.strokeRect(x0 - 3, y0 - 3, gridW + 3, rows * (cell + 3) + 1);
-        prevActs[layer.id] = vals.map(function (v, i) {
-          return lerp(prev[i] || 0, v, reduce ? 1 : 0.35);
-        });
-      });
-
-      ctx.strokeStyle = COLORS.line;
-      ctx.beginPath();
-      ctx.moveTo(w * 0.12, h * 0.48);
-      ctx.lineTo(w * 0.5, h * 0.55);
-      ctx.lineTo(w * 0.88, h * 0.48);
-      ctx.stroke();
-      ctx.fillStyle = COLORS.dim;
-      ctx.fillText("concat", w * 0.5, h * 0.58);
-
-      heads.forEach(function (layer, hi) {
-        var cx = w * (hi === 0 ? 0.32 : 0.68);
-        var y0 = h * 0.66;
-        var vals = acts[layer.id] || [];
-        var prev = prevActs[layer.id] || vals;
-        var n = layer.display || vals.length || 16;
         ctx.fillStyle = COLORS.dim;
-        ctx.fillText(layer.label, cx, y0 - 10);
-        var cell = 9;
-        var x0 = cx - (n * (cell + 2)) / 2;
-        for (var i = 0; i < n; i++) {
-          var v = lerp(prev[i] || 0, vals[i] || 0, reduce ? 1 : 0.35);
-          ctx.fillStyle = "rgba(184,212,168," + (0.18 + 0.82 * v) + ")";
-          ctx.fillRect(x0 + i * (cell + 2), y0, cell, 26);
-        }
-        prevActs[layer.id] = vals.map(function (v, i) {
-          return lerp(prev[i] || 0, v, reduce ? 1 : 0.35);
-        });
-      });
+        ctx.fillText(text, cx, y);
+      }
+
+      var y = pad;
+      label("state", y + 10);
+      y += labelH;
+      var stateBox = drawGrid(stateVals, cx, y, stateCols, stateCell, gold);
+      y = stateBox.y + stateBox.h;
+      chevron(ctx, cx, y + 4, y + arrowGap - 6, gold, t, reduce);
+      y += arrowGap;
+
+      label("net", y + 10);
+      y += labelH;
+      var hidBox = drawGrid(hidVals, cx, y, hidCols, hidCell, hud);
+      y = hidBox.y + hidBox.h;
+      chevron(ctx, cx, y + 4, y + arrowGap - 6, gold, t + 0.4, reduce);
+      y += arrowGap;
+
+      label("action", y + 10);
+      y += labelH;
+      var pillW = Math.min(maxW, Math.max(100, name.length * 8.5 + 24));
+      var px = cx - pillW / 2;
+      var py = y;
+      ctx.fillStyle = "rgba(" + gold + ",0.16)";
+      ctx.strokeStyle = "rgba(" + gold + ",0.85)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(px, py, pillW, pillH, 4);
+      else ctx.rect(px, py, pillW, pillH);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = COLORS.gold;
+      ctx.font = "13px \"IBM Plex Mono\", monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(name, cx, py + 25);
     }
 
     function drawDream() {
@@ -256,21 +358,49 @@
       if (scrub && document.activeElement !== scrub) scrub.value = String(idx);
     }
 
-    function goto(i) {
+    function goto(i, seekVideo) {
       if (!frames.length) return;
       idx = ((i % frames.length) + frames.length) % frames.length;
       applyFrame(frames[idx]);
+      if (synced && video && seekVideo !== false) {
+        var target = frames[idx].t_sec;
+        if (target != null && Math.abs(video.currentTime - target) > 0.025) {
+          video.currentTime = target;
+        }
+      }
     }
 
     function tick() {
       if (!playing || reduce) return;
-      goto(idx + 1);
+      if (synced && video) {
+        var stepSeconds = Number(meta.step_duration) || (dt / 1000);
+        var videoIdx = Math.min(
+          frames.length - 1,
+          Math.max(0, Math.floor((video.currentTime + stepSeconds * 0.25) / stepSeconds))
+        );
+        if (videoIdx !== idx) goto(videoIdx, false);
+        return;
+      }
+      goto(idx + 1, false);
     }
 
     function setPlaying(on) {
       playing = on;
       var btn = $("play");
       if (btn) btn.textContent = playing ? "pause" : "play";
+      if (synced && video) {
+        if (playing) {
+          var promise = video.play();
+          if (promise && promise.catch) {
+            promise.catch(function () {
+              playing = false;
+              if (btn) btn.textContent = "play";
+            });
+          }
+        } else {
+          video.pause();
+        }
+      }
     }
 
     sizeCanvas(canvas, 240);
@@ -296,16 +426,33 @@
     if (scrub) {
       scrub.addEventListener("input", function () {
         setPlaying(false);
-        goto(parseInt(scrub.value, 10) || 0);
+        goto(parseInt(scrub.value, 10) || 0, true);
       });
     }
 
     function start(data) {
       frames = data.frames || [];
+      meta = data.meta || {};
+      synced = !!(meta.synced && video && frames.length);
+      if (synced) {
+        dt = (Number(meta.step_duration) || 0.15) * 1000;
+        video.loop = true;
+        video.muted = true;
+        video.removeAttribute("controls");
+      }
       initSchema(data.schema);
-      goto(0);
+      goto(0, true);
       if (timer) clearInterval(timer);
-      if (!reduce) timer = setInterval(tick, dt);
+      if (!reduce) timer = setInterval(tick, synced ? 30 : dt);
+      setPlaying(playing && !reduce);
+    }
+
+    if (opts.source === "push") {
+      // An external driver (js/live.js) feeds schema + frames as they arrive.
+      return {
+        setSchema: initSchema,
+        applyFrame: function (fr) { frames = [fr]; idx = 0; applyFrame(fr); }
+      };
     }
 
     if (opts.source === "ws") {

@@ -68,6 +68,7 @@ from training.configs.bridging_straight_cfg   import BridgingStraightCFG
 from training.configs.hunting_cfg              import HuntingCFG
 from training.configs.hunting_wild_cfg         import HuntingWildCFG
 from training.configs.hunting_video_cfg        import HuntingVideoCFG
+from training.configs.hunting_vision_cfg       import HuntingVisionCFG
 
 ENV_REGISTRY = {
     "one_block_gap":       (None, OneBlockGapCFG),
@@ -88,6 +89,7 @@ ENV_REGISTRY = {
     "hunting":             (None, HuntingCFG),
     "hunting_wild":        (None, HuntingWildCFG),
     "hunting_video":       (None, HuntingVideoCFG),
+    "hunting_vision":      (None, HuntingVisionCFG),
 }
 
 
@@ -108,7 +110,25 @@ def parse_args():
     parser.add_argument("--curriculum", type=str, default=None,
                         help="Path to curriculum JSON file (overrides --env for scheduling)")
     parser.add_argument("--demo-path", type=str, default=None,
-                        help="Path to demo JSON file (required for --algo bc)")
+                        help="Path to demo JSON file (required for --algo bc); for "
+                             "--algo dreamer_video, a frames demo directory (utils/demo_io.py)")
+    parser.add_argument("--pretrain-wm-steps", type=int, default=0,
+                        help="dreamer_video: fit the world model on --demo-path demos for "
+                             "this many steps before the first live step (default 0 = off)")
+    parser.add_argument("--viz-port", type=int, default=None,
+                        help="Serve the live split-screen page (Minecraft | model predictions) "
+                             "on this port, e.g. 8765. Off by default.")
+    parser.add_argument("--record-dir", type=str, default=None,
+                        help="Save an mp4 of every successful episode (killed, or reward >= "
+                             "--record-min-reward) of env 0 into this directory. Needs a video env.")
+    parser.add_argument("--record-max", type=int, default=15,
+                        help="Stop recording after this many clips (default 15)")
+    parser.add_argument("--record-min-reward", type=float, default=150.0,
+                        help="Also record non-kill episodes scoring at least this (default 150)")
+    parser.add_argument("--viz-env", type=int, default=0,
+                        help="Which parallel env to stream with --viz-port (default 0)")
+    parser.add_argument("--viz-third-person", action="store_true",
+                        help="With --viz-port: press F5+F1 in the Minecraft window at startup")
     return parser.parse_args()
 
 
@@ -149,12 +169,73 @@ def print_header(env_name, algo_name, cfg, num_envs=1, total_episodes=None):
         print("LR:             ", cfg.LR)
     elif algo_name == "dreamer_video":
         print("Video:          ", "{0}x{1}x{2}".format(cfg.VIDEO_HEIGHT, cfg.VIDEO_WIDTH, cfg.VIDEO_CHANNELS))
+        if getattr(cfg, "VWM_INPUT", "pixels") == "features":
+            print("Frozen encoder: ", "{0} (pool {1}x{1})".format(cfg.VIS_ENCODER, cfg.VIS_POOL_GRID))
+        if cfg.DEMO_PATH:
+            print("Demos:          ", cfg.DEMO_PATH)
         print("RSSM:           ", "deter={0} stoch={1}".format(cfg.RSSM_DETER, cfg.WM_LATENT_DIM))
         print("Seq len:        ", cfg.WM_SEQ_LEN)
         print("Seq buffer cap: ", cfg.SEQ_BUFFER_CAPACITY)
         print("Imag horizon:   ", cfg.IMAG_HORIZON)
     print("=" * 60)
     print()
+
+
+class EpisodeRecorder:
+    """Buffers env-0 camera frames; writes an mp4 (ffmpeg) when an episode succeeded."""
+
+    def __init__(self, out_dir, max_clips, min_reward, fps=10, scale=3):
+        os.makedirs(out_dir, exist_ok=True)
+        self.out_dir, self.max_clips, self.min_reward = out_dir, max_clips, min_reward
+        self.fps, self.scale, self.saved, self.frames = fps, scale, 0, []
+
+    def add(self, frame):
+        if frame is not None and self.saved < self.max_clips:
+            self.frames.append(np.array(frame, dtype=np.uint8))
+
+    def finish(self, episode, outcome, reward, steps):
+        frames, self.frames = self.frames, []
+        if (not frames or self.saved >= self.max_clips
+                or not (outcome == "killed" or reward >= self.min_reward)):
+            return
+        import subprocess
+        h, w = frames[0].shape[:2]
+        path = os.path.join(self.out_dir, "ep{0}_{1}_r{2:.0f}_s{3}.mp4".format(
+            episode, outcome, reward, steps))
+        try:
+            proc = subprocess.Popen(
+                ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
+                 "-s", "{0}x{1}".format(w, h), "-r", str(self.fps), "-i", "-",
+                 "-vf", "scale={0}:{1}:flags=neighbor".format(w * self.scale, h * self.scale),
+                 "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", path],
+                stdin=subprocess.PIPE)
+            for f in frames:
+                proc.stdin.write(f.tobytes())
+            proc.stdin.close()
+            proc.wait(timeout=120)
+            self.saved += 1
+            print("  recorded {0} ({1} frames)".format(path, len(frames)))
+        except Exception as e:
+            print("  recording failed: {0}".format(e))
+
+
+def prune_checkpoints(cfg, prefix):
+    """Keep only the newest cfg.KEEP_CHECKPOINTS periodic checkpoints of this run
+    (files `<prefix>_ep<N>.pt`; *_interrupted and names in KEEP_CHECKPOINT_EPISODES
+    are never removed). Off unless the config sets KEEP_CHECKPOINTS."""
+    keep = getattr(cfg, "KEEP_CHECKPOINTS", None)
+    if not keep:
+        return
+    import re
+    pinned = set(getattr(cfg, "KEEP_CHECKPOINT_EPISODES", ()))
+    pat = re.compile(re.escape(prefix) + r"_ep(\d+)\.pt$")
+    found = []
+    for name in os.listdir(cfg.CHECKPOINT_DIR):
+        m = pat.match(name)
+        if m and int(m.group(1)) not in pinned:
+            found.append((int(m.group(1)), name))
+    for _, name in sorted(found)[:-keep]:
+        os.remove(os.path.join(cfg.CHECKPOINT_DIR, name))
 
 
 def print_update(losses):
@@ -247,6 +328,13 @@ def train():
         print("Resuming from episode {0}".format(start_episode))
         print()
 
+    if args.pretrain_wm_steps > 0:
+        if hasattr(agent, "pretrain_world_model"):
+            agent.pretrain_world_model(args.pretrain_wm_steps)
+            print()
+        else:
+            print("WARNING: --pretrain-wm-steps is only supported by --algo dreamer_video; ignored")
+
     # Determine initial env for each slot
     initial_env = scheduler.env_for_episode(start_episode)
     current_envs = [initial_env] * n_envs
@@ -263,6 +351,33 @@ def train():
         env.switch_env(initial_env)
         obs_all[i] = env.reset()
 
+    # Live split-screen viewer (visualization/live_split.py has the playback twin).
+    viz = viz_builder = None
+    if args.viz_port:
+        from visualization.live_server import LiveServer
+        from visualization.live_frames import make_frame_builder, annotate
+        viz_k = min(max(args.viz_env, 0), n_envs - 1)
+        viz_builder = make_frame_builder(agent, cfg, current_envs[viz_k])
+        viz = LiveServer(args.viz_port)
+        viz.publish_schema(viz_builder.schema())
+        viz.publish_status("collect", "")
+        print("Live view: {0}  (env {1})".format(viz.url, viz_k))
+        if not is_video and envs[viz_k].last_frame is None:
+            print("  No camera frames from env server — restart it with MALMO_RECORD_VIDEO=1 "
+                  "to see Minecraft in the live view.")
+        if args.viz_third_person:
+            from utils.mc_demo_camera import apply_demo_camera
+            apply_demo_camera()
+        print()
+
+    import signal
+    signal.signal(signal.SIGINT, signal.default_int_handler)   # background shells ignore it
+    recorder = None
+    if args.record_dir:
+        recorder = EpisodeRecorder(args.record_dir, args.record_max, args.record_min_reward)
+        print("Recording successful episodes of env 0 to {0} (max {1})".format(
+            args.record_dir, args.record_max))
+
     episode      = start_episode
     update_count = 0
 
@@ -272,7 +387,26 @@ def train():
     try:
         while episode <= total_episodes and not scheduler.is_complete():
 
+            viz_frame = None
+            if viz is not None and viz.has_clients:
+                # Predictions on the PRE-step obs, i.e. the frame the agent is acting on.
+                try:
+                    viz_frame = viz_builder.build(obs_all[viz_k], cam=envs[viz_k].last_frame,
+                                                  env_idx=viz_k, mode="train")
+                except Exception as e:  # never let the viewer kill a training run
+                    print("  live view: frame build failed ({0}); disabling".format(e))
+                    viz = None
+
             next_obs_all, rewards, dones, infos = agent.collect_steps(envs, obs_all)
+
+            if viz_frame is not None:
+                act_names = [a[0] for a in cfg.ACTIONS]
+                act_name = infos[viz_k].get("action")
+                act_idx = act_names.index(act_name) if act_name in act_names else viz_frame["action"]
+                viz.publish_frame(annotate(
+                    viz_frame, cfg, act_idx, episode, int(ep_steps[viz_k]),
+                    ep_rewards[viz_k] + rewards[viz_k], "train", last_reward=rewards[viz_k],
+                    outcome=infos[viz_k].get("outcome")))
 
             for i in range(n_envs):
                 ep_rewards[i] += rewards[i]
@@ -287,6 +421,9 @@ def train():
                     env_name = current_envs[i],
                 )
 
+                if recorder is not None and i == 0:
+                    recorder.add(envs[0].last_frame)
+
                 if dones[i]:
                     ep_outcome[i] = infos[i]["outcome"]
 
@@ -296,6 +433,11 @@ def train():
 
                     logger.log_episode(episode, ep_rewards[i], int(ep_steps[i]),
                                        ep_outcome[i], env_name=current_envs[i])
+                    if viz is not None:
+                        viz.publish_stats("episode", {
+                            "episode": int(episode), "return": round(float(ep_rewards[i]), 3),
+                            "steps": int(ep_steps[i]), "outcome": ep_outcome[i],
+                            "env": current_envs[i]})
                     logger.print_summary(every=cfg.LOG_EVERY)
 
                     # Report outcome to adaptive scheduler (no-op for other modes)
@@ -306,6 +448,8 @@ def train():
                     if scheduler.mode == "adaptive":
                         ep_line += " | sr:{0:.0%}".format(scheduler.current_success_rate())
                     print(ep_line)
+                    if recorder is not None and i == 0:
+                        recorder.finish(episode, ep_outcome[0], float(ep_rewards[0]), int(ep_steps[0]))
 
                     # Switch env if curriculum says so
                     next_env = scheduler.env_for_episode(episode + 1)
@@ -333,6 +477,7 @@ def train():
                         path = os.path.join(cfg.CHECKPOINT_DIR,
                                             "{0}_{1}_ep{2}.pt".format(args.algo, run_name, episode))
                         agent.save(path)
+                        prune_checkpoints(cfg, "{0}_{1}".format(args.algo, run_name))
                         curriculum_state = scheduler.state_dict()
                         if curriculum_state is not None:
                             torch.save(curriculum_state, path.replace(".pt", "_curriculum.pt"))
@@ -344,7 +489,18 @@ def train():
             obs_all = next_obs_all
 
             if agent.buffer_full():
+                if viz is not None:
+                    viz.publish_status("update", "training world model + imagination (update {0})…".format(
+                        update_count + 1))
                 losses = agent.update(last_obs=obs_all)
+                if viz is not None:
+                    viz.publish_status("collect", "")
+                    stats = {k: round(float(v), 6) for k, v in losses.items()
+                             if isinstance(v, (int, float, np.floating))}
+                    stats.update(update=update_count + 1, episode=int(episode),
+                                 env_steps=int(getattr(agent, "steps_done", 0)),
+                                 buffer=len(agent.buffer) if hasattr(agent, "buffer") else None)
+                    viz.publish_stats("update", stats)
                 update_count += 1
                 logger.log_update(**losses)
                 if update_count % 10 == 0:
@@ -360,6 +516,8 @@ def train():
             torch.save(curriculum_state, path.replace(".pt", "_curriculum.pt"))
 
     finally:
+        if viz is not None:
+            viz.close()
         for env in envs:
             env.close()
         logger.close()

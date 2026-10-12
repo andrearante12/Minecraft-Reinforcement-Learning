@@ -33,6 +33,7 @@ PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PARKOUR_ROOT)
 
 from training.configs.base_cfg import BaseCFG
+from envs.video_record import apply_record_override, harvest_frame, request_video
 
 # ── Malmo import ──────────────────────────────────────────────────────────────
 sys.path.insert(0, os.path.abspath(BaseCFG.MALMO_PYTHON))
@@ -62,6 +63,8 @@ class ParkourEnv:
         self._next_checkpoint_idx = 0
 
         self.observation_shape = (cfg.INPUT_SIZE,)
+        self._video = apply_record_override(cfg)
+        self.last_frame = None
 
         with open(cfg.MISSION_FILE, "r") as f:
             xml = f.read()
@@ -86,6 +89,7 @@ class ParkourEnv:
         self._landing_counter = 0
         self._landing_active  = False
         self._next_checkpoint_idx = 0
+        self.last_frame = None
         time.sleep(0.5)
         # Use forceReset only on first reset after an env switch, then fast resets
         if self._next_force_reset:
@@ -197,6 +201,8 @@ class ParkourEnv:
         if mission_xml is None:
             mission_xml = self._mission_xml_fast
         mission        = MalmoPython.MissionSpec(mission_xml, True)
+        if self._video:
+            request_video(mission, self.cfg)
         mission_record = MalmoPython.MissionRecordSpec()
         client_pool    = MalmoPython.ClientPool()
         client_pool.add(MalmoPython.ClientInfo("127.0.0.1", self._malmo_port))
@@ -261,6 +267,7 @@ class ParkourEnv:
         t0 = time.time()
         while time.time() - t0 < timeout:
             ws = self._agent_host.getWorldState()
+            harvest_frame(self, ws)
             if ws.number_of_observations_since_last_state > 0:
                 return json.loads(ws.observations[-1].text), ws
             time.sleep(0.03)

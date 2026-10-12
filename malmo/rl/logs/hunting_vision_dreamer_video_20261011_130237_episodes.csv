@@ -1,0 +1,5 @@
+episode,reward,steps,outcome,env,blocks_placed,timestamp
+1601,136.303,900,timeout,hunting_vision,0,13:07:31
+1602,390.4586,264,killed,hunting_vision,0,13:08:44
+1603,77.6249,392,stuck_in_pit,hunting_vision,0,13:10:41
+1604,19.3038,900,timeout,hunting_vision,0,13:14:58

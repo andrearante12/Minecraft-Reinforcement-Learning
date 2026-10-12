@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MalmoRL · Live Network</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand">
+      <span>MalmoRL <b>Live Network</b></span>
+    </div>
+    <div class="meta">
+      <span class="pill" id="env">env —</span>
+      <span class="pill" id="step">step 0</span>
+      <span class="pill action" id="action">—</span>
+      <span class="status" id="status" title="connection">●</span>
+    </div>
+  </header>
+
+  <main id="stage">
+    <section id="inputs" class="panel">
+      <h2>Observation</h2>
+      <div id="input-fields"></div>
+    </section>
+    <section id="net" class="panel">
+      <canvas id="canvas"></canvas>
+    </section>
+    <section id="outputs" class="panel">
+      <h2>Policy π(a|s)</h2>
+      <div id="action-bars"></div>
+      <h2 class="vh">Value V(s)</h2>
+      <div id="value-gauge">
+        <div class="gauge-track"><div class="gauge-fill" id="value-fill"></div></div>
+        <div class="gauge-labels">
+          <span id="value-min">—</span>
+          <span id="value-num">—</span>
+          <span id="value-max">—</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/net-viz.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

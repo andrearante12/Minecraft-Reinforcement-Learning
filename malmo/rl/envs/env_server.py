@@ -51,6 +51,7 @@ from envs.bridging_env import BridgingEnv
 from training.configs.hunting_cfg       import HuntingCFG
 from training.configs.hunting_wild_cfg  import HuntingWildCFG
 from training.configs.hunting_video_cfg import HuntingVideoCFG
+from training.configs.hunting_vision_cfg import HuntingVisionCFG
 from envs.hunting_env import HuntingEnv
 
 ENV_REGISTRY = {
@@ -72,6 +73,7 @@ ENV_REGISTRY = {
     "hunting":             (HuntingEnv, HuntingCFG),
     "hunting_wild":        (HuntingEnv, HuntingWildCFG),
     "hunting_video":       (HuntingEnv, HuntingVideoCFG),
+    "hunting_vision":      (HuntingEnv, HuntingVisionCFG),
 }
 
 HOST = "127.0.0.1"

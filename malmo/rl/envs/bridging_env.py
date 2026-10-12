@@ -48,6 +48,7 @@ PARKOUR_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PARKOUR_ROOT)
 
 from training.configs.base_cfg import BaseCFG
+from envs.video_record import apply_record_override, harvest_frame, request_video
 
 # ── Malmo import ──────────────────────────────────────────────────────────────
 sys.path.insert(0, os.path.abspath(BaseCFG.MALMO_PYTHON))
@@ -88,6 +89,8 @@ class BridgingEnv:
         self._placed_while_aligned     = False  # block placed since current alignment began
 
         self.observation_shape = (cfg.INPUT_SIZE,)
+        self._video = apply_record_override(cfg)
+        self.last_frame = None
 
         with open(cfg.MISSION_FILE, "r") as f:
             xml = f.read()
@@ -117,6 +120,7 @@ class BridgingEnv:
         self._entered_gap            = False
         self._aligned_to_south_face  = False
         self._placed_while_aligned   = False
+        self.last_frame = None
 
         # ── Per-episode goal X (diagonal bridging) ────────────────────────────
         goal_x_offsets = getattr(self.cfg, 'GOAL_X_OFFSETS', [0])
@@ -302,7 +306,7 @@ class BridgingEnv:
     # ── Malmo interaction (copied from ParkourEnv) ────────────────────────────
 
     def _start_mission(self, mission_xml=None, max_retries=3,
-                       begin_timeout=30.0, running_timeout=30.0):
+                       begin_timeout=60.0, running_timeout=30.0):
         t0 = time.time()
         ws = self._agent_host.getWorldState()
         while ws.is_mission_running:
@@ -322,6 +326,8 @@ class BridgingEnv:
         if mission_xml is None:
             mission_xml = self._mission_xml_fast
         mission        = MalmoPython.MissionSpec(mission_xml, True)
+        if self._video:
+            request_video(mission, self.cfg)
         mission_record = MalmoPython.MissionRecordSpec()
         client_pool    = MalmoPython.ClientPool()
         client_pool.add(MalmoPython.ClientInfo("127.0.0.1", self._malmo_port))
@@ -371,6 +377,7 @@ class BridgingEnv:
         t0 = time.time()
         while time.time() - t0 < timeout:
             ws = self._agent_host.getWorldState()
+            harvest_frame(self, ws)
             if ws.number_of_observations_since_last_state > 0:
                 return json.loads(ws.observations[-1].text), ws
             time.sleep(0.03)

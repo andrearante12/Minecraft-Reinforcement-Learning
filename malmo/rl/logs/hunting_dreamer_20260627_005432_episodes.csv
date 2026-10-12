@@ -1,0 +1,4 @@
+episode,reward,steps,outcome,env,blocks_placed,timestamp
+1,-11.0764,200,timeout,hunting,0,00:55:07
+2,-10.1833,200,timeout,hunting,0,00:56:10
+3,-9.0645,200,timeout,hunting,0,00:57:14
