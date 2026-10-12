@@ -1,0 +1,25 @@
+\documentclass[tikz,border=12pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=0.85cm and 0.7cm]
+  \node[wide] (obs) {observation\\$o \in \mathbb{R}^{N}$};
+
+  \node[box, below left=1.15cm and 0.15cm of obs] (p) {proprio stream\\Linear--LN--ReLU $\times 2$\\$\to 64$};
+  \node[box, below=1.15cm of obs] (g) {goal / target stream\\Linear--LN--ReLU $\times 2$\\$\to 64$};
+  \node[box, below right=1.15cm and 0.15cm of obs] (v) {voxel stream\\Linear--LN--ReLU $\times 2$\\$\to 128$};
+
+  \node[box, below=1.35cm of g] (cat) {concat\\$64+64+128 = 256$};
+
+  \node[box, below left=1.2cm and 0.55cm of cat] (act) {actor head\\$\pi(a\mid s)$};
+  \node[box, below right=1.2cm and 0.55cm of cat] (crt) {critic head\\$V(s)$};
+
+  \draw[arr] (obs) -- (p);
+  \draw[arr] (obs) -- (g);
+  \draw[arr] (obs) -- (v);
+  \draw[arr] (p) |- (cat);
+  \draw[arr] (g) -- (cat);
+  \draw[arr] (v) |- (cat);
+  \draw[arr] (cat) -- (act);
+  \draw[arr] (cat) -- (crt);
+\end{tikzpicture}
+\end{document}

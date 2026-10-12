@@ -1,0 +1,16 @@
+\documentclass[tikz,border=12pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=2.15cm]
+  \node[wide] (mc) {Minecraft client\\mission XML\\port 10000};
+  \node[wide, right=of mc] (env) {env\_server.py\\obs, reward, 0.15s hold\\port 9999};
+  \node[wide, right=of env] (tr) {train.py\\PPO / DQN / BC / Dreamer\\PyTorch 3.10};
+
+  \draw[barr] (mc) -- node[lbl, above] {Malmo TCP} (env);
+  \draw[barr] (env) -- node[lbl, above] {JSON $o,a,r$} (tr);
+
+  \node[font=\scriptsize, below=0.55cm of mc, anchor=north] {T1};
+  \node[font=\scriptsize, below=0.55cm of env, anchor=north] {T2 \quad conda \texttt{malmo}};
+  \node[font=\scriptsize, below=0.55cm of tr, anchor=north] {T3 \quad conda \texttt{train\_env}};
+\end{tikzpicture}
+\end{document}

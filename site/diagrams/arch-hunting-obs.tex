@@ -1,0 +1,14 @@
+\documentclass[tikz,border=12pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=1.7cm]
+  \node[wide] (obs) {obs $98$\\hunting};
+  \node[box, below left=1.15cm and 0.1cm of obs] (p) {body $11$\\proprio};
+  \node[box, below=1.15cm of obs] (g) {target $12$\\pose, heading, LoS, life};
+  \node[box, below right=1.15cm and 0.1cm of obs] (v) {voxels $75$\\$5\times3\times5$};
+
+  \draw[arr] (obs) -- (p);
+  \draw[arr] (obs) -- (g);
+  \draw[arr] (obs) -- (v);
+\end{tikzpicture}
+\end{document}

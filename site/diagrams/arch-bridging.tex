@@ -1,0 +1,12 @@
+\documentclass[tikz,border=12pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=1.9cm]
+  \node[wide] (demo) {human demos\\record\_demos.py\\JSON trajectories};
+  \node[wide, right=of demo] (bc) {behavioral cloning\\same ActorCritic\\warm start};
+  \node[wide, right=of bc] (ppo) {SB3 PPO\\150-step episodes\\higher entropy};
+
+  \draw[arr] (demo) -- node[lbl, above] {clone} (bc);
+  \draw[arr] (bc) -- node[lbl, above] {fine-tune} (ppo);
+\end{tikzpicture}
+\end{document}

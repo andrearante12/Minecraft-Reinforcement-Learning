@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bridging — MalmoRL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="index.html">MalmoRL</a>
+    <nav aria-label="Works">
+      <ul class="slots">
+        <li><a href="index.html#parkour">Parkour</a></li>
+        <li><a href="index.html#bridging" aria-current="page">Bridging</a></li>
+        <li><a href="index.html#world-models">World models</a></li>
+        <li><a href="index.html#how">Architecture</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <article class="page page-wide">
+    <a class="back" href="index.html">← Overview</a>
+    <h1>Bridging</h1>
+    <p class="lede">Place blocks underfoot to cross a five-block gap. Inventory, sneak, and a ray-cast — then the same compose-by-registry loop as parkour.</p>
+
+    <h2>Forward pass</h2>
+    <p>Same layout as parkour. The voxel strip fills as stone is placed; <code>sneak_down</code> then <code>place_block</code> is the conjunction random exploration rarely finds. Clip slot waits for <code>site/media/bridging.webm</code>.</p>
+
+    <div class="demo-stage">
+      <div class="clip-slot">
+        <span class="clip-kicker">clip · F5</span>
+        <video autoplay muted loop playsinline poster="media/bridging.jpg" aria-label="Bridging agent placing stone across a five-block gap">
+          <source src="media/bridging.webm" type="video/webm" />
+        </video>
+        <p class="clip-fallback">Drop <code>site/media/bridging.webm</code> here.<br />Third person, HUD off. Replay on the right keeps running either way.</p>
+      </div>
+      <div class="net-wrap">
+        <div class="net-controls">
+          <button type="button" id="play">pause</button>
+          <span id="scrub-label">—</span>
+          <input id="scrub" type="range" min="0" max="0" value="0" aria-label="Replay step" />
+        </div>
+        <div class="net-meta">
+          <span id="env">env —</span>
+          <span id="step">step 0</span>
+          <span class="act" id="action">—</span>
+        </div>
+        <div class="net-embed" id="stage">
+          <section class="panel" id="inputs">
+            <h2>Observation</h2>
+            <div id="input-fields"></div>
+          </section>
+          <section class="panel" id="net">
+            <canvas id="canvas"></canvas>
+          </section>
+          <section class="panel" id="outputs">
+            <h2>Policy π(a|s)</h2>
+            <div id="action-bars"></div>
+            <h2>Value V(s)</h2>
+            <div id="value-gauge">
+              <div class="gauge-track"><div class="gauge-fill" id="value-fill"></div></div>
+              <div class="gauge-labels">
+                <span id="value-min">—</span>
+                <span id="value-num">—</span>
+                <span id="value-max">—</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <h2>World</h2>
+    <pre class="ascii">Z:  0  1  2  3  4  5  6  7  8  9  10
+    [start   ] [   5-block gap   ] [end]
+    stone       air air air air air  stone</pre>
+    <p>Default run is diagonal (<code>GOAL_X_OFFSETS = [4]</code>). Straight and 1–5 block curricula are registry variants, not new env classes.</p>
+
+    <div class="split">
+      <div class="card">
+        <h3>Sees · 220-d</h3>
+        <ul>
+          <li>Proprio + inventory + ray hit</li>
+          <li>3 goal Δ</li>
+          <li>5×5×8 voxel grid (deeper than parkour)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Does · 12 actions</h3>
+        <ul>
+          <li>No jump. Sneak is edge-triggered.</li>
+          <li><code>place_block</code> at the crosshair</li>
+          <li>+2 valid place · +10 reach · −5 fall</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>How it is trained</h2>
+    <p>Record human crossings, clone the policy, then fine-tune with Stable-Baselines3 PPO. Longer episodes than parkour (150 steps) and a stronger entropy bonus — sneaking then placing is a conjunction random exploration rarely finds.</p>
+
+    <figure class="diagram">
+      <img src="media/arch-bridging.svg" alt="Human demos cloned by behavioral cloning then fine-tuned with Stable-Baselines3 PPO." />
+      <figcaption>Figure. Training pipeline. Demos warm-start the same ActorCritic used in parkour.</figcaption>
+    </figure>
+
+    <figure class="diagram">
+      <img src="media/arch-bridging-net.svg" alt="Bridging observation of 220 dimensions: proprio 17, goal 3, voxels 200, then actor with 12 actions and critic." />
+      <figcaption>Figure. Bridging ActorCritic. Extra proprio dims are cfg, not a new model class.</figcaption>
+    </figure>
+
+    <p class="note">Full lab notes: <a href="../malmo/docs/bridging/bridging.md">bridging report</a>.</p>
+  </article>
+
+  <footer class="foot">
+    <span>MalmoRL · bridging</span>
+    <a href="index.html">Overview</a>
+  </footer>
+  <script src="js/clip-slot.js"></script>
+  <script src="js/net-viz.js"></script>
+  <script>
+    NetViz.mount({ synth: "bridging" });
+  </script>
+</body>
+</html>

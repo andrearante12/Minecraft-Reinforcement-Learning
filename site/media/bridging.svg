@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="t d">
+  <title id="t">Bridging a five-block gap</title>
+  <desc id="d">Start and end platforms with stone blocks placed into the gap.</desc>
+  <rect width="640" height="360" fill="#efe9db"/>
+  <defs>
+    <g id="s">
+      <polygon points="0,-16 28,0 0,16 -28,0" fill="#9a9690"/>
+      <polygon points="-28,0 0,16 0,32 -28,16" fill="#5c5a56"/>
+      <polygon points="28,0 0,16 0,32 28,16" fill="#73706b"/>
+    </g>
+    <g id="n">
+      <polygon points="0,-16 28,0 0,16 -28,0" fill="#b7a06a"/>
+      <polygon points="-28,0 0,16 0,32 -28,16" fill="#7a6838"/>
+      <polygon points="28,0 0,16 0,32 28,16" fill="#8f7a44"/>
+    </g>
+  </defs>
+  <rect x="0" y="276" width="640" height="84" fill="#c5d4b8"/>
+  <use href="#s" x="70" y="250"/>
+  <use href="#s" x="126" y="250"/>
+  <use href="#s" x="182" y="250"/>
+  <use href="#n" x="238" y="250"/>
+  <use href="#n" x="294" y="250"/>
+  <use href="#n" x="350" y="250"/>
+  <use href="#n" x="406" y="250" opacity="0.55"/>
+  <use href="#s" x="518" y="250"/>
+  <use href="#s" x="574" y="250"/>
+  <g transform="translate(350 198)">
+    <polygon points="0,-18 14,-10 14,8 0,16 -14,8 -14,-10" fill="#3d5a8a"/>
+    <polygon points="0,-30 10,-24 10,-14 0,-18 -10,-14 -10,-24" fill="#d8d2c4"/>
+  </g>
+  <text x="40" y="40" font-family="IBM Plex Mono, monospace" font-size="12" fill="#8a7340">bridging � sneak + place</text>
+</svg>

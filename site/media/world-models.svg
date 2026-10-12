@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="t d">
+  <title id="t">Ensemble dream fan</title>
+  <desc id="d">Imagined pig futures fanning out from one start, with the hunter at the origin.</desc>
+  <rect width="640" height="360" fill="#12151a"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M120 280 C180 240, 240 210, 520 70" stroke="#a63d3d" stroke-width="2.2" opacity="0.85"/>
+    <path d="M120 280 C190 250, 280 200, 540 120" stroke="#c4a35a" stroke-width="2" opacity="0.8"/>
+    <path d="M120 280 C200 255, 310 230, 560 180" stroke="#3f6b3a" stroke-width="2" opacity="0.75"/>
+    <path d="M120 280 C210 270, 340 250, 560 230" stroke="#3d5a8a" stroke-width="2" opacity="0.8"/>
+    <path d="M120 280 C180 275, 300 290, 540 300" stroke="#8a8680" stroke-width="2" opacity="0.7"/>
+  </g>
+  <circle cx="120" cy="280" r="7" fill="#c4a35a"/>
+  <circle cx="520" cy="70" r="4" fill="#a63d3d"/>
+  <circle cx="540" cy="120" r="4" fill="#c4a35a"/>
+  <circle cx="560" cy="180" r="4" fill="#3f6b3a"/>
+  <circle cx="560" cy="230" r="4" fill="#3d5a8a"/>
+  <circle cx="540" cy="300" r="4" fill="#8a8680"/>
+  <text x="36" y="40" font-family="IBM Plex Mono, monospace" font-size="12" fill="#b8d4a8">ensemble K=5 � imagined pig �</text>
+  <text x="36" y="58" font-family="IBM Plex Mono, monospace" font-size="11" fill="#7a8a72">aleatoric fans the paths � epistemic is disagreement</text>
+</svg>

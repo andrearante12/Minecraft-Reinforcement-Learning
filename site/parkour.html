@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Parkour — MalmoRL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="index.html">MalmoRL</a>
+    <nav aria-label="Works">
+      <ul class="slots">
+        <li><a href="index.html#parkour" aria-current="page">Parkour</a></li>
+        <li><a href="index.html#bridging">Bridging</a></li>
+        <li><a href="index.html#world-models">World models</a></li>
+        <li><a href="index.html#how">Architecture</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <article class="page page-wide">
+    <a class="back" href="index.html">← Overview</a>
+    <h1>Parkour</h1>
+    <p class="lede">Sprint-jump across gaps of increasing size and geometry. The agent learns from a compact state vector — no pixels, no demos required.</p>
+
+    <h2>Forward pass</h2>
+    <p>Left: a third-person clip (drop <code>site/media/parkour.webm</code> when you have one). Right: a PPO step on <code>simple_jump</code> — voxels at the feet, three-stream net, then π(a|s). Pause and scrub the replay.</p>
+
+    <div class="demo-stage">
+      <div class="clip-slot">
+        <span class="clip-kicker">clip · F5</span>
+        <video autoplay muted loop playsinline poster="media/parkour.jpg" aria-label="Parkour agent sprint-jumping a two-block gap">
+          <source src="media/parkour.webm" type="video/webm" />
+        </video>
+        <p class="clip-fallback">Drop <code>site/media/parkour.webm</code> here.<br />Third person, HUD off. Replay on the right keeps running either way.</p>
+      </div>
+      <div class="net-wrap">
+        <div class="net-controls">
+          <button type="button" id="play">pause</button>
+          <span id="scrub-label">—</span>
+          <input id="scrub" type="range" min="0" max="0" value="0" aria-label="Replay step" />
+        </div>
+        <div class="net-meta">
+          <span id="env">env —</span>
+          <span id="step">step 0</span>
+          <span class="act" id="action">—</span>
+        </div>
+        <div class="net-embed" id="stage">
+          <section class="panel" id="inputs">
+            <h2>Observation</h2>
+            <div id="input-fields"></div>
+          </section>
+          <section class="panel" id="net">
+            <canvas id="canvas"></canvas>
+          </section>
+          <section class="panel" id="outputs">
+            <h2>Policy π(a|s)</h2>
+            <div id="action-bars"></div>
+            <h2>Value V(s)</h2>
+            <div id="value-gauge">
+              <div class="gauge-track"><div class="gauge-fill" id="value-fill"></div></div>
+              <div class="gauge-labels">
+                <span id="value-min">—</span>
+                <span id="value-num">—</span>
+                <span id="value-max">—</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <h2>World</h2>
+    <pre class="ascii">Y=46 agent
+Y=45 blocks
+Z:  0  1  2  3  4  5  6  7
+    [ start     ] [gap ] [end]
+    stone stone    air    stone</pre>
+    <p><code>simple_jump</code> is the two-block gap. Curriculum then adds one-block, three-block, diagonal, and vertical variants without restarting the env server.</p>
+
+    <div class="split">
+      <div class="card">
+        <h3>Sees · 159-d</h3>
+        <ul>
+          <li>6 proprio (on-ground, yaw, pitch, Δpos)</li>
+          <li>3 goal Δ to the landing</li>
+          <li>5×5×6 voxel occupancy</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Does · 15 actions</h3>
+        <ul>
+          <li>Each held 0.15s</li>
+          <li><code>sprint_jump</code> is the one that matters</li>
+          <li>+10 land · −5 fall · dense Z-progress</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>Architecture</h2>
+    <p>Most of the vector is the occupancy grid looking further forward than back. Three streams keep body, landing, and terrain from washing each other out before the actor picks <code>sprint_jump</code>.</p>
+
+    <figure class="diagram">
+      <img src="media/arch-parkour.svg" alt="Parkour observation of 159 dimensions splits into proprio 6, goal 3, and voxels 150, then concatenates to actor with 15 actions and critic." />
+      <figcaption>Figure. simple_jump ActorCritic. Curriculum swaps mission XML in the same env class.</figcaption>
+    </figure>
+
+    <p class="note">Full lab notes: <a href="../malmo/docs/parkour/report.md">parkour report</a>. Live dashboard: <code>python malmo/rl/visualization/live_viz.py --env simple_jump --checkpoint … --mock</code>.</p>
+  </article>
+
+  <footer class="foot">
+    <span>MalmoRL · parkour</span>
+    <a href="index.html">Overview</a>
+  </footer>
+  <script src="js/clip-slot.js"></script>
+  <script src="js/net-viz.js"></script>
+  <script>
+    NetViz.mount({ source: "json", url: "data/parkour_replay.json", synth: "parkour" });
+  </script>
+</body>
+</html>

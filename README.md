@@ -2,7 +2,9 @@
 
 A framework for training reinforcement learning agents in Minecraft using Microsoft Malmo. Define a task, pick an algorithm, train, and evaluate.
 
-Built-in tasks include parkour (jumping across gaps) and block-bridging, but the framework is designed to support any Minecraft-based RL task.
+Built-in tasks include parkour (jumping across gaps), block-bridging, and a hunting world-model line, but the framework is designed to support any Minecraft-based RL task.
+
+**Demo site** (parkour, bridging, world models): from the repo root, `python -m http.server 3456` then open [http://localhost:3456/site/](http://localhost:3456/site/).
 
 **First time setup?** See [Setup & Installation](./Malmo/docs/framework/setup.md) before continuing (Linux: [setup_linux.md](./malmo/docs/framework/setup_linux.md)).
 
@@ -28,6 +30,10 @@ Built-in tasks include parkour (jumping across gaps) and block-bridging, but the
 ### Bridging
 
 - [Bridging Guide](./Malmo/docs/bridging/bridging.md) — world layout, observation space, action space, reward shaping, training pipeline
+
+### World models
+
+- [Uncertainty-aware imagination](./malmo/docs/world_model/report.md) — Dreamer on hunting, ensemble aleatoric/epistemic split
 
 
 ## Extending the Framework to Custom Tasks

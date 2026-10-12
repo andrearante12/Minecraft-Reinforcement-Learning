@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MalmoRL — parkour, bridging, world models</title>
+  <meta name="description" content="A concise overview of three Minecraft RL works: parkour, bridging, and uncertainty-aware world models." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
+</head>
+<body>
+  <a class="skip" href="#parkour">Skip to works</a>
+  <header class="bar">
+    <a class="brand" href="#top">MalmoRL</a>
+    <nav aria-label="Works">
+      <ul class="slots">
+        <li><a href="#parkour">Parkour</a></li>
+        <li><a href="#bridging">Bridging</a></li>
+        <li><a href="#world-models">World models</a></li>
+        <li><a href="#how">Architecture</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="hero" id="top">
+    <div class="hero-stage">
+      <canvas id="voxel" aria-hidden="true"></canvas>
+      <div class="f3" id="f3"></div>
+      <div class="hero-copy">
+        <h1>Three Minecraft tasks. One training loop.</h1>
+        <p>Compose an environment, a reward, an algorithm, and a net. The agent sees numbers, not pixels — except when we ask it to dream.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="work" id="parkour">
+    <div class="work-copy">
+      <p class="kicker">Parkour</p>
+      <h2>Sprint-jump the gap.</h2>
+      <p>The agent crosses stone platforms from a 159-number state vector — body, goal, and a 5×5×6 occupancy grid. No pixels. A curriculum widens the gap and adds diagonals once it lands.</p>
+      <ul class="facts">
+        <li>159-d obs</li>
+        <li>15 actions</li>
+        <li>PPO · curriculum</li>
+      </ul>
+      <a class="more" href="parkour.html">How parkour works</a>
+    </div>
+    <div class="work-media clip-slot">
+      <video autoplay muted loop playsinline poster="media/parkour.jpg" aria-label="Parkour agent sprint-jumping a two-block gap">
+        <source src="media/parkour.webm" type="video/webm" />
+      </video>
+      <img class="clip-fallback" src="media/parkour.svg" alt="Parkour: sprint-jump a two-block gap" />
+    </div>
+  </section>
+
+  <section class="work" id="bridging">
+    <div class="work-copy">
+      <p class="kicker">Bridging</p>
+      <h2>Place the floor as you go.</h2>
+      <p>Crossing a five-block void means sneaking, looking down, and putting stone underfoot. Human demos warm-start PPO; the rest is the same registry as parkour.</p>
+      <ul class="facts">
+        <li>220-d obs</li>
+        <li>12 actions</li>
+        <li>BC → SB3 PPO</li>
+      </ul>
+      <a class="more" href="bridging.html">How bridging works</a>
+    </div>
+    <div class="work-media clip-slot">
+      <video autoplay muted loop playsinline poster="media/bridging.jpg" aria-label="Bridging agent placing stone across a five-block gap">
+        <source src="media/bridging.webm" type="video/webm" />
+      </video>
+      <img class="clip-fallback" src="media/bridging.svg" alt="Bridging: place stone across a five-block gap" />
+    </div>
+  </section>
+
+  <section class="work" id="world-models">
+    <div class="work-copy">
+      <p class="kicker">World models</p>
+      <h2>Practice in imagination.</h2>
+      <p>Malmo steps are slow. A Dreamer-style model lets the agent train inside predicted futures. An ensemble splits pig-motion noise from model ignorance, then shortens the dream when the future is genuinely unpredictable. Shown on hunting.</p>
+      <ul class="facts">
+        <li>98-d + optional pixels</li>
+        <li>Dreamer ensemble</li>
+        <li>aleatoric ≠ epistemic</li>
+      </ul>
+      <a class="more" href="world-models.html">How the world model works</a>
+    </div>
+    <div class="work-media clip-slot" style="background:#12151a;border-color:#2a2d32">
+      <video autoplay muted loop playsinline poster="media/hunting.jpg" aria-label="Hunting agent approaching a pig">
+        <source src="media/hunting.webm" type="video/webm" />
+      </video>
+      <img class="clip-fallback" src="media/world-models.svg" alt="Five imagined pig trajectories fanning out" />
+    </div>
+  </section>
+
+  <section class="how" id="how">
+    <div class="how-inner">
+      <h2>How it is built</h2>
+      <p>Malmo needs Python 3.7. Training needs 3.10 and PyTorch. Two processes talk JSON over localhost. Swap an env, a reward, an algorithm, or a net — same loop. Register a new env in both <code>env_server.py</code> and <code>train.py</code> or training fails silently.</p>
+
+      <figure class="diagram">
+        <img src="media/arch-stack.svg" alt="Three processes: Minecraft client on port 10000, env_server.py on port 9999, and train.py, connected by Malmo TCP and JSON observations and actions." />
+        <figcaption>Figure 1. Training stack. One Minecraft client and one env_server per parallel env.</figcaption>
+      </figure>
+
+      <figure class="diagram">
+        <img src="media/arch-registry.svg" alt="ENV, REWARD, ALGO, and MODEL boxes feeding into a single experiment box." />
+        <figcaption>Figure 2. Compose-by-registry. The env key must be registered in both env_server.py and train.py.</figcaption>
+      </figure>
+
+      <figure class="diagram">
+        <img src="media/arch-net.svg" alt="Observation splits into proprio, goal, and voxel streams, concatenates to 256, then actor and critic heads." />
+        <figcaption>Figure 3. ActorCritic. Contract: get_distribution, get_value, evaluate_actions. Cfg slices change per task.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>MalmoRL · local overview</span>
+    <span><a href="../README.md">Repo README</a> · <a href="../malmo/docs/framework/setup.md">Setup</a></span>
+  </footer>
+
+  <script src="js/hud.js"></script>
+  <script src="js/clip-slot.js"></script>
+</body>
+</html>
