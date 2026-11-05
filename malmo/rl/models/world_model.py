@@ -43,6 +43,14 @@ import torch.nn.functional as F
 from models.actor_critic import _make_stream
 
 
+def symlog(x):
+    return torch.sign(x) * torch.log1p(torch.abs(x))
+
+
+def symexp(x):
+    return torch.sign(x) * torch.expm1(torch.abs(x))
+
+
 class WorldModel(nn.Module):
     def __init__(self, cfg):
         super().__init__()
@@ -120,12 +128,15 @@ class WorldModel(nn.Module):
         a    = self.act_embed(action)
         h    = self.trunk(torch.cat([feat, a], dim=-1))
         d_goal_mean, d_goal_logvar = self._goal_out(h)
+        r_raw = self.reward_head(h).squeeze(-1)
+        use_sl = getattr(self.cfg, "WM_REWARD_SYMLOG", True)
         return {
             "d_proprio":     self.proprio_head(h),
             "d_goal_mean":   d_goal_mean,
             "d_goal_logvar": d_goal_logvar,          # None if deterministic
             "voxel_logits":  self.voxel_head(h),
-            "reward":        self.reward_head(h).squeeze(-1),
+            "reward_raw":    r_raw,                  # head output (symlog space if enabled)
+            "reward":        symexp(r_raw) if use_sl else r_raw,   # real reward units
             "cont_logit":    self.cont_head(h).squeeze(-1),
         }
 
@@ -172,7 +183,12 @@ class WorldModel(nn.Module):
         else:
             l_goal = F.mse_loss(hd["d_goal_mean"], tgt_goal)
         l_voxel   = F.binary_cross_entropy_with_logits(hd["voxel_logits"], tgt_voxel)
-        l_reward  = F.mse_loss(hd["reward"], reward)
+        # Symlog-compress the reward target so a +100 kill doesn't swamp the
+        # other heads' gradients (REWARD_KILL^2 dominated the MSE otherwise).
+        if getattr(self.cfg, "WM_REWARD_SYMLOG", True):
+            l_reward = F.mse_loss(hd["reward_raw"], symlog(reward))
+        else:
+            l_reward = F.mse_loss(hd["reward_raw"], reward)
         l_cont    = F.binary_cross_entropy_with_logits(hd["cont_logit"], cont_target)
 
         total = (

@@ -416,3 +416,9 @@ python malmo/rl/evaluation/live_imagination.py --checkpoint <dreamer_ckpt.pt> --
 - Slash commands ARE accepted in a Survival Malmo mission (game log: `Playing effect … for N times`); no spam kick at 40 cmd/s.
 - All four `STYLE` particle names are valid in this build.
 - Still unjudged: how readable the particles are as a trail. The top-down view is the primary visual; particles are optional.
+
+## Milestone 2 results
+
+- **Milestone 2 report (2026-11-04): [milestone2_report.md](milestone2_report.md)** — headline tables, root-cause analysis, fixes, planner, caveats, reproduction.
+- Initial benchmarks (PPO vs Dreamer, 50k steps each, no demos): [results/m2_initial/README.md](results/m2_initial/README.md)
+- Round 2 (shared demo warm start) and the Dreamer-fix progress log: [results/m2_demo_warmstart/README.md](results/m2_demo_warmstart/README.md)

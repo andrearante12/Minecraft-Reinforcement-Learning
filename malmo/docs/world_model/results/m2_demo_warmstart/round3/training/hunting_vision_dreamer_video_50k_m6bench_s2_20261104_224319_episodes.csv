@@ -1,0 +1,8 @@
+episode,reward,steps,outcome,env,blocks_placed,timestamp,world_seed,kills
+142,-26.5113,286,stuck_in_pit,hunting_vision,0,22:46:10,523467673,0
+143,-8.4206,900,timeout,hunting_vision,0,22:53:45,229543111,0
+144,-26.0136,900,timeout,hunting_vision,0,22:53:56,332745816,0
+145,-8.231,900,timeout,hunting_vision,0,22:57:40,523467673,0
+146,-40.7065,59,stuck_in_pit,hunting_vision,0,22:58:37,523467673,0
+147,-40.5054,900,timeout,hunting_vision,0,23:05:43,332745816,0
+148,-26.0243,900,timeout,hunting_vision,0,23:05:55,229543111,0

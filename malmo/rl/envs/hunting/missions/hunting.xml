@@ -44,6 +44,7 @@
     </AgentStart>
     <AgentHandlers>
       <ContinuousMovementCommands turnSpeedDegs="180"/>
+      <MissionQuitCommands/>
       <ObservationFromFullStats/>
       <ObservationFromRay/>
       <ObservationFromNearbyEntities>

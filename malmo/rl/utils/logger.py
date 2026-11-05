@@ -20,7 +20,8 @@ class Logger:
         self.ep_path   = base + "_episodes.csv"
         self.ep_file   = open(self.ep_path, "w", newline="")
         self.ep_writer = csv.writer(self.ep_file)
-        self.ep_writer.writerow(["episode", "reward", "steps", "outcome", "env", "blocks_placed", "timestamp"])
+        self.ep_writer.writerow(["episode", "reward", "steps", "outcome", "env", "blocks_placed",
+                                 "timestamp", "world_seed", "kills"])
 
         # Update log — columns written dynamically on first call
         self.upd_path    = base + "_updates.csv"
@@ -96,9 +97,12 @@ class Logger:
         ])
         self.traj_file.flush()
 
-    def log_episode(self, episode, reward, steps, outcome, env_name="", blocks_placed=0):
+    def log_episode(self, episode, reward, steps, outcome, env_name="", blocks_placed=0,
+                    world_seed="", kills=""):
         self.ep_writer.writerow([episode, round(reward, 4), steps, outcome,
-                                  env_name, blocks_placed, time.strftime("%H:%M:%S")])
+                                  env_name, blocks_placed, time.strftime("%H:%M:%S"),
+                                  "" if world_seed is None else world_seed,
+                                  "" if kills is None else kills])
         self.ep_file.flush()
         self.ep_rewards.append(reward)
         self.ep_steps.append(steps)

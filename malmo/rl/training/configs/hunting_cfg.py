@@ -30,6 +30,7 @@ class HuntingCFG(BaseCFG):
     # ── Target animal ────────────────────────────────────────────────────────
     TARGET_MOB      = "Pig"
     TARGET_MAX_LIFE = 10.0        # Pig max health (for normalisation)
+    TARGET_HEIGHT   = 0.9         # Pig body height (aim-pitch term in _target_features)
     ATTACK_RANGE    = 3.0         # blocks; within this an attack can land
 
     # Predictability knob (the research variable):
@@ -46,6 +47,7 @@ class HuntingCFG(BaseCFG):
     FALL_Y_THRESHOLD = 44.0       # defensive (arena is walled/flat)
     MAX_STEPS        = 200
     STEP_DURATION    = 0.15
+    MISSION_TIME_LIMIT_MS = 150000   # overrides the XML's 60 s; use >= 600000 for 900-step evals
 
     # ── Voxel grid: x[-2:+2]=5, y[-1:+1]=3, z[-2:+2]=5 → 75 (flat arena: walls) ─
     GRID_X    = 5

@@ -33,6 +33,7 @@ class WorldModelCFG:
     WM_W_GOAL    = 1.0
     WM_W_VOXEL   = 1.0    # binary cross-entropy on the occupancy grid
     WM_W_REWARD  = 1.0
+    WM_REWARD_SYMLOG = True   # reward head trained on symlog(r); predictions are symexp'd (changes checkpoints!)
     WM_W_CONT    = 1.0    # binary cross-entropy on P(not done)
 
     # ── World-model optimisation ────────────────────────────────────────────────
@@ -49,6 +50,19 @@ class WorldModelCFG:
     IMAG_UPDATES      = 1        # actor-critic updates per update() call
     IMAG_ENTROPY_COEF = 0.003    # entropy bonus for the actor in imagination
     IMAG_VALUE_COEF   = 0.5      # critic-loss weight
+    # Guards against the actor exploiting world-model errors (all off by default):
+    IMAG_RETURN_NORM      = False  # divide advantages by an EMA of the 5-95% return range (DreamerV3)
+    IMAG_CRITIC_EMA       = 0.0    # > 0: slow-critic targets, EMA rate per update (V3 uses 0.02)
+    VWM_REWARD_ENSEMBLE   = 1      # K > 1: K reward heads; their spread = reward uncertainty
+    IMAG_REWARD_PESSIMISM = 0.0    # imagined reward = ensemble mean - this x ensemble std
+    # Reward/continuation heads read the latent state the action LEADS TO (the
+    # prior from img_step(post_t, a_t)) instead of (post_t, action one-hot).
+    # Removes the "attack one-hot = reward" shortcut and trains the heads on the
+    # same prior features imagination feeds them. Changes checkpoints.
+    VWM_REWARD_ON_NEXT    = False
+    BC_PRETRAIN_FREEZE_WM = False  # actor BC warm start with the world model frozen (no co-training)
+    FAIR_DEMO_BC_COEF     = 0.0    # BC anchor kept under --fair (decays to 0 like DEMO_BC_COEF)
+    DEMO_BC_DECAY         = True   # False: the anchor stays constant (m7bench showed decay hurts on the hard worlds)
 
     # ── Collection schedule ─────────────────────────────────────────────────────
     LEARNING_STARTS  = 1000      # real transitions before any learning

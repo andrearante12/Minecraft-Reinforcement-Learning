@@ -1,0 +1,11 @@
+episode,outcome,reward,steps,kills,world_seed,biome,ms_per_action,label
+1,timeout,-34.135,900,0,229543111,tundra,24.69,dreamer_video
+2,timeout,-36.236,900,0,332745816,desert,14.85,dreamer_video
+3,timeout,57.853,900,0,523467673,meadow,17.35,dreamer_video
+4,timeout,-27.311,900,0,85253262,plains,15.45,dreamer_video
+5,timeout,-12.133,900,0,85253262,plains,15.79,dreamer_video
+6,timeout,-58.66,900,0,85253262,plains,16.03,dreamer_video
+7,timeout,-34.585,900,0,332745816,desert,16.28,dreamer_video
+8,timeout,-26.292,900,0,523467673,meadow,17.11,dreamer_video
+9,timeout,-59.192,900,0,523467673,meadow,17.04,dreamer_video
+10,stuck_in_pit,-49.116,95,0,332745816,desert,11.98,dreamer_video

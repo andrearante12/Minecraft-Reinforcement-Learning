@@ -1,0 +1,11 @@
+episode,outcome,reward,steps,kills,world_seed,biome,ms_per_action,label
+1,timeout,-26.067,900,0,104387003,forest,8.33,ppo_vision
+2,timeout,-25.326,900,0,104387003,forest,7.83,ppo_vision
+3,timeout,-27.108,900,0,104387003,forest,7.87,ppo_vision
+4,timeout,-18.331,900,0,104387003,forest,7.88,ppo_vision
+5,timeout,-24.668,900,0,104387003,forest,7.64,ppo_vision
+6,timeout,-21.67,900,0,104387003,forest,7.74,ppo_vision
+7,timeout,-21.955,900,0,104387003,forest,7.8,ppo_vision
+8,timeout,-17.341,900,0,104387003,forest,7.73,ppo_vision
+9,timeout,-11.931,900,0,104387003,forest,7.58,ppo_vision
+10,timeout,-20.767,900,0,104387003,forest,6.66,ppo_vision

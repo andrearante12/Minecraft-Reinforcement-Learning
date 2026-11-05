@@ -1,0 +1,227 @@
+{
+ "format": "frames_v1",
+ "env": "hunting_vision",
+ "frame_shape": [
+  224,
+  224,
+  3
+ ],
+ "episodes": [
+  {
+   "file": "ep_0001.npz",
+   "steps": 43,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0002.npz",
+   "steps": 82,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0003.npz",
+   "steps": 57,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0004.npz",
+   "steps": 65,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0005.npz",
+   "steps": 58,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0006.npz",
+   "steps": 148,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0007.npz",
+   "steps": 52,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0008.npz",
+   "steps": 300,
+   "outcome": "timeout",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0009.npz",
+   "steps": 79,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0010.npz",
+   "steps": 63,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0011.npz",
+   "steps": 67,
+   "outcome": "mission_ended",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0012.npz",
+   "steps": 51,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0013.npz",
+   "steps": 300,
+   "outcome": "timeout",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0014.npz",
+   "steps": 84,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0015.npz",
+   "steps": 52,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0016.npz",
+   "steps": 60,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0017.npz",
+   "steps": 55,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0018.npz",
+   "steps": 66,
+   "outcome": "lava",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0019.npz",
+   "steps": 63,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0020.npz",
+   "steps": 66,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0021.npz",
+   "steps": 60,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0022.npz",
+   "steps": 57,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0023.npz",
+   "steps": 300,
+   "outcome": "timeout",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0024.npz",
+   "steps": 65,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0025.npz",
+   "steps": 60,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0026.npz",
+   "steps": 61,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0027.npz",
+   "steps": 79,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0028.npz",
+   "steps": 86,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0029.npz",
+   "steps": 64,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0030.npz",
+   "steps": 289,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0031.npz",
+   "steps": 55,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0032.npz",
+   "steps": 31,
+   "outcome": "lava",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0033.npz",
+   "steps": 57,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0034.npz",
+   "steps": 61,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0035.npz",
+   "steps": 68,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  },
+  {
+   "file": "ep_0036.npz",
+   "steps": 66,
+   "outcome": "stuck_in_pit",
+   "source": "scripted"
+  }
+ ]
+}

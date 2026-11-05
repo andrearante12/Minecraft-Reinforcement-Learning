@@ -258,18 +258,26 @@ class PPO(BaseAgent):
     def buffer_full(self):
         return self.buffer.is_full()
 
+    # Hooks so a subclass with a different observation type (ppo_vision) can reuse
+    # the whole GAE / clipped-loss update below unchanged.
+    def _bootstrap_values(self, last_obs):
+        last_obs_2d = np.atleast_2d(last_obs)
+        if self.obs_rms:
+            last_obs_2d = self.obs_rms.normalize(last_obs_2d, self.cfg.NORM_CLIP)
+        with torch.no_grad():
+            return self.model.get_value(
+                torch.tensor(last_obs_2d, dtype=torch.float32).to(self.device)
+            ).squeeze(-1)
+
+    def _evaluate(self, obs_t, actions_t, idx):
+        return self.model.evaluate_actions(obs_t[idx], actions_t[idx])
+
     # PPO Update Step
     def update(self, last_obs):
 
         # Bootstrapping step: predict the future rewards from this step
         # last_obs is (n_envs, obs_size) for multi-env, (obs_size,) for single-env
-        last_obs_2d = np.atleast_2d(last_obs)
-        if self.obs_rms:
-            last_obs_2d = self.obs_rms.normalize(last_obs_2d, self.cfg.NORM_CLIP)
-        with torch.no_grad():
-            last_vals = self.model.get_value(
-                torch.tensor(last_obs_2d, dtype=torch.float32).to(self.device)
-            ).squeeze(-1)  # (n_envs,)
+        last_vals = self._bootstrap_values(last_obs)  # (n_envs,)
 
         # Read from RolloutBuffer
         obs_t, actions_t, rewards_flat_t, dones_flat_t, old_log_probs_t, values_t = \
@@ -290,7 +298,7 @@ class PPO(BaseAgent):
 
         total_steps = self.buffer.total_steps
         indices = np.arange(total_steps)
-        total_policy_loss = total_value_loss = total_entropy = n_updates = 0
+        total_policy_loss = total_value_loss = total_entropy = total_aux = n_updates = 0
 
         for _ in range(self.cfg.N_EPOCHS):
             np.random.shuffle(indices)
@@ -298,9 +306,7 @@ class PPO(BaseAgent):
                 idx = indices[start:start + self.cfg.BATCH_SIZE]
 
                 # reevaluate old actions using the new policy
-                new_log_probs, new_values, entropy = self.model.evaluate_actions(
-                    obs_t[idx], actions_t[idx]
-                )
+                new_log_probs, new_values, entropy = self._evaluate(obs_t, actions_t, idx)
 
                 # PPO Clipped Objective, compares new to old policy
                 ratio = torch.exp(new_log_probs - old_log_probs_t[idx])
@@ -320,8 +326,12 @@ class PPO(BaseAgent):
                 vl_clipped   = (value_clipped - returns[idx]) ** 2
                 value_loss   = 0.5 * torch.max(vl_unclipped, vl_clipped).mean()
 
-                # Total Loss = Policy + Critic - Entropy
+                # Total Loss = Policy + Critic - Entropy (+ optional aux, see _aux_loss)
                 loss = policy_loss + self.cfg.VALUE_COEF * value_loss - self.current_entropy_coef * entropy
+                aux = self._aux_loss(obs_t, idx)
+                if aux is not None:
+                    loss = loss + getattr(self.cfg, "VWM_W_PRIV", 1.0) * aux
+                    total_aux += aux.item()
 
                 # Backpropagation
                 self.optimizer.zero_grad()
@@ -340,9 +350,15 @@ class PPO(BaseAgent):
             "policy_loss": total_policy_loss / max(n_updates, 1),
             "value_loss":  total_value_loss / max(n_updates, 1),
             "entropy":     total_entropy / max(n_updates, 1),
+            "aux_loss":    total_aux / max(n_updates, 1),
             "lr":          self.current_lr,
             "entropy_coef": self.current_entropy_coef,
         }
+
+    def _aux_loss(self, obs_t, idx):
+        """Optional extra loss per minibatch (None = none). PPOVision adds the
+        privileged aux head here."""
+        return None
 
     # For inference choose an action
     def select_action(self, obs, greedy=False):

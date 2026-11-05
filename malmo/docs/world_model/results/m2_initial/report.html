@@ -1,0 +1,215 @@
+<title>Milestone 2 Results</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column, lab-notebook style; tables and the chart carry the numbers. */
+:root{
+  --bg:#f7f8f5; --surface:#ffffff; --fg:#1d221c; --muted:#5d665a; --line:#d9ded4;
+  --ppo:#c2414e; --drm:#3f7a34; --accent:#2f5d8a; --warn:#a2650d; --warn-bg:#fbf1df;
+  --display:"Public Sans", "Helvetica Neue", Arial, sans-serif;
+  --body:"Public Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141714; --surface:#1c201b; --fg:#e6eae2; --muted:#9ba696; --line:#2f362d;
+  --ppo:#ef7d88; --drm:#8cc97c; --accent:#8db8e6; --warn:#e7b25c; --warn-bg:#2b2416; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141714; --surface:#1c201b; --fg:#e6eae2; --muted:#9ba696; --line:#2f362d;
+  --ppo:#ef7d88; --drm:#8cc97c; --accent:#8db8e6; --warn:#e7b25c; --warn-bg:#2b2416; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 var(--body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+main{max-width:760px;margin:0 auto;padding-block:40px 64px;display:flex;flex-direction:column;gap:36px}
+h1{font:700 2rem/1.15 var(--display);margin:0;text-wrap:balance;letter-spacing:-0.01em}
+h2{font:700 1.2rem/1.3 var(--display);margin:0 0 10px;text-wrap:balance}
+p{margin:0 0 12px;max-width:68ch}
+.eyebrow{font:500 .75rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.lede{font-size:1.08rem}
+.verdict{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);padding:16px 18px;border-radius:6px}
+.verdict p:last-child{margin:0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.kpi b{display:block;font:500 1.6rem/1.2 var(--mono);font-variant-numeric:tabular-nums}
+.kpi span{font-size:.85rem;color:var(--muted)}
+.kpi.ppo b{color:var(--ppo)} .kpi.drm b{color:var(--drm)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{font:600 .78rem var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td{font-variant-numeric:tabular-nums}
+td.num{font-family:var(--mono)}
+.tag{display:inline-block;font:500 .72rem var(--mono);padding:1px 7px;border-radius:999px;border:1px solid currentColor}
+.tag.ppo{color:var(--ppo)} .tag.drm{color:var(--drm)}
+figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px}
+figcaption{font-size:.88rem;color:var(--muted);margin-top:8px}
+svg{width:100%;height:auto;display:block}
+.grid{stroke:var(--line);stroke-width:1}
+.tick{fill:var(--muted);font:11px var(--mono)}
+.axis{fill:var(--muted);font:12px var(--body)}
+.ln{fill:none;stroke-width:2.5}
+.ln.ppo{stroke:var(--ppo)} .ln.drm{stroke:var(--drm)}
+.pt.ppo{fill:var(--ppo)} .pt.drm{fill:var(--drm)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.88rem;margin-bottom:6px}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:6px}
+ul{margin:0;padding-left:20px;max-width:68ch} li{margin-bottom:6px}
+.pending{background:var(--warn-bg);border:1px solid var(--warn);border-radius:6px;padding:12px 16px;color:var(--fg)}
+.pending b{color:var(--warn)}
+code{font:.88em var(--mono)}
+</style>
+
+<main>
+  <header>
+    <p class="eyebrow">MalmoRL · Milestone 2 · hunting_vision · 2026-11-03</p>
+    <h1>Milestone 2 Results</h1>
+    <p class="lede" style="margin-top:12px">PPO vs Dreamer on the vision hunting task, 50,000 game steps each, same inputs, same 12 actions, same reward.</p>
+  </header>
+
+  <section class="verdict">
+    <h2>Result in one line</h2>
+    <p>Neither agent learned to hunt within 50,000 steps: PPO made 2 kills and Dreamer made 3, out of about 69 training episodes each. At this budget the sample-efficiency comparison is inconclusive. The training logs do show why, and point to what to change.</p>
+  </section>
+
+  <section class="kpis" aria-label="Headline numbers">
+    <div class="kpi ppo"><b>2</b><span>PPO kills in 50k steps</span></div>
+    <div class="kpi drm"><b>3</b><span>Dreamer kills in 50k steps</span></div>
+    <div class="kpi ppo"><b>2.4 h</b><span>PPO wall-clock</span></div>
+    <div class="kpi drm"><b>3.4 h</b><span>Dreamer wall-clock</span></div>
+  </section>
+
+  <section>
+    <h2>Setup</h2>
+    <div class="scroll"><table>
+      <tr><th>Setting</th><th>Value</th></tr>
+      <tr><td>Inputs (both)</td><td>frozen DINOv2 tokens (17 × 384) + 11 proprio numbers</td></tr>
+      <tr><td>Actions (both)</td><td>12 discrete, auto-attack when aimed and in range</td></tr>
+      <tr><td>Budget</td><td>50,000 env steps each, 3 Minecraft clients in parallel</td></tr>
+      <tr><td>Training worlds</td><td>meadow, plains (lava), tundra, desert (sinkhole), random per episode</td></tr>
+      <tr><td>Prey</td><td>3 spawned cows + the worlds&#8217; natural pigs; 3 kills end an episode</td></tr>
+      <tr><td>Kill detection</td><td>Minecraft&#8217;s MobsKilled stat + entity id (no false kills)</td></tr>
+      <tr><td>Episode length</td><td>up to 900 steps</td></tr>
+      <tr><td>Dreamer extras</td><td>off for fairness (no privileged head, no demos, no behaviour cloning)</td></tr>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Learning curves</h2>
+    <figure>
+      <div class="legend"><span><i style="background:var(--ppo)"></i>PPO</span><span><i style="background:var(--drm)"></i>Dreamer</span></div>
+      <svg viewBox="0 0 640 290" role="img" aria-label="Mean episode reward per 10-episode window against environment steps. PPO rises from about minus 56 to minus 25; Dreamer stays between minus 35 and minus 58.">
+<line class="grid" x1="60" x2="620" y1="24.0" y2="24.0"/><text class="tick" x="52" y="28.0" text-anchor="end">0</text>
+<line class="grid" x1="60" x2="620" y1="97.3" y2="97.3"/><text class="tick" x="52" y="101.3" text-anchor="end">−20</text>
+<line class="grid" x1="60" x2="620" y1="170.7" y2="170.7"/><text class="tick" x="52" y="174.7" text-anchor="end">−40</text>
+<line class="grid" x1="60" x2="620" y1="244.0" y2="244.0"/><text class="tick" x="52" y="248.0" text-anchor="end">−60</text>
+<text class="tick" x="60.0" y="264" text-anchor="middle">0k</text>
+<text class="tick" x="172.0" y="264" text-anchor="middle">10k</text>
+<text class="tick" x="284.0" y="264" text-anchor="middle">20k</text>
+<text class="tick" x="396.0" y="264" text-anchor="middle">30k</text>
+<text class="tick" x="508.0" y="264" text-anchor="middle">40k</text>
+<text class="tick" x="620.0" y="264" text-anchor="middle">50k</text>
+<text class="axis" x="340" y="284" text-anchor="middle">environment steps</text>
+<polyline class="ln ppo" points="133.4,229.9 202.9,224.2 280.8,223.1 364.0,126.3 445.8,127.6 520.9,114.4"/>
+<circle class="pt ppo" cx="133.4" cy="229.9" r="4"/><circle class="pt ppo" cx="202.9" cy="224.2" r="4"/><circle class="pt ppo" cx="280.8" cy="223.1" r="4"/><circle class="pt ppo" cx="364.0" cy="126.3" r="4"/><circle class="pt ppo" cx="445.8" cy="127.6" r="4"/><circle class="pt ppo" cx="520.9" cy="114.4" r="4"/>
+<polyline class="ln drm" points="127.1,169.3 199.5,160.3 291.0,153.3 376.5,236.8 463.9,200.0 551.0,200.3"/>
+<circle class="pt drm" cx="127.1" cy="169.3" r="4"/><circle class="pt drm" cx="199.5" cy="160.3" r="4"/><circle class="pt drm" cx="291.0" cy="153.3" r="4"/><circle class="pt drm" cx="376.5" cy="236.8" r="4"/><circle class="pt drm" cx="463.9" cy="200.0" r="4"/><circle class="pt drm" cx="551.0" cy="200.3" r="4"/>
+      </svg>
+      <figcaption>Mean episode reward per window of 10 training episodes. Kills per window stayed at 0–1 for both, so reward is the more informative curve here.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>By biome</h2>
+    <div class="scroll"><table>
+      <tr><th>Biome</th><th>Agent</th><th>Episodes</th><th>Kills</th><th>Hazard deaths</th><th>Mean reward</th></tr>
+      <tr><td>desert (sinkhole)</td><td><span class="tag ppo">PPO</span></td><td class="num">12</td><td class="num">0</td><td class="num">83%</td><td class="num">−78.2</td></tr>
+      <tr><td></td><td><span class="tag drm">Dreamer</span></td><td class="num">10</td><td class="num">1</td><td class="num">80%</td><td class="num">−58.7</td></tr>
+      <tr><td>meadow</td><td><span class="tag ppo">PPO</span></td><td class="num">21</td><td class="num">0</td><td class="num">38%</td><td class="num">−2.6</td></tr>
+      <tr><td></td><td><span class="tag drm">Dreamer</span></td><td class="num">24</td><td class="num">1</td><td class="num">21%</td><td class="num">−32.3</td></tr>
+      <tr><td>plains (lava)</td><td><span class="tag ppo">PPO</span></td><td class="num">19</td><td class="num">1</td><td class="num">26%</td><td class="num">−39.6</td></tr>
+      <tr><td></td><td><span class="tag drm">Dreamer</span></td><td class="num">17</td><td class="num">0</td><td class="num">35%</td><td class="num">−47.9</td></tr>
+      <tr><td>tundra</td><td><span class="tag ppo">PPO</span></td><td class="num">17</td><td class="num">1</td><td class="num">12%</td><td class="num">−37.4</td></tr>
+      <tr><td></td><td><span class="tag drm">Dreamer</span></td><td class="num">18</td><td class="num">1</td><td class="num">17%</td><td class="num">−49.4</td></tr>
+    </table></div>
+    <p style="margin-top:10px">Hazard deaths are pits, the desert sinkhole and lava. The desert sinkhole is the worst place for both agents, ending about 80% of episodes there.</p>
+  </section>
+
+  <section>
+    <h2>How episodes ended</h2>
+    <div class="scroll"><table>
+      <tr><th>Outcome</th><th>PPO</th><th>Dreamer</th></tr>
+      <tr><td>timeout (900 steps)</td><td class="num">41</td><td class="num">45</td></tr>
+      <tr><td>stuck in a pit</td><td class="num">23</td><td class="num">19</td></tr>
+      <tr><td>lava</td><td class="num">2</td><td class="num">3</td></tr>
+      <tr><td>mission ended early (Malmo)</td><td class="num">3</td><td class="num">2</td></tr>
+      <tr><td>killed all 3 prey</td><td class="num">0</td><td class="num">0</td></tr>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>What the logs say</h2>
+    <ul>
+      <li><b>PPO learned to lose less, not to hunt.</b> Mean reward rose from −56 to −25 across the run, mostly by dying less early: more timeouts and fewer pit deaths in the last third. Its action entropy fell from 2.44 to 2.26, so the policy did narrow.</li>
+      <li><b>Dreamer&#8217;s world model learned to see but not to score.</b> Its prediction error on the DINOv2 features fell from 1.54 to 1.16 and on proprio from 2.67 to 0.21. Its reward-prediction loss stayed flat (0.10 to 0.11). With only 3 kills in its replay buffer there was almost nothing to learn a kill reward from.</li>
+      <li><b>So Dreamer&#8217;s actor had nothing to aim for.</b> Imagined returns stayed negative (−4.8 to −4.4), and the actor stayed close to random: entropy 2.36, where 2.48 is uniform over 12 actions.</li>
+      <li><b>Kills are the bottleneck for both.</b> A kill takes 3 hits on a fleeing 10-HP animal. A random-ish policy almost never gets there, so neither method sees enough success to learn from in 50k steps.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Suggested next steps</h2>
+    <ul>
+      <li><b>More steps for both.</b> PPO is already continuing from its 50k checkpoint (1M-step budget). Dreamer needs the same before the comparison means anything.</li>
+      <li><b>Start on the easier rung.</b> Level 0 (flat walled arena, 1 cow, 200-step episodes) gives far more encounters per step. A curriculum L0 → L1 would get both agents their first kills sooner.</li>
+      <li><b>Cut the sinkhole rate while learning to hunt.</b> Desert loses about 80% of episodes to the sinkhole. Turning hazards on after the first kills keeps the hazard study without starving the hunting signal.</li>
+      <li><b>Report the planner on a model that predicts reward.</b> The lookahead planner scores futures by predicted reward, which this model can&#8217;t yet predict. Evaluate it on a checkpoint whose reward loss has actually dropped.</li>
+      <li><b>Use more than one seed before claiming a winner.</b> Each agent ran once, and at 2 vs 3 kills the difference is noise.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Evaluation: training biomes</h2>
+    <p>10 episodes per agent with greedy actions, on the four training biomes.</p>
+    <div class="scroll"><table>
+      <tr><th>Agent</th><th>Kills</th><th>Hazard deaths</th><th>Full 900 steps</th><th>Mean reward</th><th>ms / action</th></tr>
+      <tr><td><span class="tag ppo">PPO</span></td><td class="num">0</td><td class="num">4 / 10</td><td class="num">6 / 10</td><td class="num">−21.2</td><td class="num">7.8</td></tr>
+      <tr><td><span class="tag drm">Dreamer</span></td><td class="num">0</td><td class="num">0 / 10</td><td class="num">10 / 10</td><td class="num">−30.5</td><td class="num">12.2</td></tr>
+      <tr><td><span class="tag drm">Dreamer + planner</span></td><td class="num">0</td><td class="num">5 / 10</td><td class="num">2 / 10</td><td class="num">−57.9</td><td class="num">24.3</td></tr>
+    </table></div>
+    <p style="margin-top:10px">Greedy Dreamer never died, but it never hunted either: it most likely repeats one safe action. The planner made things worse. It ranks futures by predicted reward, and this world model has not learned to predict reward, so the planner effectively picks at random among the actor&#8217;s top 4 actions. This says nothing yet about the planner idea; it needs a checkpoint whose reward loss has dropped.</p>
+  </section>
+
+  <section>
+    <h2>Bug found and fixed: false pits on slopes</h2>
+    <p>The first forest evaluation ended every episode &#8220;stuck in a pit&#8221; at exactly step 25. The pit check counted the agent as trapped whenever ground 2&#8211;3 blocks away was 2+ blocks higher than its feet, which is true on any hillside. In the hilly forest, 52% of standable ground, including the spawn point, counted as a pit. In the training biomes it was 1&#8211;10% (tundra 1%, meadow 3%, plains 8%, desert 10%), so some training deaths were really the agent standing on a slope. That affected both agents equally.</p>
+    <p>The new check asks whether the agent can walk out: it searches outward over steps that rise at most one block, and the agent is only trapped if it cannot get 5 blocks away. Now 0 open-ground columns count as a pit in the training biomes (5 natural hollows in forest), and every sinkhole and carved-pit floor still does. The forest results from before the fix are void and are being re-run.</p>
+  </section>
+
+  <section>
+    <h2>Evaluation: held-out forest and plains with lava</h2>
+    <p>Same checkpoints, 10 greedy episodes each, run with the fixed pit check.</p>
+    <div class="scroll"><table>
+      <tr><th>World</th><th>Agent</th><th>Kills</th><th>Hazard deaths</th><th>Mean reward</th><th>ms / action</th></tr>
+      <tr><td>forest (held out)</td><td><span class="tag ppo">PPO</span></td><td class="num">0</td><td class="num">0 / 10</td><td class="num">−21.5</td><td class="num">7.7</td></tr>
+      <tr><td></td><td><span class="tag drm">Dreamer</span></td><td class="num">0</td><td class="num">3 / 10</td><td class="num">−25.5</td><td class="num">13.2</td></tr>
+      <tr><td></td><td><span class="tag drm">Dreamer + planner</span></td><td class="num">0</td><td class="num">4 / 10</td><td class="num">−80.1</td><td class="num">23.1</td></tr>
+      <tr><td>plains (lava)</td><td><span class="tag ppo">PPO</span></td><td class="num">0</td><td class="num">0 / 10</td><td class="num">−29.0</td><td class="num">7.8</td></tr>
+      <tr><td></td><td><span class="tag drm">Dreamer</span></td><td class="num">0</td><td class="num">0 / 10</td><td class="num">−24.3</td><td class="num">13.2</td></tr>
+      <tr><td></td><td><span class="tag drm">Dreamer + worst-case planner</span></td><td class="num">0</td><td class="num">0 / 10</td><td class="num">−63.2</td><td class="num">22.3</td></tr>
+    </table></div>
+    <p style="margin-top:10px">No agent killed anything in any evaluation. With greedy actions, both agents mostly stay alive until the 900-step limit; in the forest Dreamer fell into 3 of its 10 episodes&#8217; pits and PPO into none. The planner, scoring by a reward model that hasn&#8217;t learned reward yet, lowers the score every time and adds about 10 ms per action.</p>
+  </section>
+
+  <section class="pending">
+    <h2>Running now</h2>
+    <p style="margin:0"><b>PPO keeps training</b> from its 50k checkpoint (from 09:10, 1M-step budget, fixed pit check), so the GPU never sits idle. The 50k checkpoint stays as the like-for-like baseline.</p>
+  </section>
+
+  <section>
+    <h2>Notes</h2>
+    <ul>
+      <li>All numbers on this page come from training episodes, where the policy samples its actions. The evaluation runs use greedy actions.</li>
+      <li>Logs: <code>malmo/rl/logs/hunting_vision_{ppo_vision,dreamer_video}_50k_*</code>. Checkpoints: <code>…_50k_ep70_final.pt</code>.</li>
+      <li>Earlier aborted runs (<code>_cowonly</code>, <code>_oldkill</code>) are excluded: they used the cow-only task and the old kill heuristic.</li>
+    </ul>
+  </section>
+</main>

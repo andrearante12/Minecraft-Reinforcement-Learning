@@ -278,8 +278,7 @@ class VideoDreamerFrames:
             lg, _ = self.model(f)
             act = Categorical(logits=lg).sample()
             onehot = F.one_hot(act, self.n_actions).float()
-            r, c = self.wm.predict_reward_cont(f, onehot)
-            s = rssm.img_step(s, onehot)
+            r, c, s = self.wm.step_reward_cont(s, onehot)
             img, _ = self.wm.decode(rssm.get_feat(s))
             dream.append({
                 "img": encode_jpeg(self._to_img(img), quality=85),

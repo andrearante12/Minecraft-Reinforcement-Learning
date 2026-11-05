@@ -51,6 +51,9 @@ FOREST_SEED = 104387003
 TUNDRA_SEED = 229543111
 DESERT_SEED = 332745816
 
+BIOME_SEEDS = {"meadow": MEADOW_SEED, "plains": PLAINS_SEED, "forest": FOREST_SEED,
+               "tundra": TUNDRA_SEED, "desert": DESERT_SEED}
+
 
 class HuntingVisionCFG(HuntingCFG):
     # ── Mission / world (defaults = L1; see LEVELS) ──────────────────────────
@@ -64,6 +67,11 @@ class HuntingVisionCFG(HuntingCFG):
     CAGE_FLOOR_Y     = 61
     CAGE_TOP_Y       = 80
     MAX_STEPS        = 900           # 3 kills per episode; L0's 200 often timed out mid-chase
+    # The step limit, not wall-clock, must end episodes: with 3 clients in lockstep
+    # a step takes ~0.55 s (PPO) to ~0.7 s (Dreamer, updating every step), so the
+    # base 150 s mission timer cut episodes at ~200-270 steps, and at different
+    # lengths for the two agents. 20 min covers 900 steps at up to ~1.3 s/step.
+    MISSION_TIME_LIMIT_MS = 1200000
 
     # ── Prey (PREY picks a row of PREYS; env var MALMO_HUNT_PREY overrides) ───
     # cow    — large, easy to see; wanders, panics + sprints off when hit; 10 HP =
@@ -78,6 +86,16 @@ class HuntingVisionCFG(HuntingCFG):
     TARGET_MOB       = "Cow"
     TARGET_MAX_LIFE  = 10.0
     TARGET_HEIGHT    = 1.4           # body height: the teacher aims at its middle
+    # Other animals that also count as prey (targeting, hits, kills). The worlds
+    # have natural pigs; hitting or killing one pays the same as a cow. Same 10 HP.
+    # Per-mob body heights for aiming; the spawned TARGET_MOB uses TARGET_HEIGHT.
+    EXTRA_PREY_MOBS  = ("Pig",)
+    # Kill oracle: a kill = the player's MobsKilled stat rose AND a prey animal
+    # (by entity id) within ATTACK_RANGE + KILL_REACH_MARGIN last step is gone.
+    # No false kills from hit animals wandering out of range or despawning.
+    KILL_ORACLE       = True
+    KILL_REACH_MARGIN = 2.0
+    PREY_HEIGHTS     = {"Cow": 1.4, "Pig": 0.9, "Rabbit": 0.5}
     TARGET_SPAWN_Y   = 71.0          # only used without a HEIGHTMAP
     N_TARGETS        = 3             # several cows: more encounters per (slow) world reset
     KILLS_TO_END     = 3             # each kill pays REWARD_KILL; episode ends when all are dead
@@ -87,7 +105,18 @@ class HuntingVisionCFG(HuntingCFG):
     FLEEING_MIN_DIST = 8.0
     DIST_SCALE       = 30.0
     AUTO_ATTACK      = True
-    WORLD_SEEDS      = (MEADOW_SEED, MEADOW_SEED, TUNDRA_SEED, PLAINS_SEED, DESERT_SEED)  # random world per episode
+    # Train on 4 biomes (equal weight); FOREST is HELD OUT for evaluation only.
+    # Evaluate / override in the env-server process: MALMO_WORLD_SEEDS=forest
+    # (comma-separated biome names from BIOME_SEEDS).
+    WORLD_SEEDS      = (MEADOW_SEED, PLAINS_SEED, TUNDRA_SEED, DESERT_SEED)
+    HELDOUT_SEEDS    = (FOREST_SEED,)
+    # Lava pools replace some pits/ponds: probability per hazard, by world seed.
+    HAZARD_LAVA_PROB = {PLAINS_SEED: 0.6}
+    # Sinkholes (5x5, 7 deep, no way out): probability per hazard, by world seed.
+    HAZARD_SINKHOLE_PROB = {DESERT_SEED: 0.5}
+    LAVA_RADIUS      = 2             # lava pool is (2r+1)^2 cells: 2 -> 5x5 (1 was 3x3)
+    REWARD_LAVA      = -30.0         # terminal: walked into lava (outcome "lava")
+    BIOME_SEEDS      = BIOME_SEEDS
     HAZARDS          = (1, 3)        # random 3x3 trap holes (dry pit or water-floored pond) per episode
     FILL_WATER       = False         # keep the pond: the world model must learn water/pits = failure
     PIT_DEPTH        = 2.0           # feet this far below the ground 2-3 blocks away = in a pit
@@ -121,7 +150,8 @@ class HuntingVisionCFG(HuntingCFG):
     VIS_RES          = 224
     VIS_POOL_GRID    = 4             # patch tokens avg-pooled to GxG (+ CLS) → 17x384
     VIS_TOKEN_PROJ   = 64            # trainable per-token projection before flatten
-    VIS_THUMB        = 64            # stored thumbnail size (dream-strip / live viz only)
+    VIS_THUMB        = 128           # stored thumbnail size (dream-strip / live viz only);
+                                      # decoder upsamples+refines its native 64x64 to this
     VWM_FEAT_DEC_HIDDEN = 512
     VWM_W_THUMB      = 1.0           # thumbnail decoder sees a stop-grad latent
 
@@ -136,10 +166,59 @@ class HuntingVisionCFG(HuntingCFG):
     # ── RSSM (video world model) ─────────────────────────────────────────────
     WM_LATENT_DIM = 32
     USE_GRU       = True
-    WM_KL_SCALE   = 1.0
-    WM_FREE_NATS  = 1.0
+    # KL weighting (2026-11-04, m6warm): the token loss is a per-element MEAN over
+    # 17x384 values, so at KL scale 1 the posterior carried only ~1 nat/step and
+    # the policy saw the frame through that channel (bearing R2 0.62 -> 0.76 with
+    # these values in evaluation/latent_probe.py; live kill rate 12% -> 53%).
+    WM_KL_SCALE   = 0.1
+    WM_FREE_NATS  = 3.0
     WM_SEQ_LEN    = 32               # longer windows: memory across occlusions
-    SEQ_BUFFER_CAPACITY = 40000      # ~13 KB feats + 12 KB thumb per step ≈ 1 GB
+    SEQ_BUFFER_CAPACITY = 40000      # ~13 KB feats + 49 KB thumb (128x128) per step ≈ 2.5 GB
+
+    # ── Lookahead planner (our addition; evaluation only, never used while
+    # collecting training data). For each of the actor's top PLAN_CANDIDATES
+    # actions, imagine PLAN_SAMPLES futures of PLAN_HORIZON steps (each samples
+    # a different stochastic latent = a different pig reaction), score each by
+    # discounted predicted reward + critic value at the end, and play the
+    # candidate with the best mean (or worst-case) score.
+    PLAN_AT_ACT     = False
+    PLAN_CANDIDATES = 4
+    PLAN_SAMPLES    = 8
+    PLAN_HORIZON    = 8
+    PLAN_SCORE      = "mean"         # "mean" or "worst" (risk-averse, for hazards)
+    # The planner only re-decides aim/attack, and only when the actor would pick
+    # one of these; locomotion stays with the (BC-anchored) actor. None = all.
+    PLAN_ACTION_SET = None           # only used by PLAN_MODE="argmax"; e.g. ("attack","turn_left",...)
+    # Scripted hazard episodes (generate_hunting_demos.py --hazard): a frames demo
+    # directory whose episodes end in a pit / lava. HAZARD_WM_FRACTION of each
+    # world-model batch, never behaviour-cloned.
+    HAZARD_DEMO_PATH   = None
+    # How the planner may override the actor: "argmax" = best imagined score if it
+    # beats the actor's choice by PLAN_MARGIN; "veto" = only when the actor's
+    # choice ends the episode with P >= PLAN_VETO_P (safety filter).
+    # 2026-11-04 evals (10 eps, training mix): argmax planner −56 and 0 kills,
+    # veto 2 kills/+24, greedy 3 kills/20 eps at +19 -> veto is the default.
+    PLAN_MODE   = "veto"
+    PLAN_MARGIN = 0.0
+    PLAN_VETO_P = 0.5
+    HAZARD_WM_FRACTION = 0.1
+
+    # ── Round-3 (2026-11-04) defaults, from the m2/m3/m4 post-mortem ─────────
+    # (docs/world_model/results/m2_demo_warmstart/README.md). The fair runs
+    # failed because the latent could not see the cow and the reward head keyed
+    # on the action one-hot ("attack = reward" even out of range); imagination
+    # then rewarded blind attacking. These make the reward head read the state
+    # the action leads to, discount reward the heads disagree on, and keep the
+    # actor from exploiting what is left.
+    VWM_REWARD_ON_NEXT    = True
+    VWM_REWARD_ENSEMBLE   = 5
+    IMAG_REWARD_PESSIMISM = 1.0
+    IMAG_RETURN_NORM      = True
+    IMAG_CRITIC_EMA       = 0.02
+    IMAG_HORIZON          = 8        # short while the model is young; 15 once the gate passes
+    IMAG_ENTROPY_COEF     = 0.001    # with return-normalised advantages (V3 uses 3e-4; 0.03 = uniform)
+    BC_PRETRAIN_FREEZE_WM = True     # BC the actor on a frozen world model (features don't drift)
+    FAIR_DEMO_BC_COEF     = 0.1      # --fair keeps this anchor for Dreamer (decays to 0)
 
     # v1: single RSSM, no ensemble/uncertainty machinery (same as hunting_video)
     ENSEMBLE_SIZE     = 1

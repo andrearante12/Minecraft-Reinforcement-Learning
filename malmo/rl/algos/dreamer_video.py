@@ -63,6 +63,7 @@ class DreamerVideo(BaseAgent):
 
         self.buffer = SequenceReplayBuffer(cfg.SEQ_BUFFER_CAPACITY, cfg.WM_SEQ_LEN, cfg.VWM_MIN_SEQ)
         self.steps_done = 0
+        self._real_reward_ema = 0.0     # EMA (1/2000) of collected per-step reward
 
         # Frozen pretrained encoder (feature mode only; never trained or saved).
         self.feature_mode   = (getattr(cfg, "VWM_INPUT", "pixels") == "features")
@@ -82,6 +83,15 @@ class DreamerVideo(BaseAgent):
         demo_path = getattr(cfg, "DEMO_PATH", None)
         if demo_path:
             self._load_demos(demo_path)
+        # Hazard episodes (scripted walks into pits / lava): HAZARD_WM_FRACTION of
+        # each world-model batch, so the reward and continuation heads learn that
+        # hazards END the episode with REWARD_PIT / REWARD_LAVA. Never used for
+        # behaviour cloning (rows sit before the demo rows, which BC reads last).
+        self.hazard_buffer = None
+        hz = getattr(cfg, "HAZARD_DEMO_PATH", None)
+        if hz:
+            self.hazard_buffer = self._load_demos(hz, outcomes=("stuck_in_pit", "lava", "fell"),
+                                                  assign=False)
 
         # Per-env RSSM posterior state + previous action (for stateful acting).
         self._env_state    = [self._initial_state() for _ in range(n_envs)]
@@ -132,6 +142,100 @@ class DreamerVideo(BaseAgent):
                 action = Categorical(logits=logits).sample()
         return int(action.item()), F.one_hot(action, self.n_actions).float()
 
+    @torch.no_grad()
+    def _plan_action(self, state):
+        """Lookahead planner (evaluation only; cfg.PLAN_AT_ACT).
+
+        The pig's movement is uncertain, so each candidate action is judged over
+        several imagined futures, each sampling a different stochastic latent
+        (i.e. a different reaction), and the candidate with the best average
+        (or worst-case) score is played. A future's score is its discounted
+        predicted reward over PLAN_HORIZON steps plus the critic's value at the
+        end. Reuses the same RSSM prior / reward / continuation pieces as
+        _imagine_and_train. Returns (action, one-hot, per-candidate scores dict).
+        """
+        cfg   = self.cfg
+        rssm  = self.world_model.rssm
+        C     = min(int(getattr(cfg, "PLAN_CANDIDATES", 4)), self.n_actions)
+        K     = max(1, int(getattr(cfg, "PLAN_SAMPLES", 8)))
+        H     = max(1, int(getattr(cfg, "PLAN_HORIZON", 8)))
+        gamma = cfg.GAMMA
+
+        logits, _ = self.model(rssm.get_feat(state))
+        greedy = int(logits[0].argmax().item())
+        # PLAN_ACTION_SET: the planner only re-decides among these actions (aim /
+        # attack by default) and only when the actor itself would pick one of
+        # them; locomotion stays with the actor, which the BC anchor keeps away
+        # from hazards the world model has rarely seen end an episode.
+        allowed = self._plan_allowed()
+        if allowed is not None and greedy not in allowed:
+            self.last_plan = {}
+            return greedy, F.one_hot(torch.tensor([greedy], device=self.device), self.n_actions).float(), {}
+        if allowed is not None:
+            masked = logits[0].clone()
+            masked[[a for a in range(self.n_actions) if a not in allowed]] = float("-inf")
+            C = min(C, len(allowed))
+            cands = masked.topk(C).indices
+        else:
+            cands = logits[0].topk(C).indices                   # (C,) candidate actions
+        first = cands.repeat_interleave(K)                      # (C*K,)
+        st = {k: v.expand(C * K, -1).contiguous() for k, v in state.items()}
+
+        ret  = torch.zeros(C * K, device=self.device)
+        disc = torch.ones(C * K, device=self.device)
+        alive = torch.ones(C * K, device=self.device)          # product of continuation probs
+        a = first
+        for t in range(H):
+            feat = rssm.get_feat(st)
+            if t > 0:                                           # actor continues the plan
+                a = Categorical(logits=self.model(feat)[0]).sample()
+            a_onehot = F.one_hot(a, self.n_actions).float()
+            # samples z: a different reaction per future; pessimistic reward if an ensemble is on
+            r, cont, st = self.world_model.step_reward_cont(
+                st, a_onehot, pessimism=float(getattr(cfg, "IMAG_REWARD_PESSIMISM", 0.0)))
+            ret  = ret + disc * r
+            disc = disc * gamma * cont
+            alive = alive * cont
+        _, last_v = self.model(rssm.get_feat(st))
+        ret = (ret + disc * last_v.squeeze(-1)).view(C, K)
+        p_end = (1.0 - alive).view(C, K).mean(dim=1)            # P(episode ends within H) per candidate
+
+        if getattr(cfg, "PLAN_SCORE", "mean") == "worst":
+            scores = ret.min(dim=1).values
+        else:
+            scores = ret.mean(dim=1)
+        self.last_plan = {int(c): float(s) for c, s in zip(cands, scores)}
+        # Override the actor only with a reason: PLAN_MARGIN = how much the best
+        # candidate must beat the actor's own choice by (score units); PLAN_VETO_P:
+        # with PLAN_MODE="veto" the planner only acts when the actor's choice ends
+        # the episode (hazard) with at least this probability, then takes the
+        # candidate with the lowest P(end).
+        mode = getattr(cfg, "PLAN_MODE", "argmax")
+        cl = cands.tolist()
+        if greedy in cl:
+            gi = cl.index(greedy)
+            if mode == "veto":
+                if float(p_end[gi]) >= float(getattr(cfg, "PLAN_VETO_P", 0.5)):
+                    best = cands[p_end.argmin()]
+                else:
+                    best = cands[gi]
+            else:
+                margin = float(getattr(cfg, "PLAN_MARGIN", 0.0))
+                bi = int(scores.argmax())
+                best = cands[bi] if float(scores[bi]) > float(scores[gi]) + margin else cands[gi]
+        else:
+            best = cands[scores.argmax()]
+        return int(best.item()), F.one_hot(best.view(1), self.n_actions).float(), self.last_plan
+
+    def _plan_allowed(self):
+        names = getattr(self.cfg, "PLAN_ACTION_SET", None)
+        if not names:
+            return None
+        if getattr(self, "_plan_allowed_cache", None) is None:
+            all_names = [a[0] for a in self.cfg.ACTIONS]
+            self._plan_allowed_cache = set(all_names.index(n) for n in names if n in all_names)
+        return self._plan_allowed_cache
+
     # ── Observation encoding ─────────────────────────────────────────────────
     def _encode_frames(self, frames):
         """List of (H,W,C) uint8 frames -> (world-model input tensor (N,...) on
@@ -166,6 +270,7 @@ class DreamerVideo(BaseAgent):
         action, action_onehot = self._act_from_state(state, greedy=False)
 
         next_obs, reward, done, info = env.step(action)
+        self._real_reward_ema += (float(reward) - self._real_reward_ema) / 2000.0
         if self.priv_aux:
             store = dict(store, priv=self._priv_or_zeros(self._env_priv[env_idx]))
             self._env_priv[env_idx] = None if done else info.get("privileged")
@@ -204,7 +309,10 @@ class DreamerVideo(BaseAgent):
         return next_obs_all, rewards, dones, infos
 
     def buffer_full(self):
+        # The replay buffer only samples finished episodes: with 900-step episodes
+        # on 3 envs, none may have ended by LEARNING_STARTS, so wait for one.
         return (len(self.buffer) >= self.cfg.LEARNING_STARTS
+                and self.buffer.has_samples()
                 and self.steps_done % self.cfg.REAL_TRAIN_EVERY == 0)
 
     def reset_eval_state(self):
@@ -223,7 +331,10 @@ class DreamerVideo(BaseAgent):
         vec_t = torch.as_tensor(vec, dtype=torch.float32, device=self.device).unsqueeze(0)
         state = self.world_model.encode_step(
             self._eval_state, self._eval_prev_act, self.model_input(frame), vec_t)
-        action, action_onehot = self._act_from_state(state, greedy=greedy)
+        if getattr(self.cfg, "PLAN_AT_ACT", False):
+            action, action_onehot, _ = self._plan_action(state)
+        else:
+            action, action_onehot = self._act_from_state(state, greedy=greedy)
         self._eval_state = state
         self._eval_prev_act = action_onehot
         return action
@@ -247,17 +358,28 @@ class DreamerVideo(BaseAgent):
         """Real sequences, with DEMO_WM_FRACTION of rows from demos when loaded.
         Demo rows are always LAST. Returns (numpy batch, n_demo_rows)."""
         have_demo = self.demo_buffer is not None and self.demo_buffer.has_samples()
+        have_hz = (not demo_only and self.hazard_buffer is not None and self.hazard_buffer.has_samples()
+                   and self.buffer.has_samples())
+        n_hz = 0
+        if have_hz:
+            n_hz = max(1, int(round(batch_size * getattr(self.cfg, "HAZARD_WM_FRACTION", 0.1))))
         if not have_demo:
+            if n_hz:
+                parts = [self.buffer.sample_sequences(batch_size - n_hz),
+                         self.hazard_buffer.sample_sequences(n_hz)]
+                return {k: np.concatenate([p[k] for p in parts], axis=0) for k in parts[0]}, 0
             return self.buffer.sample_sequences(batch_size), 0
         if demo_only or not self.buffer.has_samples():
             n_demo = batch_size
         else:
             frac = getattr(self.cfg, "DEMO_WM_FRACTION", 0.1)
-            n_demo = min(batch_size - 1, max(1, int(round(batch_size * frac))))
+            n_demo = min(batch_size - 1 - n_hz, max(1, int(round(batch_size * frac))))
         parts = []
-        if batch_size - n_demo > 0:
-            parts.append(self.buffer.sample_sequences(batch_size - n_demo))
-        parts.append(self.demo_buffer.sample_sequences(n_demo))
+        if batch_size - n_demo - n_hz > 0:
+            parts.append(self.buffer.sample_sequences(batch_size - n_demo - n_hz))
+        if n_hz:
+            parts.append(self.hazard_buffer.sample_sequences(n_hz))
+        parts.append(self.demo_buffer.sample_sequences(n_demo))     # demo rows LAST
         return {k: np.concatenate([p[k] for p in parts], axis=0) for k in parts[0]}, n_demo
 
     def _train_world_model(self, demo_only=False):
@@ -293,6 +415,46 @@ class DreamerVideo(BaseAgent):
                 print("  [pretrain {0:>5}/{1}] {2}".format(i, n_steps, " | ".join(
                     "{0}:{1:.4f}".format(k, v) for k, v in metrics.items())))
 
+    def pretrain_actor_bc(self, n_steps, log_every=250):
+        """Behaviour-cloning warm start of the actor on the demos, from the world
+        model's posterior features of demo clips (the counterpart of
+        PPOVision.pretrain_from_demos). Each step also fits the world model on
+        the same demo batch, so the features keep improving. Coefficient 1."""
+        if self.demo_buffer is None or not self.demo_buffer.has_samples():
+            print("pretrain_actor_bc: no usable demos loaded (pass --demo-path) — skipping")
+            return
+        freeze = bool(getattr(self.cfg, "BC_PRETRAIN_FREEZE_WM", False))
+        print("Behaviour-cloning warm start (actor): {0} updates{1}".format(
+            n_steps, " (world model frozen)" if freeze else " (co-training the world model)"))
+        saved = self._demo_bc_coef
+        self._demo_bc_coef = 1.0
+        try:
+            for i in range(1, n_steps + 1):
+                if freeze:
+                    posts, mask, actions, n_demo = self._demo_posteriors()
+                else:
+                    _, posts, mask, actions, n_demo = self._train_world_model(demo_only=True)
+                logs = self._demo_bc_update(posts, mask, actions, n_demo)
+                if i % log_every == 0 or i == n_steps:
+                    print("  [bc {0:>5}/{1}] loss {2:.4f} | match teacher {3:.0%}".format(
+                        i, n_steps, logs["bc_loss"], logs["bc_match"]))
+        finally:
+            self._demo_bc_coef = saved
+
+    @torch.no_grad()
+    def _demo_posteriors(self):
+        """Posterior states of a demo-only batch with the world model untouched
+        (for the frozen-WM behaviour-cloning warm start)."""
+        batch, n_demo = self._sample_batch(self.cfg.VWM_SEQ_BATCH, demo_only=True)
+        frames  = torch.as_tensor(batch[self.obs_key], device=self.device)
+        vecs    = torch.as_tensor(batch["vecs"], dtype=torch.float32, device=self.device)
+        actions = torch.as_tensor(batch["actions"], dtype=torch.int64, device=self.device)
+        mask    = torch.as_tensor(batch["mask"], dtype=torch.float32, device=self.device)
+        embed, _ = self.world_model._embed(frames, vecs)
+        prev = self.world_model._shift_actions(F.one_hot(actions, self.n_actions).float())
+        posts, _ = self.world_model.rssm.observe(embed, prev)
+        return posts, mask, actions, n_demo
+
     def _imagine_and_train(self, posts, mask, n_demo=0):
         """Roll the frozen RSSM prior-only from real posterior start states;
         train the latent actor-critic on Dreamer lambda-returns. Mirrors
@@ -310,6 +472,7 @@ class DreamerVideo(BaseAgent):
             return {}
         rows, seq = mask.shape
         start_frac = getattr(self.cfg, "DEMO_START_FRACTION", 0.0)
+        n_d = 0
         if 0 < n_demo < rows and start_frac > 0:
             # DEMO_START_FRACTION of starts from the demo rows (the last n_demo).
             is_demo = (valid_idx // seq) >= (rows - n_demo)
@@ -325,11 +488,13 @@ class DreamerVideo(BaseAgent):
                                                     (self.cfg.IMAG_BATCH - n_d,), device=self.device)])
             sel = torch.cat(picks)
         else:
+            n_d = 0
             sel = valid_idx[torch.randint(0, valid_idx.numel(), (self.cfg.IMAG_BATCH,), device=self.device)]
         state = {k: v.reshape(-1, v.shape[-1])[sel].detach() for k, v in posts.items()}
         B = state["stoch"].shape[0]
 
-        log_probs, entropies, values, rewards, conts = [], [], [], [], []
+        pessimism = float(getattr(self.cfg, "IMAG_REWARD_PESSIMISM", 0.0))
+        log_probs, entropies, values, rewards, conts, feats, r_stds = [], [], [], [], [], [], []
         for _ in range(H):
             feat = rssm.get_feat(state)
             logits, value = self.model(feat)           # actor-critic forward (grad)
@@ -339,14 +504,23 @@ class DreamerVideo(BaseAgent):
             log_probs.append(dist.log_prob(a))
             entropies.append(dist.entropy())
             values.append(value.squeeze(-1))
+            feats.append(feat.detach())
             with torch.no_grad():                       # world model frozen here
-                r, cont = self.world_model.predict_reward_cont(feat, a_onehot)
-                state = rssm.img_step(state, a_onehot)
+                r, cont, r_std, state = self.world_model.step_reward_cont(
+                    state, a_onehot, pessimism=pessimism, return_std=True)
             rewards.append(r)
             conts.append(cont)
+            r_stds.append(r_std)
 
+        # Slow critic (IMAG_CRITIC_EMA = tau > 0): bootstrap targets come from an
+        # exponentially averaged copy of the critic, so the critic no longer
+        # chases its own moving estimates (DreamerV2/V3).
+        tau = float(getattr(self.cfg, "IMAG_CRITIC_EMA", 0.0))
+        target_net = self._slow_critic() if tau > 0 else self.model
         with torch.no_grad():
-            _, last_value = self.model(rssm.get_feat(state))
+            _, last_value = target_net(rssm.get_feat(state))
+            if tau > 0:
+                slow_values = torch.stack([target_net(f)[1].squeeze(-1) for f in feats])
         last_value = last_value.squeeze(-1)
 
         log_probs = torch.stack(log_probs)              # (H, B)
@@ -355,7 +529,7 @@ class DreamerVideo(BaseAgent):
         rewards   = torch.stack(rewards)                # (H, B) — detached
         conts     = torch.stack(conts)                  # (H, B) — detached
 
-        values_det = values.detach()
+        values_det = slow_values if tau > 0 else values.detach()
         returns = torch.zeros_like(values_det)
         g = last_value
         for t in reversed(range(H)):
@@ -365,6 +539,15 @@ class DreamerVideo(BaseAgent):
             returns[t] = g
 
         advantage = returns - values_det                # detached -> REINFORCE baseline
+        # Return normalisation (IMAG_RETURN_NORM, DreamerV3): divide advantages by
+        # an EMA of the 5th-95th percentile range of the returns (at least 1), so
+        # the entropy bonus keeps the same weight whether returns are ~1 or ~100.
+        if getattr(self.cfg, "IMAG_RETURN_NORM", False):
+            flat = returns.detach().flatten()
+            rng = (torch.quantile(flat, 0.95) - torch.quantile(flat, 0.05)).item()
+            self._ret_scale = rng if getattr(self, "_ret_scale", None) is None else \
+                0.99 * self._ret_scale + 0.01 * rng
+            advantage = advantage / max(1.0, self._ret_scale)
 
         actor_loss  = -(log_probs * advantage).mean() - self.current_entropy_coef * entropies.mean()
         critic_loss = 0.5 * ((values - returns) ** 2).mean()
@@ -374,14 +557,42 @@ class DreamerVideo(BaseAgent):
         loss.backward()
         nn.utils.clip_grad_norm_(self.model.parameters(), self.cfg.MAX_GRAD_NORM)
         self.optimizer.step()
+        if tau > 0:
+            with torch.no_grad():
+                for p_slow, p in zip(self._slow.parameters(), self.model.parameters()):
+                    p_slow.mul_(1.0 - tau).add_(p, alpha=tau)
 
+        # Imagined reward split by where the rollout started (demo vs real
+        # replay) and the ensemble's reward spread: the diagnostics for "the
+        # actor is fooling the world model".
+        B = rewards.shape[1]
+        r_real = rewards[:, n_d:].mean().item() if n_d < B else 0.0
+        r_demo = rewards[:, :n_d].mean().item() if n_d > 0 else 0.0
         return {
             "actor_loss":  actor_loss.item(),
             "critic_loss": critic_loss.item(),
             "entropy":     entropies.mean().item(),
             "imag_return": returns.mean().item(),
             "imag_reward": rewards.mean().item(),
+            # Optimism gap: imagined reward/step (real starts) minus the EMA of the
+            # reward the agent actually collects. The one number to watch.
+            "real_reward_ema": self._real_reward_ema,
+            "optimism_gap": r_real - self._real_reward_ema,
+            "imag_reward_real": r_real,
+            "imag_reward_demo": r_demo,
+            "imag_reward_std":  torch.stack(r_stds).mean().item(),
+            "ret_scale":   float(getattr(self, "_ret_scale", None) or 0.0),
         }
+
+    def _slow_critic(self):
+        """Lazily created EMA copy of the actor-critic (only its value output is
+        used). Rebuilt from the live model after a checkpoint load."""
+        if getattr(self, "_slow", None) is None:
+            import copy
+            self._slow = copy.deepcopy(self.model)
+            for p in self._slow.parameters():
+                p.requires_grad_(False)
+        return self._slow
 
     def _demo_bc_update(self, posts, mask, actions, n_demo):
         """Behaviour-cloning anchor: cross-entropy of the actor on the demo rows'
@@ -389,34 +600,40 @@ class DreamerVideo(BaseAgent):
         training progress (set_progress) so the agent can surpass the teacher.
         Always returns the same keys (the update CSV header is fixed)."""
         if self._demo_bc_coef <= 0.0 or n_demo == 0 or posts is None:
-            return {"bc_loss": 0.0, "bc_coef": self._demo_bc_coef}
+            return {"bc_loss": 0.0, "bc_coef": self._demo_bc_coef, "bc_match": 0.0}
         rows = mask.shape[0]
         demo = slice(rows - n_demo, rows)
         feat = self.world_model.rssm.get_feat({k: v[demo] for k, v in posts.items()})
         keep = mask[demo].reshape(-1) > 0.5
         logits, _ = self.model(feat.reshape(-1, feat.shape[-1]))
-        bc_loss = F.cross_entropy(logits[keep], actions[demo].reshape(-1)[keep])
+        target = actions[demo].reshape(-1)[keep]
+        bc_loss = F.cross_entropy(logits[keep], target)
         self.optimizer.zero_grad()
         (self._demo_bc_coef * bc_loss).backward()
         nn.utils.clip_grad_norm_(self.model.parameters(), self.cfg.MAX_GRAD_NORM)
         self.optimizer.step()
-        return {"bc_loss": bc_loss.item(), "bc_coef": self._demo_bc_coef}
+        match = (logits[keep].argmax(-1) == target).float().mean().item()
+        return {"bc_loss": bc_loss.item(), "bc_coef": self._demo_bc_coef, "bc_match": match}
 
-    def _load_demos(self, path):
-        """Frames demo directory (utils/demo_io.py) -> self.demo_buffer."""
+    def _load_demos(self, path, outcomes=None, assign=True):
+        """Frames demo directory (utils/demo_io.py) -> self.demo_buffer (assign=True)
+        or a returned buffer. `outcomes`: keep only these episode outcomes
+        (default: "killed" only when DEMO_ONLY_SUCCESS, else all)."""
         from utils.demo_io import is_frame_demo_dir, load_index, load_episode, episode_features
         if not is_frame_demo_dir(path):
             print("  WARNING: dreamer_video demos must be a frames demo directory "
                   "(utils/demo_io.py); {0} is not — demos disabled".format(path))
-            return
+            return None
         index = load_index(path)
         total = sum(e["steps"] for e in index["episodes"])
         buf = SequenceReplayBuffer(total + 1, self.cfg.WM_SEQ_LEN, self.cfg.VWM_MIN_SEQ)
         want = (self.cfg.VIDEO_HEIGHT, self.cfg.VIDEO_WIDTH, self.cfg.VIDEO_CHANNELS)
         skipped = 0
         only_success = getattr(self.cfg, "DEMO_ONLY_SUCCESS", False)
+        if outcomes is None and only_success:
+            outcomes = ("killed",)
         for entry in index["episodes"]:
-            if only_success and entry.get("outcome") != "killed":
+            if outcomes is not None and entry.get("outcome") not in outcomes:
                 continue
             ep = load_episode(path, entry, frames=not self.feature_mode)
             if (ep["vecs"].shape[1] != self.cfg.INPUT_SIZE
@@ -434,11 +651,14 @@ class DreamerVideo(BaseAgent):
             if self.priv_aux:
                 obs["priv"] = ep.get("privileged", np.zeros((len(ep["actions"]), 12), np.float32))
             buf.add_episode(obs, ep["vecs"], ep["actions"], ep["rewards"], ep["dones"])
-        self.demo_buffer = buf
+        if assign:
+            self.demo_buffer = buf
         kills = sum(1 for e in index["episodes"] if e.get("outcome") == "killed")
         print("  Loaded {0} demo episodes ({1} steps, {2} kills in set{3}) from {4}{5}".format(
-            len(buf.episodes), len(buf), kills, ", kills only" if only_success else "", path,
+            len(buf.episodes), len(buf), kills,
+            ", outcomes " + "/".join(outcomes) if outcomes else "", path,
             "  [skipped {0}: obs/action/frame shape mismatch]".format(skipped) if skipped else ""))
+        return buf
 
     # ── Optional LR / entropy schedule (train.py calls this if present) ─────
     def set_progress(self, fraction):
@@ -450,8 +670,9 @@ class DreamerVideo(BaseAgent):
         if getattr(self.cfg, "ENTROPY_DECAY", False):
             end = getattr(self.cfg, "ENTROPY_COEF_END", self.initial_entropy_coef)
             self.current_entropy_coef = self.initial_entropy_coef + (end - self.initial_entropy_coef) * fraction
-        # Decay the BC anchor so the agent can eventually improve beyond the demonstrator.
-        if self.demo_buffer is not None:
+        # Decay the BC anchor so the agent can eventually improve beyond the demonstrator
+        # (DEMO_BC_DECAY=False keeps it constant).
+        if self.demo_buffer is not None and getattr(self.cfg, "DEMO_BC_DECAY", True):
             self._demo_bc_coef = getattr(self.cfg, "DEMO_BC_COEF", 0.0) * (1.0 - fraction)
 
     # ── Checkpointing ─────────────────────────────────────────────────────────

@@ -108,9 +108,15 @@ class ConvDecoder(nn.Module):
     Accepts (B,feat) or (B,L,feat); returns (B,C,H,W) or (B,L,C,H,W) — a raw
     pixel-space mean (no final activation; trained with MSE against frames
     normalized to roughly [-0.5, 0.5]).
+
+    The deconv stack is the fixed DreamerV1 64x64 decoder. When `upsample_to`
+    is set above 64, a bilinear upsample plus two refine convs sharpen the
+    64x64 output to the requested size (extra capacity, not just stretched
+    pixels) — kept as a separate optional stage so existing 64x64 checkpoints
+    (upsample_to=None) load unchanged.
     """
 
-    def __init__(self, feat_dim, out_channels, depth, embed_dim):
+    def __init__(self, feat_dim, out_channels, depth, embed_dim, upsample_to=None):
         super().__init__()
         self.embed_dim = embed_dim
         self.fc = nn.Linear(feat_dim, embed_dim)
@@ -120,6 +126,13 @@ class ConvDecoder(nn.Module):
             nn.ConvTranspose2d(depth * 2, depth, 6, stride=2), nn.ELU(),
             nn.ConvTranspose2d(depth, out_channels, 6, stride=2),
         )
+        self.refine = None
+        if upsample_to and upsample_to != 64:
+            self.refine = nn.Sequential(
+                nn.Upsample(size=(upsample_to, upsample_to), mode="bilinear", align_corners=False),
+                nn.Conv2d(out_channels, depth, 3, padding=1), nn.ELU(),
+                nn.Conv2d(depth, out_channels, 3, padding=1),
+            )
 
     def forward(self, feat):
         squeeze_l = (feat.dim() == 2)
@@ -128,6 +141,8 @@ class ConvDecoder(nn.Module):
         B, L, D = feat.shape
         x = self.fc(feat.reshape(B * L, D)).reshape(B * L, self.embed_dim, 1, 1)
         x = self.net(x)
+        if self.refine is not None:
+            x = self.refine(x)
         _, C, H, W = x.shape
         x = x.reshape(B, L, C, H, W)
         return x.squeeze(1) if squeeze_l else x
@@ -277,7 +292,8 @@ class VideoWorldModel(nn.Module):
             n_tokens, token_dim = token_shape(cfg)
             self.encoder = FeatureEncoder(n_tokens, token_dim, cfg.VIS_TOKEN_PROJ, cfg.RSSM_EMBED)
             self.feat_decoder  = FeatureDecoder(feat_dim, n_tokens, token_dim, cfg.VWM_FEAT_DEC_HIDDEN)
-            self.thumb_decoder = ConvDecoder(feat_dim, cfg.VIDEO_CHANNELS, depth, cfg.RSSM_EMBED)
+            self.thumb_decoder = ConvDecoder(feat_dim, cfg.VIDEO_CHANNELS, depth, cfg.RSSM_EMBED,
+                                              upsample_to=getattr(cfg, "VIS_THUMB", 64))
         elif self.input_kind == "pixels":
             self.encoder = ConvEncoder(cfg.VIDEO_CHANNELS, depth)
         else:
@@ -300,8 +316,23 @@ class VideoWorldModel(nn.Module):
         # reward for taking action[t] FROM the state observed at t, so the head
         # must see action[t] directly instead of relying on it being folded into
         # a (shifted) next state.
-        self.reward_head = _make_mlp_head(feat_dim + self.n_actions, cfg.WM_HEAD_HIDDEN, 1)
-        self.cont_head   = _make_mlp_head(feat_dim + self.n_actions, cfg.WM_HEAD_HIDDEN, 1)
+        # VWM_REWARD_ON_NEXT: the heads read the NEXT latent state (the prior
+        # reached by img_step(post_t, a_t)) and no action one-hot, so a reward
+        # cannot be predicted from the action alone; the latent has to know the
+        # situation the action led to (e.g. cow in range). Imagination already
+        # evaluates the heads on exactly these prior features.
+        self.reward_on_next = bool(getattr(cfg, "VWM_REWARD_ON_NEXT", False))
+        head_in = feat_dim if self.reward_on_next else feat_dim + self.n_actions
+        self.reward_head = _make_mlp_head(head_in, cfg.WM_HEAD_HIDDEN, 1)
+        # Optional reward ensemble (VWM_REWARD_ENSEMBLE = K > 1): K-1 extra,
+        # independently initialised reward heads trained on the same targets.
+        # They agree on familiar states and disagree away from the data, so their
+        # spread measures how much the reward prediction can be trusted.
+        # reward_head stays member 0, so single-head checkpoints keep loading.
+        n_extra = max(0, int(getattr(cfg, "VWM_REWARD_ENSEMBLE", 1)) - 1)
+        self.reward_extra = nn.ModuleList(
+            [_make_mlp_head(head_in, cfg.WM_HEAD_HIDDEN, 1) for _ in range(n_extra)])
+        self.cont_head   = _make_mlp_head(head_in, cfg.WM_HEAD_HIDDEN, 1)
 
         # Reward head regresses symlog(r) (DreamerV3) so a rare +100 kill doesn't
         # dominate the loss; predictions are symexp'd back. Off by default.
@@ -343,14 +374,55 @@ class VideoWorldModel(nn.Module):
             return self.thumb_decoder(feat), self.vec_head(feat)
         return self.decoder(feat), self.vec_head(feat)
 
-    def predict_reward_cont(self, feat, action_onehot):
+    def head_input(self, feat, action_onehot=None):
+        """What the reward/cont heads read. VWM_REWARD_ON_NEXT: `feat` must be
+        the NEXT state's feature (after img_step) and the action is ignored."""
+        if self.reward_on_next:
+            return feat
+        return torch.cat([feat, action_onehot], dim=-1)
+
+    def next_prior_feat(self, posts, priors, actions_onehot):
+        """(B,L,feat) of the prior state each action leads to: img_step(post_t, a_t).
+        That is priors[t+1] from observe() for t < L-1, plus one extra img_step
+        for the last step (keeps the terminal kill reward, which has no next
+        observation in the buffer)."""
+        last = {k: v[:, -1] for k, v in posts.items()}
+        extra = self.rssm.img_step(last, actions_onehot[:, -1])
+        nxt = {k: torch.cat([priors[k][:, 1:], extra[k].unsqueeze(1)], dim=1) for k in ("stoch", "deter")}
+        return self.rssm.get_feat(nxt)
+
+    def step_reward_cont(self, state, action_onehot, pessimism=0.0, return_std=False):
+        """One imagination step: (state, action) -> (reward, cont, next_state[, std]).
+        Handles both head conventions, so every rollout (imagination, planner,
+        viewers) uses this instead of calling predict_reward_cont + img_step."""
+        nxt = self.rssm.img_step(state, action_onehot)
+        feat = self.rssm.get_feat(nxt) if self.reward_on_next else self.rssm.get_feat(state)
+        out = self.predict_reward_cont(feat, action_onehot, pessimism=pessimism, return_std=return_std)
+        return out + (nxt,)
+
+    def predict_reward_cont(self, feat, action_onehot=None, pessimism=0.0, return_std=False):
         """(feat, action taken FROM this state) -> (reward, continuation). Used
-        both by loss() and by the imagination rollout in algos/dreamer_video.py."""
-        feat_act = torch.cat([feat, action_onehot], dim=-1)
-        reward = self.reward_head(feat_act).squeeze(-1)
+        both by loss() and by the imagination rollout in algos/dreamer_video.py.
+        With VWM_REWARD_ON_NEXT, `feat` is the next state's feature (see
+        step_reward_cont) and action_onehot is ignored.
+
+        With a reward ensemble the reward is the members' mean minus
+        `pessimism` x their standard deviation (in reward units): imagined
+        reward the model is unsure about is discounted, so the actor cannot
+        profit from steering into states where the reward head is guessing.
+        return_std=True also returns that std (zeros for a single head)."""
+        feat_act = self.head_input(feat, action_onehot)
+        preds = [self.reward_head(feat_act).squeeze(-1)] + [h(feat_act).squeeze(-1) for h in self.reward_extra]
+        preds = torch.stack(preds)                                  # (K, ...)
         if self.symlog_reward:
-            reward = symexp(reward)
+            preds = symexp(preds)
+        reward = preds.mean(0)
+        std = preds.std(0, unbiased=False) if preds.shape[0] > 1 else torch.zeros_like(reward)
+        if pessimism:
+            reward = reward - pessimism * std
         cont = torch.sigmoid(self.cont_head(feat_act).squeeze(-1))
+        if return_std:
+            return reward, cont, std
         return reward, cont
 
     @torch.no_grad()
@@ -359,6 +431,12 @@ class VideoWorldModel(nn.Module):
         embed, _ = self._embed(frame, vec)
         post, _ = self.rssm.obs_step(state, prev_action_onehot, embed)
         return post
+
+    def _head_input_seq(self, feat, posts, priors, actions_onehot):
+        """Sequence version of head_input for loss(): (B,L,head_in)."""
+        if self.reward_on_next:
+            return self.next_prior_feat(posts, priors, actions_onehot)
+        return torch.cat([feat, actions_onehot], dim=-1)   # unshifted: action taken FROM this state
 
     # ── Training loss on a batch of real (masked) sequences ────────────────────
     def loss(self, frames, vecs, actions, rewards, dones, mask, thumbs=None, priv=None):
@@ -383,7 +461,7 @@ class VideoWorldModel(nn.Module):
                                       rewards, dones, mask, thumbs, priv)
 
         recon_frame, recon_vec = self.decode(feat)
-        feat_act = torch.cat([feat, actions_onehot], dim=-1)  # unshifted: action taken FROM this state
+        feat_act = self._head_input_seq(feat, posts, priors, actions_onehot)
         reward_pred = self.reward_head(feat_act).squeeze(-1)
         cont_logit  = self.cont_head(feat_act).squeeze(-1)
 
@@ -422,7 +500,7 @@ class VideoWorldModel(nn.Module):
                       rewards, dones, mask, thumbs, priv=None):
         eps = 1e-8
         mask_sum = mask.sum().clamp_min(eps)
-        feat_act = torch.cat([feat, actions_onehot], dim=-1)
+        feat_act = self._head_input_seq(feat, posts, priors, actions_onehot)
         reward_pred = self.reward_head(feat_act).squeeze(-1)
         cont_logit  = self.cont_head(feat_act).squeeze(-1)
 
@@ -430,6 +508,9 @@ class VideoWorldModel(nn.Module):
         l_vec  = (((self.vec_head(feat) - vecs) ** 2).sum(dim=-1) * mask).sum() / (mask_sum * self.vec_size)
         reward_target = symlog(rewards) if self.symlog_reward else rewards
         l_reward = (((reward_pred - reward_target) ** 2) * mask).sum() / mask_sum
+        for head in self.reward_extra:                          # ensemble members, same target
+            l_reward = l_reward + (((head(feat_act).squeeze(-1) - reward_target) ** 2) * mask).sum() / mask_sum
+        l_reward = l_reward / (1 + len(self.reward_extra))
         l_cont = (F.binary_cross_entropy_with_logits(cont_logit, 1.0 - dones, reduction="none")
                   * mask).sum() / mask_sum
         l_kl = (torch.clamp(self.rssm.kl_loss(posts, priors), min=self.free_nats) * mask).sum() / mask_sum

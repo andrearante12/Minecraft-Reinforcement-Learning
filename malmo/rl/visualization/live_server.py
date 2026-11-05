@@ -114,7 +114,7 @@ class LiveServer:
         self.httpd = ThreadingHTTPServer((host, http_port), Handler)
         self.httpd.daemon_threads = True
         self.port = self.httpd.server_address[1]
-        self.url = "http://localhost:{0}/".format(self.port)
+        self.url = "http://{0}:{1}/".format("localhost" if host in ("127.0.0.1", "localhost") else host, self.port)
         self._thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self._thread.start()
 

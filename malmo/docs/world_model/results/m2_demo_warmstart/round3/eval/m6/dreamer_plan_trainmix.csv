@@ -1,0 +1,11 @@
+episode,outcome,reward,steps,kills,world_seed,biome,ms_per_action,label
+1,timeout,-63.888,900,0,85253262,plains,31.11,"dreamer_video + planner (C=4, K=8, H=8, mean)"
+2,timeout,-34.69,900,0,85253262,plains,30.0,"dreamer_video + planner (C=4, K=8, H=8, mean)"
+3,timeout,-53.642,900,0,332745816,desert,30.92,"dreamer_video + planner (C=4, K=8, H=8, mean)"
+4,stuck_in_pit,-25.389,330,0,523467673,meadow,33.28,"dreamer_video + planner (C=4, K=8, H=8, mean)"
+5,stuck_in_pit,13.127,156,0,523467673,meadow,31.77,"dreamer_video + planner (C=4, K=8, H=8, mean)"
+6,timeout,-41.418,900,0,85253262,plains,31.48,"dreamer_video + planner (C=4, K=8, H=8, mean)"
+7,timeout,-53.374,900,0,85253262,plains,29.8,"dreamer_video + planner (C=4, K=8, H=8, mean)"
+8,stuck_in_pit,-41.189,343,0,229543111,tundra,32.73,"dreamer_video + planner (C=4, K=8, H=8, mean)"
+9,timeout,-66.616,900,0,229543111,tundra,31.44,"dreamer_video + planner (C=4, K=8, H=8, mean)"
+10,stuck_in_pit,-33.141,82,0,332745816,desert,33.52,"dreamer_video + planner (C=4, K=8, H=8, mean)"

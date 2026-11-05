@@ -37,11 +37,14 @@ def check(name, cond):
         raise SystemExit("Smoke test failed: " + name)
 
 
-def fake_obs(x=0.5, y=65.0, z=0.5, rabbits=((3.0, 65.0, 4.0, 3.0),)):
+def fake_obs(x=0.5, y=65.0, z=0.5, rabbits=((3.0, 65.0, 4.0, 3.0),), killed=0):
+    """`killed` = the player's MobsKilled stat. Entity ids are stable per spawn
+    position (positions don't move in these tests)."""
     ents = [{"name": "Hunter", "x": x, "y": y, "z": z}]
     for rx, ry, rz, life in rabbits:
-        ents.append({"name": HuntingVisionCFG.TARGET_MOB, "x": rx, "y": ry, "z": rz, "life": life})
-    return {"XPos": x, "YPos": y, "ZPos": z, "Yaw": 0.0, "Pitch": 0.0,
+        ents.append({"name": HuntingVisionCFG.TARGET_MOB, "x": rx, "y": ry, "z": rz, "life": life,
+                     "id": "prey_{0:g}_{1:g}".format(rx, rz)})
+    return {"XPos": x, "YPos": y, "ZPos": z, "Yaw": 0.0, "Pitch": 0.0, "MobsKilled": killed,
             "OnGround": True, "Food": 20, "Life": 20, "entities": ents,
             "LineOfSight": {}, "floor3x3": ["air"] * 75}
 
@@ -111,7 +114,11 @@ old = env._mission_xml_base.replace(
     '</DrawingDecorator>',
     '    <DrawEntity x="{x:.1f}" y="46.0" z="{z:.1f}" type="{mob}"/>\n'.format(
         x=tx, z=tz, mob=HuntingCFG.TARGET_MOB) + '      </DrawingDecorator>')
-check("hunting XML byte-identical to the pre-change construction",
+# The only intended change: the cfg's MISSION_TIME_LIMIT_MS replaces the XML's 60 s.
+import re
+old = re.sub(r'(<ServerQuitFromTimeUp[^>]*timeLimitMs=")[^"]*"',
+             r'\g<1>{0}"'.format(int(HuntingCFG.MISSION_TIME_LIMIT_MS)), old)
+check("hunting XML byte-identical to the pre-change construction (+ time limit)",
       env._build_mission_xml([(tx, tz)]) == old)
 vec = env._build_obs_vector(fake_obs(y=46.0, rabbits=()))
 check("hunting obs is 98-dim", vec.shape == (98,))
@@ -123,31 +130,71 @@ check("hunting_vision obs is 11-dim", vec.shape == (11,) == (HuntingVisionCFG.IN
 check("privileged target stream computed (visible, dist>0)",
       env._last_target is not None and env._last_target[11] == 1.0 and env._tgt_dist > 0)
 
-print("\n4. Kill detection with the damage signal")
+print("\n3b. Natural pigs count as prey (EXTRA_PREY_MOBS)")
 env = HuntingEnv(HuntingVisionCFG)
-env._build_obs_vector(fake_obs(rabbits=((3.0, 65.0, 4.0, 3.0), (10.0, 65.0, 10.0, 3.0))))
-prev = (env._tgt_dist, env._tgt_life, env._tgt_visible)
-env._damaged = True     # what step() sets when Malmo reports damage dealt
-obs = fake_obs(rabbits=((10.0, 65.0, 10.0, 3.0),))   # hit rabbit vanished, another remains
-env._build_obs_vector(obs)
-_, done, outcome = env._get_reward(obs, *prev)
-check("one-hit kill with another rabbit in range -> killed", done and outcome == "killed")
-env = HuntingEnv(HuntingVisionCFG)
-env._build_obs_vector(fake_obs(rabbits=((3.0, 65.0, 4.0, 3.0), (10.0, 65.0, 10.0, 3.0))))
-prev = (env._tgt_dist, env._tgt_life, env._tgt_visible)
-obs = fake_obs(rabbits=((10.0, 65.0, 10.0, 3.0),))
-env._build_obs_vector(obs)
-_, done, outcome = env._get_reward(obs, *prev)
-check("body-count drop WITHOUT damage is not a kill", not done)
+o = fake_obs(rabbits=())
+o["entities"].append({"name": "Pig", "x": 2.0, "y": 65.0, "z": 3.0, "life": 10.0})
+o["entities"].append({"name": "Sheep", "x": 1.0, "y": 65.0, "z": 1.0, "life": 8.0})
+env._build_obs_vector(o)
+check("a lone pig is targeted (sheep ignored)", env._tgt_visible and env._n_targets == 1
+      and abs(env._tgt_dist - np.hypot(1.5, 2.5)) < 1e-4)
+check("damage reward XML lists Cow and Pig",
+      env._build_mission_xml([(1.5, 2.5)]).count('<Mob type=') == 2)
 
+print("\n3c. Pit = cannot walk out (hillsides are not pits)")
+import random
+os.environ["MALMO_WORLD_SEEDS"], os.environ["MALMO_SINK_PROB"] = "forest", "1"
+saved_hz = HuntingVisionCFG.HAZARDS
+HuntingVisionCFG.HAZARDS = (1, 1)
 env = HuntingEnv(HuntingVisionCFG)
-env._build_obs_vector(fake_obs(rabbits=((3.0, 65.0, 4.0, 10.0),)))
-prev = (env._tgt_dist, env._tgt_life, env._tgt_visible)
-obs = fake_obs(rabbits=((3.0, 65.0, 4.0, 0.0),))      # died to the world, no agent damage
-env._build_obs_vector(obs)
-r, done, outcome = env._get_reward(obs, *prev)
-check("prey dying without agent damage is not a kill and earns no hit reward",
-      not done and r < 1.0 and not env._damaged)
+random.seed(1)
+env._pick_world()
+
+
+def _in_pit(x, z):
+    y = env._feet_y(x + 0.5, z + 0.5)
+    return env._pit_depth(x + 0.5, z + 0.5, y) >= HuntingVisionCFG.PIT_DEPTH and env._trapped(x + 0.5, z + 0.5, y)
+
+
+sx, sy, sz = HuntingVisionCFG.SPAWN
+check("hilly forest spawn is not a pit", not _in_pit(int(sx // 1), int(sz // 1)))
+open_flagged = sum(_in_pit(x, z) for x, z in env._hm_ok)
+check("under 1% of forest open ground counts as a pit ({0}/{1})".format(open_flagged, len(env._hm_ok)),
+      open_flagged < 0.01 * len(env._hm_ok))
+check("every sinkhole floor cell is a pit", all(_in_pit(x, z) for x, z in env._hazard_cells))
+HuntingVisionCFG.HAZARDS = saved_hz
+for k in ("MALMO_WORLD_SEEDS", "MALMO_SINK_PROB"):
+    os.environ.pop(k, None)
+
+print("\n4. Kill oracle (MobsKilled + entity id)")
+TWO = ((3.0, 65.0, 4.0, 3.0), (10.0, 65.0, 10.0, 3.0))   # near (in reach) + far
+
+
+def kill_case(before, after, killed_after, damaged=True):
+    env = HuntingEnv(HuntingVisionCFG)
+    env._build_obs_vector(fake_obs(rabbits=before, killed=0))
+    prev = (env._tgt_dist, env._tgt_life, env._tgt_visible)
+    env._damaged = damaged
+    obs = fake_obs(rabbits=after, killed=killed_after)
+    env._build_obs_vector(obs)
+    return env._get_reward(obs, *prev)
+
+
+_, done, outcome = kill_case(TWO, TWO[1:], killed_after=1)
+check("MobsKilled +1 and the in-reach prey is gone -> killed", done and outcome == "killed")
+_, done, outcome = kill_case(TWO, ((3.0, 65.0, 4.0, 0.0),) + TWO[1:], killed_after=1)
+check("MobsKilled +1 and the in-reach prey still listed at 0 health (death anim) -> killed",
+      done and outcome == "killed")
+_, done, _ = kill_case(TWO, TWO[1:], killed_after=0)
+check("hit prey vanishes (wandered off / despawned) without MobsKilled -> NOT a kill", not done)
+_, done, _ = kill_case(TWO, TWO[:1], killed_after=0)
+check("far prey leaves sensor range -> NOT a kill", not done)
+_, done, _ = kill_case(TWO, TWO, killed_after=1)
+check("MobsKilled +1 but every prey still there (killed a sheep) -> NOT a kill", not done)
+_, done, _ = kill_case(TWO, TWO[:1], killed_after=1)
+check("MobsKilled +1 but only an out-of-reach prey vanished -> NOT a kill", not done)
+r, done, _ = kill_case(((3.0, 65.0, 4.0, 10.0),), ((3.0, 65.0, 4.0, 0.0),), killed_after=0, damaged=False)
+check("prey dying to the world (no MobsKilled) is not a kill", not done)
 
 print("\n5. Multi-kill episodes (KILLS_TO_END=3), step() with a mocked Malmo")
 
@@ -178,8 +225,9 @@ env._get_obs_dict = _obs_dict
 env._build_obs_vector(fake_obs(y=68.0, rabbits=herd))
 outcomes, kill_rewards = [], []
 for i in range(3):
-    script.append(dict(fake_obs(y=68.0, rabbits=herd[i:]), _dmg=1.0))   # hit the nearest
-    script.append(fake_obs(y=68.0, rabbits=herd[i + 1:]))                # it vanishes
+    ax, az = herd[i][0] - 1.0, herd[i][2]                                # walked up to animal i
+    script.append(dict(fake_obs(x=ax, y=68.0, z=az, rabbits=herd[i:], killed=i), _dmg=1.0))  # hit it
+    script.append(fake_obs(x=ax, y=68.0, z=az, rabbits=herd[i + 1:], killed=i + 1))         # it dies
     _, _, done_hit, info = env.step(0)
     _, r, done, info = env.step(0)
     outcomes.append(info["outcome"])

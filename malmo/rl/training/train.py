@@ -30,6 +30,7 @@ sys.path.insert(0, PARKOUR_ROOT)
 from training.configs.one_block_gap_cfg import OneBlockGapCFG
 from models.actor_critic import ActorCritic
 from models.latent_actor_critic import LatentActorCritic
+from models.vision_actor_critic import VisionActorCritic
 from envs.env_client  import EnvClient
 from utils.logger     import Logger
 from training.curriculum import CurriculumScheduler
@@ -40,6 +41,7 @@ from algos.dqn import DQN
 from algos.behavioral_cloning import BehavioralCloning
 from algos.dreamer import Dreamer
 from algos.dreamer_video import DreamerVideo
+from algos.ppo_vision import PPOVision
 
 ALGO_REGISTRY = {
     "ppo":           PPO,
@@ -47,6 +49,7 @@ ALGO_REGISTRY = {
     "bc":            BehavioralCloning,
     "dreamer":       Dreamer,
     "dreamer_video": DreamerVideo,
+    "ppo_vision":    PPOVision,      # model-free baseline on Dreamer's exact inputs
 }
 
 # ── Environment registry ──────────────────────────────────────────────────────
@@ -125,11 +128,67 @@ def parse_args():
                         help="Stop recording after this many clips (default 15)")
     parser.add_argument("--record-min-reward", type=float, default=150.0,
                         help="Also record non-kill episodes scoring at least this (default 150)")
+    parser.add_argument("--viz-host", type=str, default="0.0.0.0",
+                        help="Interface the live viewer binds to (default all, so it is reachable over "
+                             "Tailscale/LAN; use 127.0.0.1 for local only)")
     parser.add_argument("--viz-env", type=int, default=0,
                         help="Which parallel env to stream with --viz-port (default 0)")
     parser.add_argument("--viz-third-person", action="store_true",
                         help="With --viz-port: press F5+F1 in the Minecraft window at startup")
+    parser.add_argument("--cfg", action="append", default=[], metavar="KEY=VALUE",
+                        help="Override a config value for this run (repeatable), e.g. "
+                             "--cfg IMAG_RETURN_NORM=True --cfg VWM_REWARD_ENSEMBLE=5")
+    parser.add_argument("--run-tag", type=str, default=None,
+                        help="Appended to the run name (logs + checkpoints), e.g. m3bench")
+    parser.add_argument("--bc-pretrain-steps", type=int, default=0,
+                        help="ppo_vision / dreamer_video: behaviour-cloning warm start of the actor "
+                             "on --demo-path for this many updates before the first live step")
+    parser.add_argument("--max-env-steps", type=int, default=None,
+                        help="Stop after this many env steps summed over all parallel envs "
+                             "(saves a final checkpoint). Default: no step budget.")
+    parser.add_argument("--fair", action="store_true",
+                        help="like-for-like comparison: same inputs, rewards, aux labels and demos "
+                             "for both agents; Dreamer's BC anchor = FAIR_DEMO_BC_COEF (see apply_fair_settings)")
     return parser.parse_args()
+
+
+def apply_cfg_overrides(cfg, pairs):
+    """--cfg KEY=VALUE (repeatable): set a config attribute for this run. VALUE is
+    parsed as a Python literal (1, 0.02, True, "worst"), else kept as a string."""
+    import ast
+    for pair in pairs or []:
+        key, _, raw = pair.partition("=")
+        if not key or not hasattr(cfg, key):
+            raise SystemExit("--cfg: unknown config key {0!r}".format(key))
+        try:
+            val = ast.literal_eval(raw)
+        except (ValueError, SyntaxError):
+            val = raw
+        setattr(cfg, key, val)
+        print("  cfg override: {0} = {1!r}".format(key, val))
+
+
+def apply_fair_settings(cfg, algo_name, keep_demos=False):
+    """--fair: both agents learn from the same inputs, rewards and training-time
+    labels. Since 2026-11-04 the privileged aux head (VWM_PRIV_AUX) is kept for
+    BOTH agents (PPOVision has the same head on its trunk), because without it the
+    Dreamer latent is blind to the cow (bearing R2 ~ 0; see
+    docs/world_model/results/m2_demo_warmstart). Set --cfg VWM_PRIV_AUX=False to
+    turn it off for both.
+
+    keep_demos (both agents get the same --demo-path): both get the same
+    behaviour-cloning warm start (--bc-pretrain-steps); Dreamer additionally keeps
+    replaying the demos in its world model and imagination starts (its model-based
+    use of the same offline data). Its ongoing BC anchor is FAIR_DEMO_BC_COEF
+    (decays to 0): PPO's clipped objective protects its cloned policy, REINFORCE in
+    imagination has no such protection."""
+    if algo_name != "dreamer_video":
+        return
+    cfg.DEMO_BC_COEF = float(getattr(cfg, "FAIR_DEMO_BC_COEF", 0.0))
+    if not keep_demos:
+        cfg.DEMO_PATH           = None
+        cfg.DEMO_START_FRACTION = 0.0
+        cfg.DEMO_WM_FRACTION    = 0.0
 
 
 def print_header(env_name, algo_name, cfg, num_envs=1, total_episodes=None):
@@ -145,7 +204,7 @@ def print_header(env_name, algo_name, cfg, num_envs=1, total_episodes=None):
     print("N actions:      ", cfg.N_ACTIONS)
     print("Architecture:    ", "multi-stream ({0}/{1}/{2}) -> {3}".format(
         cfg.PROPRIO_HIDDEN, cfg.GOAL_HIDDEN, cfg.VOXEL_HIDDEN, cfg.HEAD_HIDDEN))
-    if algo_name == "ppo":
+    if algo_name in ("ppo", "ppo_vision"):
         print("N steps/update: ", cfg.N_STEPS)
         if num_envs > 1:
             print("Steps per env:  ", cfg.N_STEPS // num_envs)
@@ -173,7 +232,9 @@ def print_header(env_name, algo_name, cfg, num_envs=1, total_episodes=None):
             print("Frozen encoder: ", "{0} (pool {1}x{1})".format(cfg.VIS_ENCODER, cfg.VIS_POOL_GRID))
         if cfg.DEMO_PATH:
             print("Demos:          ", cfg.DEMO_PATH)
-        print("RSSM:           ", "deter={0} stoch={1}".format(cfg.RSSM_DETER, cfg.WM_LATENT_DIM))
+        print("Priv. aux head: ", getattr(cfg, "VWM_PRIV_AUX", False))
+        print("Demo BC coef:   ", getattr(cfg, "DEMO_BC_COEF", 0.0))
+        print("RSSM:         ", "deter={0} stoch={1}".format(cfg.RSSM_DETER, cfg.WM_LATENT_DIM))
         print("Seq len:        ", cfg.WM_SEQ_LEN)
         print("Seq buffer cap: ", cfg.SEQ_BUFFER_CAPACITY)
         print("Imag horizon:   ", cfg.IMAG_HORIZON)
@@ -262,20 +323,28 @@ def train():
     # Pass demo path to config for BC
     if args.demo_path:
         cfg.DEMO_PATH = args.demo_path
+    if args.fair:
+        apply_fair_settings(cfg, args.algo, keep_demos=bool(args.demo_path))
+    apply_cfg_overrides(cfg, args.cfg)
+    if args.max_env_steps:
+        run_name += "_{0}k".format(args.max_env_steps // 1000)
+    if args.run_tag:
+        run_name += "_" + args.run_tag
 
     # Validate N_STEPS divisibility for PPO
-    if args.algo == "ppo" and cfg.N_STEPS % n_envs != 0:
-        print("ERROR: N_STEPS ({0}) must be divisible by --num-envs ({1})".format(
-            cfg.N_STEPS, n_envs))
-        sys.exit(1)
+    if args.algo in ("ppo", "ppo_vision") and cfg.N_STEPS % n_envs != 0:
+        rounded = (cfg.N_STEPS // n_envs) * n_envs
+        print("WARNING: N_STEPS ({0}) is not divisible by --num-envs ({1}); "
+              "using {2} ({3} per env)".format(cfg.N_STEPS, n_envs, rounded, rounded // n_envs))
+        cfg.N_STEPS = rounded
 
     # dreamer_video <-> video env pairing
-    is_video = (args.algo == "dreamer_video")
+    is_video = args.algo in ("dreamer_video", "ppo_vision")
     env_names = (scheduler.all_env_names() if args.curriculum else [args.env])
     env_video_flags = [getattr(ENV_REGISTRY[name][1], "VIDEO_ENABLED", False) for name in env_names]
     if is_video and not all(env_video_flags):
-        print("ERROR: --algo dreamer_video requires a video-enabled env (e.g. --env hunting_video). "
-              "Got env(s) {0} with VIDEO_ENABLED={1}".format(env_names, env_video_flags))
+        print("ERROR: --algo {0} requires a video-enabled env (e.g. --env hunting_vision). "
+              "Got env(s) {1} with VIDEO_ENABLED={2}".format(args.algo, env_names, env_video_flags))
         sys.exit(1)
     if not is_video and any(env_video_flags):
         print("WARNING: env(s) {0} have VIDEO_ENABLED=True but --algo {1} doesn't use video — "
@@ -290,7 +359,12 @@ def train():
     envs   = [EnvClient(cfg.INPUT_SIZE, port=base_port + i, video=is_video,
                         frame_shape=(cfg.VIDEO_HEIGHT, cfg.VIDEO_WIDTH, cfg.VIDEO_CHANNELS))
               for i in range(n_envs)]
-    model  = LatentActorCritic(cfg) if is_video else ActorCritic(cfg)
+    if args.algo == "ppo_vision":
+        model = VisionActorCritic(cfg)
+    elif is_video:
+        model = LatentActorCritic(cfg)
+    else:
+        model = ActorCritic(cfg)
     agent  = ALGO_REGISTRY[args.algo](model, cfg, n_envs=n_envs)
     logger = Logger(cfg.LOG_DIR, run_name)
 
@@ -328,12 +402,41 @@ def train():
         print("Resuming from episode {0}".format(start_episode))
         print()
 
+    # Live split-screen viewer (visualization/live_split.py has the playback twin).
+    # Started BEFORE the demo pretraining so the page is reachable from the first
+    # second (it shows a banner while the world model / actor pretrain).
+    viz = viz_builder = None
+    if args.viz_port:
+        from visualization.live_server import LiveServer
+        from visualization.live_frames import make_frame_builder, annotate
+        viz_k = min(max(args.viz_env, 0), n_envs - 1)
+        viz_builder = make_frame_builder(agent, cfg, scheduler.env_for_episode(start_episode))
+        viz = LiveServer(args.viz_port, host=args.viz_host)
+        viz.publish_schema(viz_builder.schema())
+        viz.publish_status("update", "starting…")
+        print("Live view: {0}  (env {1}, bound to {2})".format(viz.url, viz_k, args.viz_host))
+
     if args.pretrain_wm_steps > 0:
         if hasattr(agent, "pretrain_world_model"):
+            if viz is not None:
+                viz.publish_status("update", "pretraining the world model on demos ({0} steps)…".format(
+                    args.pretrain_wm_steps))
             agent.pretrain_world_model(args.pretrain_wm_steps)
             print()
         else:
             print("WARNING: --pretrain-wm-steps is only supported by --algo dreamer_video; ignored")
+
+    if args.bc_pretrain_steps > 0:
+        if viz is not None:
+            viz.publish_status("update", "behaviour-cloning the actor on demos ({0} updates)…".format(
+                args.bc_pretrain_steps))
+        if args.algo == "ppo_vision" and args.demo_path:
+            agent.pretrain_from_demos(args.demo_path, args.bc_pretrain_steps)
+        elif args.algo == "dreamer_video" and hasattr(agent, "pretrain_actor_bc"):
+            agent.pretrain_actor_bc(args.bc_pretrain_steps)
+        else:
+            print("WARNING: --bc-pretrain-steps needs --algo ppo_vision/dreamer_video and --demo-path; ignored")
+        print()
 
     # Determine initial env for each slot
     initial_env = scheduler.env_for_episode(start_episode)
@@ -351,17 +454,8 @@ def train():
         env.switch_env(initial_env)
         obs_all[i] = env.reset()
 
-    # Live split-screen viewer (visualization/live_split.py has the playback twin).
-    viz = viz_builder = None
-    if args.viz_port:
-        from visualization.live_server import LiveServer
-        from visualization.live_frames import make_frame_builder, annotate
-        viz_k = min(max(args.viz_env, 0), n_envs - 1)
-        viz_builder = make_frame_builder(agent, cfg, current_envs[viz_k])
-        viz = LiveServer(args.viz_port)
-        viz.publish_schema(viz_builder.schema())
+    if viz is not None:
         viz.publish_status("collect", "")
-        print("Live view: {0}  (env {1})".format(viz.url, viz_k))
         if not is_video and envs[viz_k].last_frame is None:
             print("  No camera frames from env server — restart it with MALMO_RECORD_VIDEO=1 "
                   "to see Minecraft in the live view.")
@@ -380,6 +474,9 @@ def train():
 
     episode      = start_episode
     update_count = 0
+    env_steps    = 0          # summed over all parallel envs, for --max-env-steps
+    if args.max_env_steps:
+        print("Step budget: {0} env steps".format(args.max_env_steps))
 
     print("Starting training... (Ctrl+C to stop and save)")
     print()
@@ -408,6 +505,7 @@ def train():
                     ep_rewards[viz_k] + rewards[viz_k], "train", last_reward=rewards[viz_k],
                     outcome=infos[viz_k].get("outcome")))
 
+            env_steps += n_envs
             for i in range(n_envs):
                 ep_rewards[i] += rewards[i]
                 ep_steps[i]   += 1
@@ -429,10 +527,18 @@ def train():
 
                 if dones[i]:
                     if hasattr(agent, "set_progress"):
-                        agent.set_progress(episode / total_episodes)
+                        # Progress drives the LR/entropy schedules and the demo BC
+                        # anchor decay. With a step budget the budget is the run,
+                        # not total_episodes (8000 by default, so nothing decayed).
+                        if args.max_env_steps:
+                            agent.set_progress(env_steps / float(args.max_env_steps))
+                        else:
+                            agent.set_progress(episode / total_episodes)
 
                     logger.log_episode(episode, ep_rewards[i], int(ep_steps[i]),
-                                       ep_outcome[i], env_name=current_envs[i])
+                                       ep_outcome[i], env_name=current_envs[i],
+                                       world_seed=infos[i].get("world_seed"),
+                                       kills=infos[i].get("kills"))
                     if viz is not None:
                         viz.publish_stats("episode", {
                             "episode": int(episode), "return": round(float(ep_rewards[i]), 3),
@@ -505,6 +611,15 @@ def train():
                 logger.log_update(**losses)
                 if update_count % 10 == 0:
                     print_update(losses)
+
+            if args.max_env_steps and env_steps >= args.max_env_steps:
+                print("\nStep budget reached ({0} env steps, {1} episodes). Saving final checkpoint...".format(
+                    env_steps, episode - start_episode))
+                path = os.path.join(cfg.CHECKPOINT_DIR, "{0}_{1}_ep{2}_final.pt".format(
+                    args.algo, run_name, episode))
+                agent.save(path)
+                print("  saved {0}".format(path))
+                break
 
     except KeyboardInterrupt:
         print("\nTraining interrupted. Saving checkpoint...")

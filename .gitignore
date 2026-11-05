@@ -33,3 +33,11 @@ site/media/*.mov
 site/diagrams/*.aux
 site/diagrams/*.log
 site/diagrams/*.pdf
+
+# Lowercase tree (the live one): training outputs, demo sets, recordings
+malmo/rl/checkpoints/
+malmo/rl/logs/
+malmo/rl/tb_logs/
+malmo/demos/*/
+recordings/
+site/diagrams/*.bak

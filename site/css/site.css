@@ -950,9 +950,10 @@ body.live[data-no-wm="1"] .vector-extras { display: none; }
   text-transform: uppercase;
   color: #7a8a72;
 }
-.tile-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 14rem)); gap: 0.7rem; }
+.tile-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; max-width: 29rem; }
 body.live[data-kind="video"] #cam { image-rendering: pixelated; }
 .tile { margin: 0; background: var(--void-2); border: 1px solid var(--stone); }
+.tile img:not([src]), .dream-strip img:not([src]) { visibility: hidden; }   /* no broken-image icon before the first frame */
 .tile img {
   width: 100%;
   aspect-ratio: 1;
@@ -978,11 +979,33 @@ body.live[data-kind="video"] #cam { image-rendering: pixelated; }
 }
 
 @media (max-width: 900px) {
-  body.live { height: auto; overflow: auto; }
+  body.live { height: auto; min-height: 100vh; overflow: auto; -webkit-text-size-adjust: 100%; }
   .live-split { grid-template-columns: 1fr; }
-  .cam-pane { border-right: 0; border-bottom: 1px solid var(--stone); aspect-ratio: 16 / 9; }
+  .cam-pane { border-right: 0; border-bottom: 1px solid var(--stone); aspect-ratio: 16 / 9; max-height: 70vh; }
+  body.live[data-kind="video"] .cam-pane { aspect-ratio: 1 / 1; }   /* 224x224 camera: no letterbox */
+  .cam-pane img { height: auto; max-height: 100%; }
   .pred-pane { overflow: visible; }
-  .pred-pane .net-embed { grid-template-columns: 1fr; }
+  .pred-pane .net-embed { grid-template-columns: 1fr; min-height: 0; }
+  .net-embed #canvas { min-height: 16rem; }
+  #topdown { height: 16rem; }
+  .tile-pair { max-width: none; }
+  .dream-strip { max-width: none; }
+  .charts { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .live-bar { padding: 0.45rem 0.7rem; gap: 0.4rem; }
+  .live-bar .brand { font-size: 0.9rem; }
+  .live-pills .pill { font-size: 0.66rem; padding: 0.12rem 0.4rem; }
+  .pred-pane { padding: 0.55rem; }
+  .pred-tabs .tab-hint { display: none; }
+  .pred-tabs button { padding: 0.6rem 0.7rem 0.5rem; font-size: 0.7rem; }   /* 44px tap target */
+  .cam-hud { font-size: 0.72rem; left: 0.6rem; right: 0.6rem; bottom: 0.5rem; }
+  .cam-phase { font-size: 0.66rem; max-width: 92%; white-space: normal; text-align: center; }
+  .stat-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat b { font-size: 1rem; }
+  .dream-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.25rem; }
+  .tile figcaption { font-size: 0.56rem; padding: 0.25rem 0.3rem; }
+  .chart-card canvas { height: 7rem; }
 }
 
 /* top-down imagination map (live.html, vector Dreamer) */

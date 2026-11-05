@@ -1,0 +1,11 @@
+episode,outcome,reward,steps,kills,world_seed,biome,ms_per_action,label
+1,timeout,-33.952,900,0,104387003,forest,15.28,dreamer_video
+2,stuck_in_pit,-56.029,806,0,104387003,forest,14.24,dreamer_video
+3,timeout,-21.796,900,0,104387003,forest,15.93,dreamer_video
+4,timeout,-22.788,900,0,104387003,forest,14.55,dreamer_video
+5,timeout,-25.297,900,0,104387003,forest,15.62,dreamer_video
+6,timeout,-15.127,900,0,104387003,forest,13.96,dreamer_video
+7,timeout,-30.24,900,0,104387003,forest,13.19,dreamer_video
+8,timeout,-23.448,900,0,104387003,forest,9.85,dreamer_video
+9,timeout,-21.334,900,0,104387003,forest,9.57,dreamer_video
+10,timeout,-21.583,900,0,104387003,forest,9.07,dreamer_video

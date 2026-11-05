@@ -1,0 +1,18 @@
+\documentclass[tikz,border=12pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=1.0cm and 1.6cm]
+  \node[box] (env) {Minecraft\\hunting env};
+  \node[box, above right=0.9cm and 2.2cm of env] (ppo) {PPO\\model-free};
+  \node[box, below right=0.9cm and 2.2cm of env] (drm) {Dreamer\\world model $+$ imagination};
+  \draw[arr] (env) -- node[lbl, above left] {$o,r$} (ppo);
+  \draw[arr] (env) -- node[lbl, below left] {$o,r$} (drm);
+  \node[box, right=2.2cm of ppo] (curve1) {learning curve\\vs.\ \textbf{env steps}};
+  \node[box, right=2.2cm of drm] (curve2) {learning curve\\vs.\ \textbf{env steps}};
+  \draw[arr] (ppo) -- (curve1);
+  \draw[arr] (drm) -- (curve2);
+  \node[box, right=1.6cm of $(curve1)!0.5!(curve2)$, minimum width=4.4cm] (m) {metrics\\(1) kills / 20-episode window\\(2) \% episodes ended by hazard};
+  \draw[arr] (curve1) -- (m);
+  \draw[arr] (curve2) -- (m);
+\end{tikzpicture}
+\end{document}

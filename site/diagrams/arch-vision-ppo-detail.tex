@@ -1,0 +1,40 @@
+\documentclass[tikz,border=12pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}
+  \tikzset{box/.append style={minimum width=3.0cm, font=\footnotesize}}
+  % ---------- acting ----------
+  \node[font=\small\bfseries, anchor=west] at (-1.6,1.7) {Acting (every environment step)};
+  \node[box] (frame) at (0,0) {camera frame\\$224{\times}224$};
+  \node[box, dashed] (dino) at (4.0,0) {DINOv2 ViT-S/14\\\textbf{frozen}};
+  \node[box] (tok) at (8.2,0) {tokens $17{\times}384$\\CLS $+$ $4{\times}4$ patches};
+  \node[box] (enc) at (12.4,0) {token encoder\\per-token proj.\ 64, MLP\\$\to$ 1024};
+  \node[box] (prop) at (12.4,-2.6) {proprio (11)\\MLP $\to$ 128};
+  \node[box] (fuse) at (16.6,-1.3) {fuse (concat 1152)\\Linear + LN + ELU\\$\to$ feature 288\\\textbf{no memory}};
+  \node[box] (act) at (20.8,0) {actor head\\logits (12 actions)};
+  \node[box] (crit) at (20.8,-2.6) {critic head\\value $V$};
+  \draw[arr] (frame) -- (dino);
+  \draw[arr] (dino) -- (tok);
+  \draw[arr] (tok) -- (enc);
+  \draw[arr] (enc.east) -- ++(0.5,0) |- (fuse.north west |- fuse.north) ;
+  \draw[arr] (prop.east) -- (fuse.west |- prop.east);
+  \draw[arr] (fuse.east) -- ++(0.5,0) |- (act.west);
+  \draw[arr] (fuse.east) -- ++(0.5,0) |- (crit.west);
+  \node[box, right=1.2cm of act] (a) {sampled action};
+  \draw[arr] (act) -- (a);
+
+  % ---------- learning ----------
+  \node[font=\small\bfseries, anchor=west] at (-1.6,-4.6) {Learning (every 512 steps, on-policy)};
+  \node[box] (buf) at (0,-6.4) {rollout buffer\\tokens, proprio, $a$,\\$\log\pi$, $r$, done, $V$};
+  \node[box] (gae) at (5.2,-6.4) {GAE\\$\gamma{=}0.99$, $\lambda{=}0.95$\\advantages, returns};
+  \node[box] (loss) at (10.8,-6.4) {PPO loss\\clipped surrogate,\\clipped value, entropy};
+  \node[box] (opt) at (16.2,-6.4) {Adam, 4 epochs\\minibatches of 64};
+  \node[box] (new) at (21.2,-6.4) {updated policy\\(all weights trained,\\encoder included)};
+  \draw[arr] (buf) -- (gae);
+  \draw[arr] (gae) -- (loss);
+  \draw[arr] (loss) -- (opt);
+  \draw[arr] (opt) -- (new);
+  \draw[arr, dashed] (new.north) -- ++(0,0.8) -| node[lbl, above, pos=0.22] {next rollout} (fuse.south);
+  \draw[arr, dashed] (a.south) -- ++(0,-1.4) -| ([xshift=1.2cm]buf.north);
+\end{tikzpicture}
+\end{document}

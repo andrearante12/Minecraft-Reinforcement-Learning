@@ -97,6 +97,7 @@ class HuntingEnv:
         self._last_target   = None     # 12-dim target stream (privileged in proprio mode)
         self._dmg_signal    = 0.0      # Malmo RewardForDamagingEntity total since last step
         self._kills         = 0        # kills this episode (KILLS_TO_END > 1)
+        self._reset_kill_oracle()
         self._reacquire     = False    # just killed one: skip approach shaping once
 
         # Video observation (off by default; see training/configs/hunting_video_cfg.py).
@@ -146,6 +147,7 @@ class HuntingEnv:
         self._last_target   = None
         self._dmg_signal    = 0.0
         self._kills         = 0
+        self._reset_kill_oracle()
         self._reacquire     = False
         self.last_frame     = None   # never leak a frame across an episode boundary
 
@@ -178,9 +180,18 @@ class HuntingEnv:
         mission_xml = self._mission_xml_base.replace(
             '</DrawingDecorator>', draw + '      </DrawingDecorator>')
         if getattr(self.cfg, "USE_DAMAGE_SIGNAL", False):
-            # The damage event must be for the configured prey.
-            mission_xml = re.sub(r'<Mob type="[^"]*"', '<Mob type="{0}"'.format(self.cfg.TARGET_MOB),
-                                 mission_xml)
+            # The damage event must be for the configured prey (every prey species).
+            mobs = "".join('<Mob type="{0}" reward="1"/>\n        '.format(m)
+                           for m in [self.cfg.TARGET_MOB] + [m for m in sorted(self._prey_names())
+                                                             if m != self.cfg.TARGET_MOB])
+            mission_xml = re.sub(r'(<RewardForDamagingEntity>\s*)(<Mob [^>]*/>\s*)+',
+                                 r'\g<1>' + mobs.rstrip() + '\n      ', mission_xml)
+        # A step takes ~0.45 s wall-clock, so the XML's fixed 60 s limit ended
+        # episodes at ~140 steps. Let the cfg override it.
+        tl = getattr(self.cfg, "MISSION_TIME_LIMIT_MS", None)
+        if tl is not None:
+            mission_xml = re.sub(r'(<ServerQuitFromTimeUp[^>]*timeLimitMs=")[^"]*"',
+                                 r'\g<1>{0}"'.format(int(tl)), mission_xml)
         seed = getattr(self.cfg, "WORLD_SEED", None)
         if seed is not None:
             mission_xml = re.sub(r'seed="[^"]*"', 'seed="{0}"'.format(seed), mission_xml)
@@ -223,6 +234,9 @@ class HuntingEnv:
         placement see the holes.
         """
         seeds = getattr(self.cfg, "WORLD_SEEDS", None)
+        names = os.environ.get("MALMO_WORLD_SEEDS")
+        if names and getattr(self.cfg, "BIOME_SEEDS", None):
+            seeds = [self.cfg.BIOME_SEEDS[n.strip()] for n in names.split(",") if n.strip()]
         if seeds and self.cfg.HEIGHTMAP:
             seed = random.choice(seeds)
             self.cfg.WORLD_SEED = seed
@@ -231,6 +245,7 @@ class HuntingEnv:
         elif self._hm is not None:
             self._load_heightmap(self.cfg.HEIGHTMAP)    # fresh copy: holes are per-episode
         self._hazard_xml, self._hazard_cells = "", set()
+        self._lava_cells = {}          # (x, z) -> ground y of an open lava pool column
         lo_n, hi_n = getattr(self.cfg, "HAZARDS", (0, 0))
         if self._hm is None or hi_n <= 0:
             return
@@ -242,18 +257,49 @@ class HuntingEnv:
         for _ in range(random.randint(lo_n, hi_n)):
             for _try in range(40):
                 cx, cz = random.randint(int(lo), int(hi)), random.randint(int(lo), int(hi))
-                cells = [(cx + dx, cz + dz) for dx in (-1, 0, 1) for dz in (-1, 0, 1)]
+                # Per-biome sinkholes: a big (5x5), deep (7) hole the agent cannot climb
+                # out of. MALMO_SINK_PROB overrides (testing).
+                sink_p = getattr(self.cfg, "HAZARD_SINKHOLE_PROB", {}).get(self.cfg.WORLD_SEED, 0.0)
+                if os.environ.get("MALMO_SINK_PROB"):
+                    sink_p = float(os.environ["MALMO_SINK_PROB"])
+                big = random.random() < sink_p
+                # Per-biome lava pools: open pools flush with the ground (walking in =
+                # burning), (2*rad+1)^2 cells. MALMO_LAVA_PROB overrides (testing).
+                lava_p = getattr(self.cfg, "HAZARD_LAVA_PROB", {}).get(self.cfg.WORLD_SEED, 0.0)
+                if os.environ.get("MALMO_LAVA_PROB"):
+                    lava_p = float(os.environ["MALMO_LAVA_PROB"])
+                lava = (not big) and random.random() < lava_p
+                rad = 2 if big else (int(getattr(self.cfg, "LAVA_RADIUS", 1)) if lava else 1)
+                cells = [(cx + dx, cz + dz) for dx in range(-rad, rad + 1) for dz in range(-rad, rad + 1)]
                 if not all(c in ok for c in cells):
                     continue
-                if max(abs(cx - sx), abs(cz - sz)) < 6:
+                if max(abs(cx - sx), abs(cz - sz)) < (8 if rad > 1 else 6):
                     continue
-                if any(max(abs(cx - px), abs(cz - pz)) < 5 for px, pz in placed):
+                if any(max(abs(cx - px), abs(cz - pz)) < 3 + 2 * rad for px, pz in placed):
                     continue
                 gs = [self._ground_y(x, z) for x, z in cells]
                 if max(gs) - min(gs) > 1:
                     continue
                 g, pond = min(gs), random.random() < 0.5
                 top = self._hm["top_block"]
+                if big:
+                    self._hazard_xml += ('    <DrawCuboid x1="{0}" y1="{1}" z1="{2}" x2="{3}" y2="{4}" z2="{5}" '
+                                         'type="air"/>\n').format(cx - 2, g - 7, cz - 2, cx + 2, g + 1, cz + 2)
+                    for x, z in cells:
+                        self._hm_top[z + h][x + h] = g - 8
+                        top[z + h][x + h] = "stone"
+                        self._hazard_cells.add((x, z))
+                    placed.append((cx, cz))
+                    break
+                if lava:
+                    self._hazard_xml += ('    <DrawCuboid x1="{0}" y1="{1}" z1="{2}" x2="{3}" y2="{4}" z2="{5}" '
+                                         'type="lava"/>\n').format(cx - rad, g - 1, cz - rad, cx + rad, g, cz + rad)
+                    for x, z in cells:
+                        top[z + h][x + h] = "lava"
+                        self._hazard_cells.add((x, z))
+                        self._lava_cells[(x, z)] = g
+                    placed.append((cx, cz))
+                    break
                 self._hazard_xml += ('    <DrawCuboid x1="{0}" y1="{1}" z1="{2}" x2="{3}" y2="{4}" z2="{5}" '
                                      'type="air"/>\n').format(cx - 1, g - (4 if pond else 3), cz - 1,
                                                               cx + 1, g + 1, cz + 1)
@@ -286,6 +332,37 @@ class HuntingEnv:
         bx, bz = int(math.floor(x)), int(math.floor(z))
         top = int(self._hm_top[bz + self._hm["half"]][bx + self._hm["half"]])
         return float(top if self._hm_block(bx, bz) in self._PLANTS else top + 1)
+
+    _BLOCKING = ("leaves", "leaves2", "log", "log2", "lava", "flowing_lava", "cactus", "fire")
+
+    def _trapped(self, x, z, y):
+        """True if the agent cannot walk out: no path of 4-neighbour steps that
+        each rise at most one block (a jump) reaches PIT_ESCAPE_RADIUS columns
+        away. A hillside always has such a path; a carved pit, pond or sinkhole
+        (walls of 3+ blocks) does not. Trees and lava block the way."""
+        h = self._hm["half"]
+        R = int(getattr(self.cfg, "PIT_ESCAPE_RADIUS", 5))
+        x0, z0 = int(math.floor(x)), int(math.floor(z))
+        seen = {(x0, z0)}
+        frontier = [(x0, z0, float(y))]
+        while frontier:
+            cx, cz, cy = frontier.pop()
+            for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                nx, nz = cx + dx, cz + dz
+                if (nx, nz) in seen:
+                    continue
+                if abs(nx) > h or abs(nz) > h:
+                    return False                      # walked off the mapped area
+                if self._hm_block(nx, nz) in self._BLOCKING:
+                    continue
+                ny = self._feet_y(nx + 0.5, nz + 0.5)
+                if ny - cy > 1.25:                    # wall too high to jump
+                    continue
+                if max(abs(nx - x0), abs(nz - z0)) >= R:
+                    return False                      # walked out
+                seen.add((nx, nz))
+                frontier.append((nx, nz, ny))
+        return True
 
     def _pit_depth(self, x, z, y):
         """Blocks the agent's feet are below the highest ground 2-3 columns away."""
@@ -427,10 +504,19 @@ class HuntingEnv:
             "target_life": float(self._tgt_life),
             "killed":     int(outcome == "killed"),
             "kills":      self._kills,
+            "world_seed": getattr(self.cfg, "WORLD_SEED", None),
         }
         # Scripted teachers / feature probes only — never part of the model's obs.
         if getattr(self.cfg, "EMIT_PRIVILEGED", False) and self._last_target is not None:
             info["privileged"] = [round(float(v), 5) for v in self._last_target]
+            # Nearest hazard cell (pit / pond / sinkhole / lava) relative to the agent,
+            # for the scripted hazard teacher (generate_hunting_demos.py --hazard).
+            cells = getattr(self, "_hazard_cells", None)
+            if cells:
+                ax, az = float(obs_dict.get("XPos", 0.0)), float(obs_dict.get("ZPos", 0.0))
+                best = min(cells, key=lambda c: (c[0] + 0.5 - ax) ** 2 + (c[1] + 0.5 - az) ** 2)
+                info["hazard_rel"] = [round(best[0] + 0.5 - ax, 3), round(best[1] + 0.5 - az, 3),
+                                      1.0 if best in getattr(self, "_lava_cells", {}) else 0.0]
         return obs, reward, done, info
 
     def send_chat(self, commands):
@@ -528,8 +614,9 @@ class HuntingEnv:
     def _target_features(self, obs, x, y, z, yaw):
         """Compute the 12-dim moving-target stream and update target state."""
         entities = obs.get("entities", [])
+        self._track_kill_oracle(obs, entities, x, z)
         self._n_targets_prev = self._n_targets
-        self._n_targets = sum(1 for e in entities if e.get("name") == self.cfg.TARGET_MOB)
+        self._n_targets = sum(1 for e in entities if self._is_prey(e.get("name")))
         ent = self._find_target(entities, x, z)
 
         if ent is not None:
@@ -558,7 +645,7 @@ class HuntingEnv:
             # Pitch error: aim the crosshair at the body middle (eye at feet+1.62).
             pit = float(obs.get("Pitch", 0.0))
             horiz = math.hypot(dx, dz)
-            want_pitch = -180.0 * math.atan2((dy + self.cfg.TARGET_HEIGHT / 2.0) - 1.62, max(horiz, 0.3)) / math.pi
+            want_pitch = -180.0 * math.atan2((dy + self._prey_height(ent.get("name")) / 2.0) - 1.62, max(horiz, 0.3)) / math.pi
             self._pitch_deg   = pit
             self._pitch_error = max(-2.0, min(2.0, (want_pitch - pit) / 90.0))
 
@@ -599,11 +686,56 @@ class HuntingEnv:
             0.0,            # not visible
         ], dtype=np.float32)
 
+    # ── Kill oracle ───────────────────────────────────────────────────────────
+    # A kill is Minecraft's own word for it, not a guess: the player's MobsKilled
+    # statistic (ObservationFromFullStats) went up this step, AND a prey animal
+    # (by entity id) that was within reach last step is gone. A hit animal that
+    # wanders out of sensor range, despawns or dies to the world never raises
+    # MobsKilled, and killing a non-prey animal leaves every prey id in place.
+    def _reset_kill_oracle(self):
+        self._prey_pos, self._prey_pos_prev = {}, {}
+        self._agent_xz, self._agent_xz_prev = None, None
+        self._mobs_killed, self._mobs_killed_prev = None, None
+        self._prey_dead = set()
+
+    def _track_kill_oracle(self, obs, entities, x, z):
+        self._prey_pos_prev, self._agent_xz_prev = self._prey_pos, self._agent_xz
+        self._prey_pos = {e["id"]: (float(e.get("x", 0.0)), float(e.get("z", 0.0)))
+                          for e in entities if self._is_prey(e.get("name")) and "id" in e}
+        self._prey_dead = {e["id"] for e in entities if self._is_prey(e.get("name")) and "id" in e
+                           and float(e.get("life", 1.0)) <= 0.0}
+        self._agent_xz = (float(x), float(z))
+        self._mobs_killed_prev, self._mobs_killed = self._mobs_killed, obs.get("MobsKilled")
+
+    def _oracle_killed(self):
+        mk, mk_prev = self._mobs_killed, self._mobs_killed_prev
+        if mk is None or mk_prev is None or mk <= mk_prev or self._agent_xz_prev is None:
+            return False
+        ax, az = self._agent_xz_prev
+        reach = self.cfg.ATTACK_RANGE + getattr(self.cfg, "KILL_REACH_MARGIN", 2.0)
+        # The victim is either gone already or still listed at 0 health (Minecraft
+        # keeps a dying mob for its death animation).
+        return any((pid not in self._prey_pos or pid in self._prey_dead)
+                   and math.hypot(px - ax, pz - az) <= reach
+                   for pid, (px, pz) in self._prey_pos_prev.items())
+
+    def _prey_names(self):
+        """The spawned TARGET_MOB plus any cfg.EXTRA_PREY_MOBS (e.g. the worlds' natural pigs)."""
+        return {self.cfg.TARGET_MOB} | set(getattr(self.cfg, "EXTRA_PREY_MOBS", ()))
+
+    def _is_prey(self, name):
+        return name in self._prey_names()
+
+    def _prey_height(self, name):
+        if name == self.cfg.TARGET_MOB:
+            return self.cfg.TARGET_HEIGHT
+        return getattr(self.cfg, "PREY_HEIGHTS", {}).get(name, self.cfg.TARGET_HEIGHT)
+
     def _find_target(self, entities, ax=0.0, az=0.0):
         """Return the target-mob entity nearest the agent, or None."""
         best, best_d = None, 1e9
         for ent in entities:
-            if ent.get("name") != self.cfg.TARGET_MOB:
+            if not self._is_prey(ent.get("name")):
                 continue
             d = abs(float(ent.get("x", 0)) - ax) + abs(float(ent.get("z", 0)) - az)
             if d < best_d:
@@ -614,7 +746,7 @@ class HuntingEnv:
         los = obs.get("LineOfSight", {})
         if not los:
             return False
-        return los.get("type") == self.cfg.TARGET_MOB or los.get("hitType") == "entity"
+        return self._is_prey(los.get("type")) or los.get("hitType") == "entity"
 
     def _encode_grid(self, raw_grid):
         expected = self.cfg.GRID_SIZE
@@ -633,12 +765,20 @@ class HuntingEnv:
         if y < self.cfg.FALL_Y_THRESHOLD:
             return self.cfg.REWARD_FELL, True, "fell"
 
+        # Lava pool: feet below the pool surface = in the lava.
+        lava = getattr(self, "_lava_cells", None)
+        if lava:
+            lx, lz = int(math.floor(float(obs.get("XPos", 0.0)))), int(math.floor(float(obs.get("ZPos", 0.0))))
+            gy = lava.get((lx, lz))
+            if gy is not None and y < gy + 0.95:
+                return getattr(self.cfg, "REWARD_LAVA", -30.0), True, "lava"
+
         # Stuck in a pit (e.g. shoved in by a pig): no way to hunt from there, so
         # charge for the time and end the episode if it does not climb out.
         pit_depth = getattr(self.cfg, "PIT_DEPTH", 0.0)
         if pit_depth and getattr(self, "_hm", None) is not None:
             x, z = float(obs.get("XPos", 0.0)), float(obs.get("ZPos", 0.0))
-            if self._pit_depth(x, z, y) >= pit_depth:
+            if self._pit_depth(x, z, y) >= pit_depth and self._trapped(x, z, y):
                 self._pit_steps += 1
                 if self._pit_steps >= self.cfg.PIT_MAX_STEPS:
                     return self.cfg.REWARD_PIT, True, "stuck_in_pit"
@@ -649,14 +789,18 @@ class HuntingEnv:
         # also lose health to the world (falls, drowning, suffocation).
         dmg_sig = getattr(self.cfg, "USE_DAMAGE_SIGNAL", False)
 
+        if getattr(self.cfg, "KILL_ORACLE", False):
+            if self._oracle_killed():
+                return self.cfg.REWARD_KILL, True, "killed"
+        # Legacy heuristics (envs without the oracle).
         # Kill: target visible with no life left, OR vanished after being damaged
-        if self._tgt_visible and self._tgt_life <= 0.0 and (self._damaged or not dmg_sig):
+        elif self._tgt_visible and self._tgt_life <= 0.0 and (self._damaged or not dmg_sig):
             return self.cfg.REWARD_KILL, True, "killed"
-        if self._target_seen and prev_visible and not self._tgt_visible and self._damaged:
+        elif self._target_seen and prev_visible and not self._tgt_visible and self._damaged:
             return self.cfg.REWARD_KILL, True, "killed"
         # Several targets (or wild ones nearby): the nearest one can change, so
         # count bodies instead.
-        if ((getattr(self.cfg, "N_TARGETS", 1) > 1 or getattr(self.cfg, "USE_DAMAGE_SIGNAL", False))
+        elif ((getattr(self.cfg, "N_TARGETS", 1) > 1 or getattr(self.cfg, "USE_DAMAGE_SIGNAL", False))
                 and self._damaged
                 and self._n_targets < getattr(self, "_n_targets_prev", 0)):
             return self.cfg.REWARD_KILL, True, "killed"

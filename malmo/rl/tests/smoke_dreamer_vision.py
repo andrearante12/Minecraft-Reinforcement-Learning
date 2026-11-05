@@ -130,7 +130,8 @@ def main(real):
         enc = FrozenEncoder("stub", pool_grid=4)
         buf = SequenceReplayBuffer(500, 12, 4)
         feats = enc(frames).cpu().numpy()
-        thumbs = make_thumbs(frames)
+        thumb_size = getattr(cfg, "VIS_THUMB", 64)
+        thumbs = make_thumbs(frames, thumb_size)
         for t in range(20):
             buf.add_obs({"feats": feats[t % 3], "thumbs": thumbs[t % 3]},
                         np.zeros(11, np.float32), t % 12, 0.0, t == 19)
@@ -139,7 +140,8 @@ def main(real):
         b = buf.sample_sequences(4)
         check("feats keep fp16, thumbs keep uint8",
               b["feats"].dtype == np.float16 and b["thumbs"].dtype == np.uint8)
-        check("batch shapes", b["feats"].shape == (4, 12, 17, 384) and b["thumbs"].shape == (4, 12, 64, 64, 3))
+        check("batch shapes", b["feats"].shape == (4, 12, 17, 384)
+              and b["thumbs"].shape == (4, 12, thumb_size, thumb_size, 3))
         check("obs_keys", sorted(buf.obs_keys()) == ["feats", "thumbs"])
 
         print("\n3. Feature world model")
@@ -259,6 +261,32 @@ def main(real):
         except (ValueError, RuntimeError):
             refused = True
         check("checkpoint from a different encoder config refuses to load", refused)
+
+        print("\n7. Lookahead planner (evaluation only)")
+        import time
+        cfg.PLAN_AT_ACT, cfg.PLAN_CANDIDATES, cfg.PLAN_SAMPLES, cfg.PLAN_HORIZON = True, 4, 8, 8
+        try:
+            agent.reset_eval_state()
+            o = envs[0].reset()
+            agent.select_action(o, greedy=True)                       # warm-up
+            t0 = time.time()
+            acts = [agent.select_action(envs[0]._obs(), greedy=True) for _ in range(10)]
+            ms = 1000 * (time.time() - t0) / 10
+            check("planner returns valid actions", all(0 <= a < cfg.N_ACTIONS for a in acts))
+            check("planner scored {0} candidates, all finite".format(len(agent.last_plan)),
+                  len(agent.last_plan) == 4 and all(np.isfinite(v) for v in agent.last_plan.values()))
+            print("    {0:.1f} ms per planned action (incl. encoder)".format(ms))
+            cfg.PLAN_SCORE = "worst"
+            check("worst-case scoring runs", 0 <= agent.select_action(envs[0]._obs(), greedy=True) < cfg.N_ACTIONS)
+            # 1 candidate -> must pick the actor's top action.
+            cfg.PLAN_CANDIDATES, cfg.PLAN_SCORE = 1, "mean"
+            agent.reset_eval_state()
+            torch.manual_seed(3)
+            a_plan = agent.select_action(o, greedy=True)
+            feat = agent.world_model.rssm.get_feat(agent._eval_state)
+            check("1 candidate == actor's greedy action", a_plan == int(agent.model(feat)[0].argmax()))
+        finally:
+            cfg.PLAN_AT_ACT, cfg.PLAN_CANDIDATES, cfg.PLAN_SCORE = False, 4, "mean"
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print("\nALL DREAMER VISION CHECKS PASSED")

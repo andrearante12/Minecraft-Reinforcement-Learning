@@ -1,0 +1,26 @@
+\documentclass[tikz,border=12pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}
+  \tikzset{box/.append style={minimum width=3.6cm, minimum height=1.7cm, font=\small}}
+  % acting loop
+  \node[box] (env) at (0,0) {Environment\\camera frame +\\11 proprio numbers};
+  \node[box] (enc) at (5.8,0) {\textbf{Frozen} DINOv2\\pretrained image model};
+  \node[box] (mid) at (11.8,0) {Dreamer internal model\\input layers + RSSM\\\textbf{(recurrent memory)}};
+  \node[box] (pol) at (17.8,0) {Policy\\actor + critic};
+  \draw[arr] (env) -- (enc);
+  \draw[arr] (enc) -- node[lbl, above] {6{,}539 numbers} (mid);
+  \draw[arr] (mid) -- (pol);
+  \draw[arr] (pol.north) -- ++(0,1.2) -| node[lbl, above, pos=0.25] {action} (env.north);
+
+  % learning
+  \node[box] (rep) at (5.8,-3.4) {Replay buffer\\real experience};
+  \node[box] (fit) at (11.8,-3.4) {Train world model\\predict next frame,\\reward, done};
+  \node[box] (img) at (17.8,-3.4) {Imagination\\15-step rollouts\\train policy};
+  \draw[arr] (env.south) -- ++(0,-1.0) -| (rep.west |- rep.west);
+  \draw[arr] (rep) -- (fit);
+  \draw[arr] (fit.north) -- node[lbl, right] {learns} (mid.south);
+  \draw[arr] (fit) -- (img);
+  \draw[arr] (img.north) -- node[lbl, right] {improves} (pol.south);
+\end{tikzpicture}
+\end{document}

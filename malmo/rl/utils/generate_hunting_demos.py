@@ -161,13 +161,34 @@ def scripted_action_vision(vec, priv, cfg, mem):
     return ACT_SPRINT if dist > 4.0 else ACT_FORWARD
 
 
+def scripted_action_hazard(vec, hz, cfg, mem):
+    """Hazard teacher: walk into the nearest pit / lava pool (info["hazard_rel"] =
+    [dx, dz, is_lava]). These episodes teach the world model that hazards END an
+    episode with REWARD_PIT / REWARD_LAVA; they are never behaviour-cloned."""
+    if hz is None:
+        return ACT_FORWARD
+    dx, dz = hz[0], hz[1]
+    yaw = vec[1] * 180.0
+    herr = _wrap_deg(-180.0 * math.atan2(dx, dz) / math.pi - yaw)
+    if abs(herr) > 12.0:
+        return ACT_TURN_R if herr > 0 else ACT_TURN_L
+    speed = math.hypot(vec[4], vec[5])
+    mem["stuck"] = mem.get("stuck", 0) + 1 if (mem.get("moved") and speed < 0.05) else 0
+    mem["moved"] = True
+    if mem["stuck"] >= 2 and cfg.N_ACTIONS > ACT_JUMP_FWD:
+        mem["stuck"] = 0
+        return ACT_JUMP_FWD
+    return ACT_SPRINT if math.hypot(dx, dz) > 4.0 else ACT_FORWARD
+
+
 def run_vision(args, cfg):
     """Record frames + proprio demos with the privileged teacher."""
     from utils.demo_io import DemoWriter
     max_steps = args.max_steps or cfg.MAX_STEPS
     level = int(os.environ.get("MALMO_HUNT_LEVEL", cfg.HUNT_LEVEL))
     out_dir = args.output or os.path.join(
-        os.path.dirname(PARKOUR_ROOT), "demos", "{0}_{1}_L{2}".format(args.env, cfg.PREY, level))
+        os.path.dirname(PARKOUR_ROOT), "demos", "{0}_{1}_L{2}{3}".format(
+            args.env, cfg.PREY, level, "_hazard" if args.hazard else ""))
     writer = DemoWriter(out_dir, args.env)
     env = EnvClient(cfg.INPUT_SIZE, port=args.port, video=True,
                     frame_shape=(cfg.VIDEO_HEIGHT, cfg.VIDEO_WIDTH, cfg.VIDEO_CHANNELS))
@@ -183,15 +204,18 @@ def run_vision(args, cfg):
     try:
         for ep_idx in range(args.episodes):
             vec, frame = env.reset()
-            priv, mem, total, outcome = None, {}, 0.0, "timeout"
+            priv, hz, mem, total, outcome = None, None, {}, 0.0, "timeout"
             writer.begin_episode()
             for _ in range(max_steps):
-                action = scripted_action_vision(vec, priv, cfg, mem)
+                if args.hazard:
+                    action = scripted_action_hazard(vec, hz, cfg, mem)
+                else:
+                    action = scripted_action_vision(vec, priv, cfg, mem)
                 (next_vec, next_frame), reward, done, info = env.step(action)
                 writer.add(frame, vec, action, reward, done,
                            privileged=priv if priv is not None else no_target)
                 total += reward
-                vec, frame, priv = next_vec, next_frame, info.get("privileged")
+                vec, frame, priv, hz = next_vec, next_frame, info.get("privileged"), info.get("hazard_rel")
                 if done:
                     outcome = info.get("outcome", "unknown")
                     break
@@ -219,6 +243,9 @@ def parse_args():
     parser.add_argument("--output",   type=str, default=None,
                         help="Output JSON path (default: demos/hunting.json); a directory "
                              "for hunting_vision (default: demos/hunting_vision_L<level>/)")
+    parser.add_argument("--hazard", action="store_true",
+                        help="vision envs: scripted teacher walks INTO the nearest pit/lava "
+                             "(hazard endings for the world model; output dir gets a _hazard suffix)")
     parser.add_argument("--max-steps", type=int, default=None,
                         help="Max steps per episode (default: cfg.MAX_STEPS)")
     return parser.parse_args()
